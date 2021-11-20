@@ -170,13 +170,20 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: ami-0b4b828dd7833db9b
-      InstanceType: t2.medium
+      InstanceType: t2.large
       Monitoring: "true"
       DisableApiTermination: "false"
       IamInstanceProfile:
         Ref: ResearchGatewayInstanceProfile
       KeyName:
         Ref: KeyName1
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp2
+            VolumeSize: '30'
+            DeleteOnTermination: 'true'
+            Encrypted: 'true'
       SubnetId:
         Ref: Subnet1
       SecurityGroupIds:
@@ -210,7 +217,7 @@ Resources:
                       - ' '
                       - - fixmongo.sh
                         - Fn::Join:
-                            - '-'
+                            - ''
                             - - Ref: Environment
                               - cc 
                         - Ref: AdminPassword 
@@ -236,7 +243,7 @@ Resources:
                       - - fixdocdb.sh
                         - Ref: DocumentDBInstanceURL
                         - Fn::Join:
-                            - '-'
+                            - ''
                             - - Ref: Environment
                               - cc
                         - rguser 
