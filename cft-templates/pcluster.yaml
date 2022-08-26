@@ -17,6 +17,7 @@ Metadata:
           - HeadNodeInstanceType
           - VpcId
           - HeadNodeSubnetId
+          - FileSystemId
       - Label:
           default: Scheduler Configuration
         Parameters:
@@ -107,6 +108,10 @@ Parameters:
   CustomAMI:
     Type: String
     Description: Enter the AMI Id of a custom AMI if you wish to use a non-default AMI. e.g. ami-12345678. The AMI Id entered should exist in this project account and region
+    Default: default
+  FileSystemId:
+    Type: String
+    Description: Enter the File System Id of the FSx for Lustre file system which you want to use. e.g. fs-12345678. Leave this field to default if you do not want to use FSx for Lustre
     Default: default  
   
 
@@ -185,6 +190,7 @@ Resources :
               - dynamodb:*
               - route53:*
               - ssm:*
+              - fsx:*
              Resource: "*"
     InstanceSecurityGroup:
       Type: AWS::EC2::SecurityGroup
@@ -223,8 +229,9 @@ Resources :
               trap '/opt/aws/bin/cfn-signal --exit-code 1 --resource EC2Instance --region ${AWS::Region} --stack ${AWS::StackName}' ERR    
               sudo yum update -y --security        
               cd /home/ec2-user/parallel-update             
-              sudo -u ec2-user ./Provision-pcluster.sh ${Scheduler} ${AWS::Region} ${HeadNodeInstanceType} ${HeadNodeSubnetId} ${KeyPair} ${WorkerNodeInstanceType} ${ComputeEnvMinvCpus} ${ComputeEnvMaxvCpus} ${WorkerNodeSubnetId} ${ComputeEnvDesiredvCpus} ${SpotBidPercentage} ${AWS::StackName} ${CustomAMI}
+              sudo -u ec2-user ./Provision-pcluster.sh ${Scheduler} ${AWS::Region} ${HeadNodeInstanceType} ${HeadNodeSubnetId} ${KeyPair} ${WorkerNodeInstanceType} ${ComputeEnvMinvCpus} ${ComputeEnvMaxvCpus} ${WorkerNodeSubnetId} ${ComputeEnvDesiredvCpus} ${SpotBidPercentage} ${AWS::StackName} ${CustomAMI} ${FileSystemId}
               /opt/aws/bin/cfn-signal --exit-code 0 --resource EC2Instance --region ${AWS::Region} --stack ${AWS::StackName}
+              sleep 10
               aws ec2 stop-instances --instance-ids `wget -qO- http://instance-data/latest/meta-data/instance-id`
 
 Outputs:

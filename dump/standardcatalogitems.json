@@ -731,25 +731,25 @@
                             "is_ami_required" : true,
                             "ami_id_list" : [
                                     {
-                                            "us-east-1" : "ami-008c509fcf5487b2f"
+                                            "us-east-1" : "ami-0e39ccd4035f31650"
                                     },
                                     {
-                                            "us-east-2" : "ami-0c38985078358f3aa"
+                                            "us-east-2" : "ami-03b8ee25b001fab28"
                                     },
                                     {
-                                            "us-west-1" : "ami-04f1e56b19a2adbf3"
+                                            "us-west-1" : "ami-0386b88e451146b25"
                                     },
                                     {
-                                            "us-west-2" : "ami-0af5038b962a46099"
+                                            "us-west-2" : "ami-03004add5f9e50a13"
                                     },
                                     {
-                                            "ap-south-1" : "ami-0487808e91e9cb859"
+                                            "ap-south-1" : "ami-0d715e2c52a2b2f9f"
                                     },
                                     {
-                                            "ap-southeast-1" : "ami-0387151f1797dfbc9"
+                                            "ap-southeast-1" : "ami-07ec27abb11950d5f"
                                     },
                                     {
-                                            "ap-southeast-2" : "ami-049b783c5aa1ed5f5"
+                                            "ap-southeast-2" : "ami-08609a1610860c8e8"
                                     }
                             ],
                             "ami_path" : "/RL/RG/StandardCatalog/ParallelCluster-linux-ami"
