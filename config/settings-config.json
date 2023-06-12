@@ -804,6 +804,10 @@
           {
             "action": "Edit",
             "imageUrl": "../../assets/images/editStudy.png"
+          },
+          {
+            "action": "Terminate",
+            "imageUrl": "../../assets/images/delete@2x.png"
           }
         ]
       },

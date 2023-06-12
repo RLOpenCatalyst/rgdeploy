@@ -204,5 +204,6 @@
   "cronJobForEodPIReport": "00 10 * * *",
   "sampleCSVForUser": "users.csv",
   "sampleCSVBucketRegion": "REPLACE_WITH_REGION",
-  "sessionMaxAge" : 900000
+  "sessionMaxAge" : 900000,
+  "defaultSubscriptionPeriod" : 30
 }
