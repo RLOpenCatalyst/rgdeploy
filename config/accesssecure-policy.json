@@ -210,8 +210,12 @@
                 "elasticloadbalancing:CreateLoadBalancerListeners",
                 "elasticloadbalancing:SetWebAcl",
                 "elasticloadbalancing:SetRulePriorities",
-                "ec2:ModifyInstanceAttribute"
-
+                "ec2:ModifyInstanceAttribute",
+                "ec2:CreateLaunchTemplate",
+                "ec2:DeleteLaunchTemplate",
+                "s3:PutBucketLogging",
+                "s3:GetBucketLogging",
+                "s3:DeleteBucketPolicy"
             ],
             "Resource": [
                 "*"
