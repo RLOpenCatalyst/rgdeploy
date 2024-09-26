@@ -1,0 +1,4 @@
+[permissions]
+%any% disallow builtin
+%any% deny file-download clipboard-copy
+%any% allow keyboard-sas display mouse pointer keyboard file-upload clipboard-paste
