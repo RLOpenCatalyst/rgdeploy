@@ -275,6 +275,13 @@ rm -f rstudio.tar.gz
 tar -czf nicedcv.tar.gz Nicedcv/*
 aws s3 cp ./nicedcv.tar.gz s3://"$bucketname/"
 rm -f nicedcv.tar.gz
+zip -r ec2-winsecure-image.zip ec2-secure-windows/*
+aws s3 cp ./ec2-winsecure-image.zip s3://"$bucketname/"
+rm -f ec2-winsecure-image.zip
+tar -czf Rhelnicedcv.tar.gz Rhelnicedcv/*
+aws s3 cp ./Rhelnicedcv.tar.gz s3://"$bucketname/"
+rm -f Rhelnicedcv.tar.gz
+
 
 cp ./PCluster/machine-images/config/infra/files/pcluster/slurm-main.yaml  ./PCluster/machine-images/config/infra/files/pcluster/slurm.yaml
 cp ./PCluster/machine-images/config/infra/files/pcluster/batch-main.yaml  ./PCluster/machine-images/config/infra/files/pcluster/batch.yaml
