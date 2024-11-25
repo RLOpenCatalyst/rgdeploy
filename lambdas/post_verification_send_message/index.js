@@ -1,12 +1,9 @@
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
-const ses = new SESClient({ region: "us-east-2" });
-
-export const handler = async (event) => {
+exports.handler = async (event) => {
   try {
     // Identify why this function was invoked
     if ("custom:created_by" in event.request.userAttributes) {
       let body = `Your Research Gateway account username is ${event.userName}`;
-      await sendEmail(event.request.userAttributes.email, body);
+      sendEmail(event.request.userAttributes.email, body); // Sending email asynchronously
     }
     // Return to Amazon Cognito
     return event;
@@ -18,6 +15,11 @@ export const handler = async (event) => {
 };
 
 async function sendEmail(to, body) {
+  const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
+  const { Config } = require("@aws-sdk/config");
+
+  const ses = new SESClient({ region: "us-east-1", credentials: Config.credentials });
+
   const eParams = {
     Destination: {
       ToAddresses: [to],
@@ -33,13 +35,13 @@ async function sendEmail(to, body) {
       },
     },
     // Replace source_email with your SES validated email address
-    Source: "rlc.support@relevancelab.com",
+    Source: "mailto:rlc.support@relevancelab.com",
   };
 
   try {
     const command = new SendEmailCommand(eParams);
-    const response = await ses.send(command);
-    console.log("Email sent:", response);
+    await ses.send(command); // Send email asynchronously
+    console.log("Email sent successfully");
   } catch (error) {
     console.error("Error sending email:", error);
   }
