@@ -27,9 +27,9 @@ docker pull $(cat "$RG_HOME/docker-compose.yml" | grep -i image | grep -i nginx 
 echo 'Pulling docker image for notificationsink'
 docker pull $(cat "$RG_HOME/docker-compose.yml" | grep -i image | grep -i notificationsink | awk '{print $2}' | uniq | tr -d '\r')
 
-
+echo 'Modifying HttpResponseHopLimit'
 ec2instanceid=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-
+aws ec2 modify-instance-metadata-options --instance-id "$ec2instanceid" --http-put-response-hop-limit 2 --http-endpoint enabled
 
 if [ -z $myurl ]; then
 	public_host_name="$(wget -q -O - http://169.254.169.254/latest/meta-data/public-hostname)"
