@@ -36,16 +36,6 @@ Resources:
       Description: "Configure Operating System Patches"
       Tags:
         Name: !Join ["-", ["ComponentConfigureOS", !Ref AWS::StackName]]
-        CostCenter: PG000000
-        CriticalityTier: Business Operational
-        Compliance: HIPAA
-        Environment: !Ref Environment
-        ApplicationName: ResearchGatewayPROD
-        Department: DataScience
-        ApplicationCustodian: txs908
-        ServiceNow: XXX
-        DepartmentEmail: txs908@miami.edu
-        UHITOwner: txs908
       Data: |
         name: ConfigureOS
         schemaVersion: 1.0
@@ -64,16 +54,7 @@ Resources:
       Description: "Configure SREWindows"
       Tags:
         Name: !Join ["-", ["ConfigureSREWindows", !Ref AWS::StackName]]
-        CostCenter: PG000000
-        CriticalityTier: Business Operational
-        Compliance: HIPAA
-        Environment: !Ref Environment
-        ApplicationName: ResearchGatewayPROD
-        Department: DataScience
-        ApplicationCustodian: txs908
-        ServiceNow: XXX
-        DepartmentEmail: txs908@miami.edu
-        UHITOwner: txs908
+        
       Data: !Sub |
         name: ComponentSREWindows
         description: This is the provisioner for SREWindows for Research Gateway
@@ -130,16 +111,6 @@ Resources:
       Description: "Install Notepad"
       Tags:
         Name: !Join ["-", ["ComponentNotepad", !Ref AWS::StackName]]
-        CostCenter: PG000000
-        CriticalityTier: Business Operational
-        Compliance: HIPAA
-        Environment: !Ref Environment
-        ApplicationName: ResearchGatewayPROD
-        Department: DataScience
-        ApplicationCustodian: txs908
-        ServiceNow: XXX
-        DepartmentEmail: txs908@miami.edu
-        UHITOwner: txs908
       Data: !Sub |
         schemaVersion: 1.0
         name: ComponentNotepad
@@ -164,50 +135,7 @@ Resources:
                   commands:
                     - $installerPath = "C:\\Users\\Administrator\\Notepad++\\Notepadpp v8.6.4.msi"
                     - if (Test-Path $installerPath) { Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installerPath`" /quiet /norestart" -Wait } else { echo "Installer not found at $installerPath" }
-  ComponentOffice365:
-    Type: "AWS::ImageBuilder::Component"
-    Properties:
-      Name: !Sub "ComponentOffice365-${AWS::StackName}"
-      Platform: "Windows"
-      SupportedOsVersions: ["Microsoft Windows Server 2022"]
-      Version: !Ref Ver
-      Description: "Install Microsoft Office 365"
-      Tags:
-        Name: !Join ["-", ["ComponentOffice365", !Ref AWS::StackName]]
-        CostCenter: PG000000
-        CriticalityTier: Business Operational
-        Compliance: HIPAA
-        Environment: !Ref Environment
-        ApplicationName: ResearchGatewayPROD
-        Department: DataScience
-        ApplicationCustodian: txs908
-        ServiceNow: XXX
-        DepartmentEmail: txs908@miami.edu
-        UHITOwner: txs908
-      Data: !Sub |
-        name: ComponentOffice365
-        description: This component installs Microsoft Office 365
-        schemaVersion: 1.0
-        phases:
-          - name: build
-            steps:
-              - name: DownloadOffice
-                action: S3Download
-                inputs:
-                  - source: s3://${SourceBucketName}/office365.zip
-                    destination: C:\\Users\\Administrator\\office365.zip
-              - name: ExtractOffice
-                action: ExecutePowerShell
-                inputs:
-                  commands:
-                    - echo "Extracting office365.zip..."
-                    - Expand-Archive -Path "C:\\Users\\Administrator\\office365.zip" -DestinationPath "C:\\Users\\Administrator\\office365" -Force
-              - name: InstallOffice
-                action: ExecutePowerShell
-                inputs:
-                  commands:
-                    - echo "Installing Microsoft Office..."
-                    - Start-Process -FilePath "C:\\Users\\Administrator\\office365\\setup.exe" -ArgumentList "/configure C:\\Users\\Administrator\\office365\\Configuration.xml" -Wait -NoNewWindow
+  
  
   ############
   # RECIPE
