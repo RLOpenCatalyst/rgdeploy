@@ -118,35 +118,26 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Sid: "InstancePermissions"
-            Effect: Allow
+          - Effect: Allow
             Action:
               - ec2:DescribeImages
               - ec2:CopyImage
               - ec2:ModifyImageAttribute
+              - ec2:ModifyInstanceMetadataOptions
               - ec2:CreateNetworkInterface
+              - iam:attachRolePolicy
+              - iam:createPolicy
+              - iam:createPolicyVersion
+              - iam:createRole
+              - iam:deletePolicy
+              - iam:deletePolicyVersion
+              - iam:detachRolePolicy
+              - iam:updateAssumeRolePolicy
               - elasticloadbalancing:RegisterTargets
+              - ses:*
+              - sns:*
               - sts:AssumeRole
             Resource: "*"
-          - Sid: "RoleRelatedPermissions"
-            Effect: Allow
-            Action:
-              - iam:AttachRolePolicy
-              - iam:CreateRole
-              - iam:DetachRolePolicy
-            Resource: 
-              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${BaseAccountPolicyName}"
-          - Sid: "PolicyRelatedPermissions"
-            Effect: Allow
-            Action:
-              - iam:CreatePolicy
-              - iam:CreatePolicyVersion
-              - iam:DeletePolicy
-              - iam:DeletePolicyVersion
-              - iam:UpdateAssumeRolePolicy
-            Resource: 
-              - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
-
   RGPortalSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -155,30 +146,19 @@ Resources:
         Ref: VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: "443"
-          ToPort: "443"
+          FromPort: "80"
+          ToPort: "80"
           CidrIp:
             Ref: AccessFromCidr
       Tags:
         - Key: Name
           Value:
             Fn::Sub: ${AWS::StackName}-SecurityGroup
-  IMDSv2LaunchTemplate:
-    Type: AWS::EC2::LaunchTemplate
-    Properties:
-        LaunchTemplateName: IMDSV2
-        LaunchTemplateData:
-          MetadataOptions:
-            HttpTokens: required
-            HttpPutResponseHopLimit: 2
   RGEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0503c43f0c897b608
+      ImageId: ami-0fb3fe843311c4412
       InstanceType: t3.large
-      LaunchTemplate: 
-          LaunchTemplateName: IMDSV2
-          Version: 1
       Monitoring: "true"
       DisableApiTermination: "false"
       IamInstanceProfile:
@@ -189,7 +169,7 @@ Resources:
         - DeviceName: /dev/sda1
           Ebs:
             VolumeType: gp2
-            VolumeSize: "50"
+            VolumeSize: "80"
             DeleteOnTermination: "true"
             Encrypted: "true"
       SubnetId:
