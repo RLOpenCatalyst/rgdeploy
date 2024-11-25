@@ -83,7 +83,7 @@ fi
 jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
 	jq -r ".googleOAuthCredentials.callbackURL=\"$baseurl\"" |
 	jq -r ".baseAccountInstanceRoleName=\"$role_name\"" |
-	jq -r '.baseAccountPolicyName="RG-Portal-CrossAccount-Policy-$myrunid"' |
+	jq -r '.baseAccountPolicyName="RG-Portal-CrossAccount-Policy"' |
 	jq -r ".baseAccountNumber=\"$ac_name\"" |
 	jq -r ".researchGatewayAPIToken=\"$generated_token\"" |
 	jq -r ".BucketName=\"$mys3bucket\"" |
