@@ -41,33 +41,6 @@ Resources:
           Value: !Sub ${AWS::StackName}
         - Key: Name
           Value: !Sub ${Namespace} 
-  BucketPolicy:
-    Type: 'AWS::S3::BucketPolicy'
-    Properties:
-      Bucket: !Ref S3Bucket
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: EnforceTLS12
-            Effect: Deny
-            Principal: '*'
-            Action: 's3:*'
-            Resource: 
-              - !Sub '${S3Bucket.Arn}'
-              - !Sub '${S3Bucket.Arn}/*'
-            Condition:
-              Bool:
-                'aws:SecureTransport': 'false'
-          - Sid: EnforceTLS12OrHigher
-            Effect: Deny
-            Principal: '*'
-            Action: 's3:*'
-            Resource: 
-              - !Sub '${S3Bucket.Arn}'
-              - !Sub '${S3Bucket.Arn}/*'
-            Condition:
-              NumericLessThan:
-                's3:TLSVersion': '1.2'
 
 Outputs:
   BucketArn:
