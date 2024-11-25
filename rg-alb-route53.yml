@@ -107,10 +107,10 @@ Resources:
         Properties:
             HealthCheckIntervalSeconds: 30
             HealthCheckPath: "/"
-            Port: 443
-            Protocol: "HTTPS"
+            Port: 80
+            Protocol: "HTTP"
             HealthCheckPort: "traffic-port"
-            HealthCheckProtocol: "HTTPS"
+            HealthCheckProtocol: "HTTP"
             HealthCheckTimeoutSeconds: 5
             UnhealthyThresholdCount: 2
             TargetType: "instance"
@@ -127,8 +127,8 @@ Resources:
             DefaultActions:
               - Type: "forward"
                 TargetGroupArn: !Ref RGTargetGroup
-            Port: 443
-            Protocol: "HTTPS"
+            Port: 80
+            Protocol: "HTTP"
             LoadBalancerArn: !Ref RGApplicationLoadBalancer
            
 Outputs:        
