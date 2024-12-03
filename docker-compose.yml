@@ -18,7 +18,7 @@ services:
       - sp2net
 
   cc-3102:
-    image: 045938549113.dkr.ecr.us-east-2.amazonaws.com/researchportal:_fd_1.21.2_b2128
+    image: 045938549113.dkr.ecr.us-east-2.amazonaws.com/researchportal:_fd_1.22.0_b2344
     secrets:
       - source: sp2prod-config.json
         target: /rlc/cc/server/app/config/config.json
@@ -42,7 +42,7 @@ services:
     
     
   scheduler-3102:
-    image: 045938549113.dkr.ecr.us-east-2.amazonaws.com/researchportal:_fd_1.21.2_b2128
+    image: 045938549113.dkr.ecr.us-east-2.amazonaws.com/researchportal:_fd_1.22.0_b2344
     secrets:
       - source: sp2prod-config.json
         target: /rlc/cc/server/app/config/config.json
