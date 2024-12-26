@@ -1519,7 +1519,7 @@
   "tags" : [ 
       {
           "Key" : "EstimatedTimeToProvision",
-          "Value" : "10 Minutes"
+          "Value" : "15 Minutes"
       }, 
       {
           "Key" : "DetailsLink",
