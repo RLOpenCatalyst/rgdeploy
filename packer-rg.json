@@ -6,7 +6,7 @@
     "awsRegion": "",
     "RG_HOME": "/opt/deploy/sp2",
     "RG_SRC": "/home/ubuntu",
-    "amiName": "RG-AMI-1.21.0"
+    "amiName": "RG-AMI-Ubuntu-test2.22.0"
   },
   "builders": [
     {
@@ -52,20 +52,14 @@
       "script": "./provisioners/provision-docker.sh"
     },
     {
-
       "type": "shell",
-      "inline": [
-         "sudo apt install awscli -y"
-        ]
+      "script": "./provisioners/provision-awscli.sh"
     },
     {
       "type": "shell",
       "script": "./provisioners/provision-cfn-helper.sh"
     },
-    {
-      "type": "shell",
-      "script": "./provisioners/provision-awscli.sh"
-    },
+    
     {
       "type": "shell",
       "script": "./provisioners/provision-ecr.sh"
