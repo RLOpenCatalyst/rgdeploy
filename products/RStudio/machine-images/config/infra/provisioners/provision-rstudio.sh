@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-
+# exec > >(tee /var/log/provision-rstudio.log|logger -t provision-rst -s 2>/dev/console) 2>&1
 # Various development packages needed to compile R
 sudo yum update -y
-sudo yum install -y gcc-7.3.* gcc-gfortran-7.3.* gcc-c++-7.3.*
-sudo yum install -y java-1.8.0-openjdk-devel-1.8.0.*
+sudo yum install -y gcc gcc-gfortran gcc-c++
+sudo yum install -y java-1.8.0-openjdk-devel-1.8.0
 #sudo yum install -y readline-devel-6.2 zlib-devel-1.2.* bzip2-devel-1.0.* xz-devel-5.2.* pcre-devel-8.32
-sudo yum install -y libcurl-devel-7.79.* libpng-devel-1.5.* cairo-devel-1.15.* pango-devel-1.42.*
-sudo yum install -y xorg-x11-server-devel-1.20.* libX11-devel-1.6.* libXt-devel-1.1.*
+sudo yum install -y libcurl-devel libpng-devel cairo-devel pango-devel
+sudo yum install -y xorg-x11-server-devel libX11-devel libXt-devel
 
 sudo yum groupinstall -y "Development Tools"
 sudo yum install -y readline-devel
@@ -14,10 +14,14 @@ sudo yum install -y libX11-devel
 sudo yum install -y libX11-devel libXt-devel
 sudo yum install -y bzip2-devel
 sudo yum install -y pcre2-devel
-#sudo yum install -y libcurl-devel
+sudo yum install -y xz xz-devel
+#yum install libjpeg-turbo-devel
 
+
+#add sleep for 10 second to install R
+sleep 10
 # Install R from source (https://docs.rstudio.com/resources/install-r-source/)
-R_VERSION="4.3.1"
+R_VERSION="4.3.2"
 mkdir -p "/tmp/R/"
 curl -s "https://cran.r-project.org/src/base/R-4/R-${R_VERSION}.tar.gz" > "/tmp/R/R-${R_VERSION}.tar.gz"
 cd "/tmp/R/"
@@ -29,6 +33,7 @@ sudo make install
 cd "../../.."
 
 # Install RStudio
+mkdir -p "/tmp/rstudio"
 rstudio_rpm="rstudio-server-rhel-2023.09.0-463-x86_64.rpm"
 curl -s "https://download2.rstudio.org/server/centos7/x86_64/${rstudio_rpm}" > "/tmp/rstudio/${rstudio_rpm}"
 sudo yum install -y "/tmp/rstudio/${rstudio_rpm}"
@@ -92,10 +97,10 @@ sudo su - -c "R -e \"install.packages('tidyverse', version='2.0.0', repos='http:
 sudo su - -c "R -e \"install.packages('devtools', version='2.4.5', repos='http://cran.rstudio.com/')\""
 sudo su - -c "R -e \"install.packages('kableExtra', version='1.3.4', repos='http://cran.rstudio.com/')\""
 sudo su - -c "R -e \"install.packages('survival', version='3.5-7', repos='http://cran.rstudio.com/')\""
-sudo su - -c "R -e \"install.packages('survminer', version='0.4.9', repos='http://cran.rstudio.com/')\""
+# sudo su - -c "R -e \"install.packages('survminer', version='0.4.9', repos='http://cran.rstudio.com/')\""
 sudo su - -c "R -e \"install.packages('MASS', version='7.3.53.1', repos='http://cran.rstudio.com/')\""
 sudo su - -c "R -e \"install.packages('quantreg', version='5.85', repos='http://cran.rstudio.com/')\""
-sudo su - -c "R -e \"install.packages('DescTools', version='0.99.41', repos='http://cran.rstudio.com/')\""
+# sudo su - -c "R -e \"install.packages('DescTools', version='0.99.41', repos='http://cran.rstudio.com/')\""
 
 # Install script that checks idle time and shuts down if max idle is reached
 sudo mv "/tmp/rstudio/check-idle" "/usr/local/bin/"

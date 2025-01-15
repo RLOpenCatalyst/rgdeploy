@@ -1,0 +1,5 @@
+flask
+requests
+boto3
+cx_Freeze
+pywin32

@@ -198,7 +198,7 @@ Resources:
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
       Policies:
-      - PolicyName: root
+      - PolicyName: sqid
         PolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -278,10 +278,7 @@ Resources:
     Properties:
       GroupDescription: Allows HTTP and HTTPS from private instances to NAT instances
       SecurityGroupIngress:
-      - CidrIp: '10.0.0.0/25'
-        FromPort: 22
-        ToPort: 22
-        IpProtocol: TCP
+      
       - CidrIp: '10.0.0.0/25'
         FromPort: 80
         ToPort: 80
@@ -384,6 +381,7 @@ Resources:
             .rlcatalyst.com
             EOF
             systemctl restart squid || service squid restart        
+            echo "*/2 * * * * systemctl is-active --quiet squid || systemctl restart squid" | crontab -      
             /opt/aws/bin/cfn-signal -e $? --stack "${AWS::StackName}" --resource "EC2Instance" --region "${AWS::Region}"
 
       Tags:

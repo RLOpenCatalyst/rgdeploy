@@ -7,6 +7,10 @@ Parameters:
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
+  Password:
+    Type: String
+    NoEcho: True
+    Description: The administrator password must be at least six characters long and include characters from at least three of the following categories- English uppercase letters, English lowercase letters, base-10 digits and non-alphabetic symbols.  
   S3Mounts:
     Type: String
     Description: A JSON array of objects with name, bucket, and prefix properties used to mount data  
@@ -89,6 +93,18 @@ Resources:
             Action:
               - 'ssm:*'
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssmmessages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ec2messages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sns:Publish'     
+            Resource: '*'          
           - Effect: Deny
             NotAction:
               - 's3:*'
@@ -120,6 +136,7 @@ Resources:
             PolicyDocument: !Ref IamPolicyDocument
       ManagedPolicyArns:
         - Ref: SSMPolicy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       PermissionsBoundary: !Ref InstanceRolePermissionBoundary        
 
   InstanceProfile:
@@ -144,7 +161,7 @@ Resources:
                 ${S3Mounts}    
     CreationPolicy:
       ResourceSignal:
-        Timeout: "PT15M"   
+        Timeout: "PT30M"   
     Properties:           
       UserData:
         Fn::Base64: !Sub |
@@ -152,6 +169,9 @@ Resources:
           # Redirect stdout and stderr to a log file and the console
           $scriptPath = "C:\Users\Administrator\log\user-data.log"
           Start-Transcript -Path $scriptPath -Append  
+
+          echo "setting Administrator to Admin@123"
+          net user Administrator ${Password}
 
           echo "setting user token for nice-dcv"
           C:\Users\Administrator\set_user_token.bat  

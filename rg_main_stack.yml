@@ -120,7 +120,6 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - config:*
               - ec2:DescribeImages
               - ec2:CopyImage
               - ec2:ModifyImageAttribute
@@ -138,7 +137,6 @@ Resources:
               - ses:*
               - sns:*
               - sts:AssumeRole
-              - cloudformation:*
             Resource: "*"
   RGPortalSG:
     Type: AWS::EC2::SecurityGroup
@@ -150,11 +148,6 @@ Resources:
         - IpProtocol: tcp
           FromPort: "80"
           ToPort: "80"
-          CidrIp:
-            Ref: AccessFromCidr
-        - IpProtocol: tcp
-          FromPort: "22"
-          ToPort: "22"
           CidrIp:
             Ref: AccessFromCidr
       Tags:
@@ -176,7 +169,7 @@ Resources:
         - DeviceName: /dev/sda1
           Ebs:
             VolumeType: gp2
-            VolumeSize: "50"
+            VolumeSize: "80"
             DeleteOnTermination: "true"
             Encrypted: "true"
       SubnetId:

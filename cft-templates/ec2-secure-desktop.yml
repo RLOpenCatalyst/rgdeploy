@@ -87,6 +87,18 @@ Resources:
             Action:
               - 'ssm:*'
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssmmessages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ec2messages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sns:Publish'     
+            Resource: '*'                   
           - Effect: Deny
             NotAction:
               - 's3:*'
@@ -117,7 +129,8 @@ Resources:
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
       ManagedPolicyArns:
-        - Ref: SSMPolicy            
+        - Ref: SSMPolicy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore        
       PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
 
@@ -438,12 +451,13 @@ Resources:
       
       ImageId: "{{resolve:ssm:/RL/RG/StandardCatalog/linux-nice-dcv-ami}}"
       IamInstanceProfile: !Ref InstanceProfile
+            
       
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
           Ebs:
             VolumeSize: !Ref EBSVolumeSize
-            Encrypted: true
+            Encrypted: true    
                  
       NetworkInterfaces:
         - AssociatePublicIpAddress: 'false'
