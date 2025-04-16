@@ -22,7 +22,7 @@ Parameters:
     Type: Number
     Default: 32 
   AvailabilityZone:
-    Description: choose the Availability Zone in which to create the volume. A volume can be attached only to  instances that is in the same Availability Zone.
+    Description: Select the availability zone in which to create the instance. If you plan to attach a secondary volume to the instance, create this instance in the same AvailabilityZone as the volume you created.
     Type: AWS::EC2::AvailabilityZone::Name       
   InstanceType:
     Type: String
