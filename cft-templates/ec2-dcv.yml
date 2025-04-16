@@ -47,6 +47,9 @@ Parameters:
     Default: 0.0.0.0/0
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  AvailabilityZone:
+    Description: choose the Availability Zone in which to create the volume. A volume can be attached only to  instances that is in the same Availability Zone.
+    Type: AWS::EC2::AvailabilityZone::Name    
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']

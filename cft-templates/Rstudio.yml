@@ -37,6 +37,9 @@ Parameters:
   KeyPair:
     Type: "AWS::EC2::KeyPair::KeyName"
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance. If no key pairs exist, please create one from the button next to the dropdown. Please contact your Administrator if you are unable to create one.
+  AvailabilityZone:
+    Description: choose the Availability Zone in which to create the volume. A volume can be attached only to  instances that is in the same Availability Zone.
+    Type: AWS::EC2::AvailabilityZone::Name   
   
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']

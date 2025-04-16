@@ -45,6 +45,9 @@ Parameters:
   LatestAmiId:
     Type:  'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  AvailabilityZone:
+    Description: choose the Availability Zone in which to create the volume. A volume can be attached only to  instances that is in the same Availability Zone.
+    Type: AWS::EC2::AvailabilityZone::Name    
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']

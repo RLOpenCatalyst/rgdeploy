@@ -20,7 +20,10 @@ Parameters:
   EBSVolumeSize:
     Description: The initial size of the volume (in GBs), Select volume size must be 32 or above.
     Type: Number
-    Default: 32    
+    Default: 32 
+  AvailabilityZone:
+    Description: choose the Availability Zone in which to create the volume. A volume can be attached only to  instances that is in the same Availability Zone.
+    Type: AWS::EC2::AvailabilityZone::Name       
   InstanceType:
     Type: String
     Description: Choose the instance type e.g t3.medium (2vCPU , 2GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge(4vCPU, 16GiB RAM)
