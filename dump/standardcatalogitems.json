@@ -55,987 +55,6 @@
   },
   {
     "_id": {
-      "$oid": "60504955135663522b880ade"
-    },
-    "name": "Docker on Amazon EC2 Linux",
-    "description": "Use Docker, a popular container orchestration software, on Amazon Elastic Compute Cloud (Amazon EC2).",
-    "fileName": "ec2-linux-docker.yml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/DockerEC2linux.html"
-      },
-      {
-        "Key": "Service",
-        "Value": "EC2"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "EnvironmentInstanceFiles",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "IamPolicyDocument",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "S3Mounts",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-    }
-  },
-  {
-    "_id": {
-      "$oid": "60504955135663522b880edb"
-    },
-    "name": "MySQL",
-    "description": "MySQL container on Docker EC2",
-    "fileName": "ec2-linux-docker-mysql.yml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/MySql.html"
-      },
-      {
-        "Key": "Service",
-        "Value": "EC2"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "EnvironmentInstanceFiles",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "IamPolicyDocument",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "S3Mounts",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-    }
-  },
-
-  {
-    "_id": {
-      "$oid": "60504955135663522b880cfd"
-    },
-    "name": "Amazon EC2 Linux",
-    "description": "Amazon Elastic Compute Cloud (Amazon EC2) is a web service that provides resizable compute capacity in the cloud",
-    "fileName": "ec2-EIP.yml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/linux.html"
-      },
-      {
-        "Key": "Service",
-        "Value": "EC2"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "EnvironmentInstanceFiles",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "IamPolicyDocument",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "S3Mounts",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-    }
-  },
-  {
-    "_id": {
-      "$oid": "60504955135663522b880cff"
-    },
-    "name": "Amazon Sagemaker",
-    "description": "Amazon SageMaker is a fully managed service that provides the ability to build, train, and deploy ML models",
-    "fileName": "sagemaker-template-with-url.yml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/sagemaker.html"
-      },
-      {
-        "Key": "Service",
-        "Value": "Sagemaker"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code" : "CFT_PARAMS",
-          "params" : [
-                  {
-                          "name" : "EnvironmentInstanceFiles",
-                          "type" : "RL::SC::PARAM::HD"
-                  },
-                  {
-                          "name" : "IamPolicyDocument",
-                          "type" : "RL::SC::PARAM::HD"
-                  },
-                  {
-                          "name" : "S3Mounts",
-                          "type" : "RL::SC::PARAM::HD"
-                  },
-                  {
-                          "name" : "Namespace",
-                          "type" : "RL::SC::PARAM::HD"
-                  }
-          ]
-       }   
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-    }
-  },
-  {
-    "_id": {
-      "$oid": "605db54abd5cfd4d85b01079"
-    },
-    "name": "RStudio",
-    "description": "RStudio provides free and open source tools for R and enterprise-ready professional software for data science teams to develop and share their work at scale.",
-    "fileName": "Rstudio.yml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "15 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/rstudio.html"
-      },
-      {
-        "Key": "Service",
-        "Value": "Rstudio"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      },
-      {
-        "Key": "ALB",
-        "Value": "true"
-      },
-      {
-        "Key": "ApplicationPort",
-        "Value": "443"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "EnvironmentInstanceFiles",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "IamPolicyDocument",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "S3Mounts",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [
-        {
-          "code": "AMI_ID_REQUIRED",
-          "is_ami_required": true,
-          "ami_id_list": [
-            {
-              "us-east-1": "ami-0a4d426780e0f105a"
-            },
-            {
-              "us-east-2": "ami-013010453aaa13c96"
-            },
-            {
-              "us-west-1": "ami-08cfdcb0af9270b0a"
-            },
-            {
-              "us-west-2": "ami-0f5ded4f433e7ad1a"
-            },
-            {
-              "ap-south-1": "ami-07db46df254bc693b"
-            },
-            {
-              "ap-southeast-1": "ami-068731557c511b935"
-            },
-            {
-              "ap-southeast-2": "ami-0a6dfa4f63da1830e"
-            }
-          ],
-          "ami_path": "/RL/RG/StandardCatalog/RStudio"
-        }
-      ],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-    }
-  },
-  {
-    "_id": {
-      "$oid": "6076865ad0881f46a105da23"
-    },
-    "name": "Amazon EC2 Windows",
-    "description": "Amazon Elastic Compute Cloud (Amazon EC2) is a web service that provides secure, resizable compute capacity in the cloud.",
-    "fileName": "windows-ec2.yaml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/windows.html"
-      },
-      {
-        "Key": "Service",
-        "Value": "EC2"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-    }
-  },
-  {  
-    "_id": {
-      "$oid": "610166d6bbe50a00122a5139"
-    },
-        "name" : "Ubuntu 20 04 on Amazon EC2",
-        "description" : "Use Ubuntu 20.04, on Amazon Elastic Compute Cloud (Amazon EC2).",
-        "fileName" : "ec2-ubuntu.yml",
-        "tags" : [
-                {
-                        "Key" : "EstimatedTimeToProvision",
-                        "Value" : "10 Minutes"
-                },
-                {
-                        "Key" : "DetailsLink",
-                        "Value" : "https://researchgateway.readthedocs.io/en/latest/ubuntu.html"
-                },
-                {
-                        "Key" : "Service",
-                        "Value" : "EC2"
-                },
-                {
-                        "Key" : "TypeOfProduct",
-                        "Value" : "Research"
-                }
-        ],
-        "owner" : "RL",
-        "portfolio" : "RGPortfolio",
-        "availableRegions" : [ ],
-        "assignedOU" : [ ],
-        "metaData" : {
-                "pre_provisioning" : [
-                        {
-                                "code" : "CFT_PARAMS",
-                                "params" : [
-                                        {
-                                                "name" : "EnvironmentInstanceFiles",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "IamPolicyDocument",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "S3Mounts",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "Namespace",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        }
-                                ]
-                        }
-                ],
-                "post_provisioning" : [ ],
-                "checks_before_assigning_product" : [ ],
-                "checks_after_assigning_product" : [ ],
-                "permission_required" : {
-
-                },
-                "cost_resource": true
-        }
-  }, 
-  {
-    "_id": {
-      "$oid": "611b96eb4548787205d67866"
-    },
-    "name": "Nextflow Advanced",
-    "description": "Use the scalability of AWS Batch to run Nextflow workflows. This is ideal for large workloads and larger data-sets.",
-    "fileName": "nextflow-advanced.yaml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/nextflow.html"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      },
-      {
-        "Key": "ALB",
-        "Value": "true"
-      },
-      {
-        "Key": "ApplicationPort",
-        "Value": "443"
-      },
-      {
-        "Key": "Service",
-        "Value": "Nextflow"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "PipelineName",
-              "type": "RL::SC::PIPELINE"
-            },
-            {
-              "name": "PipelineContainer",
-              "type": "RL::SC::PIPELINE_CONTAINER"
-            },
-            {
-              "name": "InputDataLocation",
-              "type": "RL::SC::S3",
-              "productName": "Amazon S3"
-            },
-            {
-              "name": "OutputDataLocation",
-              "type": "RL::SC::S3",
-              "productName": "Amazon S3"
-            },
-            {
-              "name": "ResearcherName",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "ProjectId",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "EnvironmentInstanceFiles",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "IamPolicyDocument",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "S3Mounts",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [
-        {
-          "code": "AMI_ID_REQUIRED",
-          "is_ami_required": true,
-          "ami_id_list": [
-            {
-              "us-east-1": "ami-02161943742b2f0e1"
-            },
-            {
-              "us-east-2": "ami-06a28664a50da1083"
-            },
-            {
-              "us-west-1": "ami-083064b2ce8cff688"
-            },
-            {
-              "us-west-2": "ami-02a57220b3320a450"
-            },
-            {
-              "ap-south-1": "ami-0922d7f6b2b855794"
-            },
-            {
-              "ap-southeast-1": "ami-0ee126c404d54fc5b"
-            },
-            {
-              "ap-southeast-2": "ami-0cdcce7966c66cd6b"
-            }
-          ],
-          "ami_path": "/RL/RG/StandardCatalog/nextflow-latest"
-        }
-      ],
-      "checks_after_assigning_product": [],
-      "permission_required": {
-    },
-    "cost_resource" : true,
-    "aws_batch" : true
-  }
-  },
-  {
-    "_id": {
-      "$oid": "62010969011b8d521ccce386"
-    },
-    "name": "Cromwell Advanced",
-    "description": "Use the scalability of AWS Batch to run Cromwell workflows. This is ideal for large workloads and larger data-sets.",
-    "fileName": "cromwell-advanced.yaml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/cromwell.html"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      },
-      {
-        "Key": "ALB",
-        "Value": "true"
-      },
-      {
-        "Key": "ApplicationPort",
-        "Value": "443"
-      },
-      {
-        "Key": "Service",
-        "Value": "Cromwell"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "PipelineName",
-              "type": "RL::SC::PIPELINE"
-            },
-            {
-              "name": "InputDataLocation",
-              "type": "RL::SC::S3",
-              "productName": "Amazon S3"
-            },
-            {
-              "name": "OutputDataLocation",
-              "type": "RL::SC::S3",
-              "productName": "Amazon S3"
-            },
-            {
-              "name": "ResearcherName",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "ProjectId",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [
-        {
-          "code": "AMI_ID_REQUIRED",
-          "is_ami_required": true,
-          "ami_id_list": [],
-          "ami_path": "/RL/RG/StandardCatalog/cromwell-latest"
-        }
-      ],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true,
-      "aws_batch": true
-    }
-  },
-  {
-    "_id" : {
-      "$oid":"62839f80e82248514eba03b6"
-    },
-    "name" : "PCluster",
-    "description" : "Easy to deploy High Performance Computing based on AWS ParallelCluster 3.0 which supports AWS Batch and Slurm schedulers",
-    "fileName" : "pcluster.yaml",
-    "tags" : [
-            {
-                    "Key" : "EstimatedTimeToProvision",
-                    "Value" : "40 Minutes"
-            },
-            {
-                    "Key" : "DetailsLink",
-                    "Value" : "https://researchgateway.readthedocs.io/en/latest/PCluster.html"
-            },
-            {
-                    "Key" : "TypeOfProduct",
-                    "Value" : "Research"
-            },
-            {
-                    "Key" : "ALB",
-                    "Value" : "true"
-            },
-            {
-                    "Key" : "ApplicationPort",
-                    "Value" : "8443"
-            },
-            {
-                    "Key" : "Service",
-                    "Value" : "Pcluster"
-            },
-            {
-                    "Key" : "ApplicationProtocol",
-                    "Value" : "HTTPS"
-            }
-    ],
-    "owner" : "RL",
-    "portfolio" : "RGPortfolio",
-    "availableRegions" : [ ],
-    "assignedOU" : [],
-    "metaData" : {
-            "cost_resource" : true,
-            "pre_provisioning" : [
-                    {
-                            "code" : "CFT_PARAMS",
-                            "params" : [
-                                    {
-                                            "name" : "ResearcherName",
-                                            "type" : "RL::SC::PARAM::HD"
-                                    },
-                                    {
-                                            "name" : "ProjectId",
-                                            "type" : "RL::SC::PARAM::HD"
-                                    },
-                                    {
-                                            "name" : "ComputeEnvMinvCpus",
-                                            "type" : "RL::SC::PARAM::HD"
-                                    },
-                                    {
-                                            "name" : "ComputeEnvMaxvCpus",
-                                            "type" : "RL::SC::PARAM::HD"
-                                    },
-                                    {
-                                      "name" : "ComputeEnvDesiredvCpus",
-                                      "type" : "RL::SC::PARAM::HD"
-                                    }
-                            ]
-                    }
-            ],
-            "post_provisioning" : [ ],
-            "checks_before_assigning_product" : [
-                    {
-                            "code" : "AMI_ID_REQUIRED",
-                            "is_ami_required" : true,
-                            "ami_id_list" : [
-                                    {
-                                            "us-east-1" : "ami-0c118ae8fa3db70b0"
-                                    },
-                                    {
-                                            "us-east-2" : "ami-011e5bed8ea1b616c"
-                                    },
-                                    {
-                                            "us-west-1" : "ami-0d10e7a4a2017963d"
-                                    },
-                                    {
-                                            "us-west-2" : "ami-02872787f6c9fc51d"
-                                    },
-                                    {
-                                            "ap-south-1" : "ami-0345b99c54d574522"
-                                    },
-                                    {
-                                            "ap-southeast-1" : "ami-08113a8abda2dbd3c"
-                                    },
-                                    {
-                                            "ap-southeast-2" : "ami-03f4743208c938213"
-                                    }
-                            ],
-                            "ami_path" : "/RL/RG/StandardCatalog/ParallelCluster-linux-ami"
-                    }
-            ],
-            "checks_after_assigning_product" : [ ],
-            "permission_required" : {
-
-            }
-    }
-  },
-  {
-    "_id": {
-      "$oid": "60504955135663522b880cfe"
-    },
-    "name": "FSx For Lustre",
-    "description": "Sets up an FSX for Lustre filesystem with PERSISTENT_1 deployment type using SSD storage",
-    "fileName": "fsx-for-lustre.yaml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "20 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/FSxForLustre.html"
-      },
-      {
-        "Key": "Service",
-        "Value": "FSXForLustre"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "ProjectId",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "ResearcherName",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-   }
-  },
-  {
-    "_id": {
-      "$oid": "60504955135663522b880abe"
-      },
-        "name" : "NICE DCV on Amazon EC2 Linux",
-        "description" : "NICE DCV is a high-performance remote display protocol using which the customers can run graphics-intensive applications remotely on EC2 instances, and stream their user interface to simpler client machines, eliminating the need for expensive dedicated workstations. The user can connect to the DCV server by using the RG Connect URL button. The user name is ec2-user and password is the Instance ID.",
-        "fileName" : "ec2-dcv.yml",
-        "tags" : [
-                {
-                        "Key" : "EstimatedTimeToProvision",
-                        "Value" : "15 Minutes"
-                },
-                {
-                        "Key" : "DetailsLink",
-                        "Value" : "https://researchgateway.readthedocs.io/en/latest/NiceDCV.html"
-                },
-                {
-                        "Key" : "Service",
-                        "Value" : "EC2-DCV"
-                },
-                {
-                        "Key" : "TypeOfProduct",
-                        "Value" : "Research"
-                },
-                {
-                        "Key" : "ALB",
-                        "Value" : "true"
-                },
-                {
-                        "Key" : "ApplicationPort",
-                        "Value" : "8443"
-                },
-                {
-                        "Key" : "ApplicationProtocol",
-                        "Value" : "HTTPS"
-                }
-        ],
-        "owner" : "RL",
-        "portfolio" : "RGPortfolio",
-        "availableRegions" : [ ],
-        "assignedOU" : [ ],
-        "metaData" : {
-                "cost_resource" : true,
-                "pre_provisioning" : [
-                        {
-                                "code" : "CFT_PARAMS",
-                                "params" : [
-                                        {
-                                                "name" : "EnvironmentInstanceFiles",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "IamPolicyDocument",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "S3Mounts",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "Namespace",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        }
-                                ]
-                        }
-                ],
-                "post_provisioning" : [ ],
-                "checks_before_assigning_product" : [ 
-                        {
-                                "code" : "AMI_ID_REQUIRED",
-                                "is_ami_required" : true,
-                                "ami_id_list" : [
-                                        {
-                                                "us-east-2" : "ami-0bcd819dd88585c32"
-                                        },
-                                        {
-                                                "us-east-1" : "ami-0b5fdc4291f61615f"
-                                        },
-                                        {
-                                                "us-west-2" : "ami-0ac56f9f8b19a73bf"
-                                        },
-                                        {
-                                                "us-west-1" : "ami-0e0231a98d0ca2679"
-                                        },
-                                        {
-                                                "ap-south-1" : "ami-0f81ea31ecefeba4f"
-                                        },
-                                        {
-                                                "ap-southeast-1" : "ami-069d31c5036ef2bef"
-                                        },
-                                        {
-                                                "ap-southeast-2" : "ami-03a848fa192a4342a"
-                                        },
-                                        {
-                                                "ap-east-1" : "ami-01819f556745b5d1d"
-                                        },
-                                        {
-                                                "eu-west-1" : "ami-03dab069555190662"
-                                        }
-                                ],
-                                "ami_path" : "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
-                        }
-                ],
-                "checks_after_assigning_product" : [ ],
-                "permission_required" : {
-
-                },
-                "cost_resource" : true
-        }
-  },
-  
-  {
-    "_id": {
-      "$oid": "60504955135663522b880abd"
-      },
-      "name" : "Amazon EFS",
-          "description" : "Amazon Elastic File System (Amazon EFS) provides a simple, serverless, set-and-forget elastic file system for use with AWS Cloud services and on-premises resources.",
-          "fileName" : "EFS.yaml",
-          "tags" : [
-                  {
-                          "Key" : "EstimatedTimeToProvision",
-                          "Value" : "10 Minutes"
-                  },
-                  {
-                          "Key" : "DetailsLink",
-                          "Value" : "https://researchgateway.readthedocs.io/en/latest/AmazonEFS.html"
-                  },
-                  {
-                          "Key" : "Service",
-                          "Value" : "EFS"
-                  },
-                  {
-                          "Key" : "TypeOfProduct",
-                          "Value" : "Research"
-                  }
-          ],
-          "owner" : "RL",
-          "portfolio" : "RGPortfolio",
-          "availableRegions" : [ ],
-          "assignedOU" : [ ],
-          "metaData" : {
-                  "pre_provisioning" : [
-                          {
-                                  "code" : "CFT_PARAMS",
-                                  "params" : [
-                                          {
-                                                  "name" : "ProjectId",
-                                                  "type" : "RL::SC::PARAM::HD"
-                                          },
-                                          {
-                                                  "name" : "ResearcherName",
-                                                  "type" : "RL::SC::PARAM::HD"
-                                          },
-                                          {
-                                                  "name" : "Namespace",
-                                                  "type" : "RL::SC::PARAM::HD"
-                                          }
-                                  ]
-                          }
-                  ],
-                  "post_provisioning" : [ ],
-                  "checks_before_assigning_product" : [ ],
-                  "checks_after_assigning_product" : [ ],
-                  "permission_required" : {
-  
-                  },
-                  "cost_resource" : true
-          }
-  },
-  {
-    "_id": {
       "$oid": "60504955135663522b880cfa"
     },
     "name" : "Amazon EBS volume",
@@ -1086,7 +105,15 @@
                     }
             ],
             "post_provisioning" : [ ],
-            "checks_before_assigning_product" : [ ],
+            "checks_before_assigning_product" : [
+                    {
+                            "Key" : "projectTypeCompatibility",
+                            "Value" : [
+                                    "Standard",
+                                    "Secure"
+                            ]
+                    }
+            ],
             "checks_after_assigning_product" : [ ],
             "permission_required" : {
 
@@ -1096,549 +123,262 @@
   },
   {
     "_id": {
-      "$oid": "60504955135663522b880caa"
-      },
-      "name" : "VS Code",
-      "description" : "Visual Studio Code is a lightweight but powerful source code editor which runs on an EC2 Linux machine and is accessed via the browser. It comes with built-in support for JavaScript, TypeScript, and Node.js and has a rich ecosystem of extensions for other languages and runtimes (such as C++, C#, Java, Python, PHP, Go, and .NET).",
-      "fileName" : "ec2-vscode.yml",
-      "tags" : [ 
-          {
-              "Key" : "EstimatedTimeToProvision",
-              "Value" : "15 Minutes"
-          }, 
-          {
-              "Key" : "DetailsLink",
-              "Value" : "https://researchgateway.readthedocs.io/en/latest/VSCode.html"
-          }, 
-          {
-              "Key" : "Service",
-              "Value" : "EC2-VSCODE"
-          }, 
-          {
-              "Key" : "TypeOfProduct",
-              "Value" : "Research"
-          }, 
-          {
-              "Key" : "ALB",
-              "Value" : "true"
-          }, 
-          {
-              "Key" : "ApplicationPort",
-              "Value" : 443.0
-          }
-      ],
-      "owner" : "RL",
-      "portfolio" : "RGPortfolio",
-      "availableRegions" : [],
-      "assignedOU" : [],
-      "metaData" : {
-          "pre_provisioning" : [ 
-              {
-                  "code" : "CFT_PARAMS",
-                  "params" : [ 
-                      {
-                          "name" : "EnvironmentInstanceFiles",
-                          "type" : "RL::SC::PARAM::HD"
-                      }, 
-                      {
-                          "name" : "IamPolicyDocument",
-                          "type" : "RL::SC::PARAM::HD"
-                      }, 
-                      {
-                          "name" : "S3Mounts",
-                          "type" : "RL::SC::PARAM::HD"
-                      }, 
-                      {
-                          "name" : "Namespace",
-                          "type" : "RL::SC::PARAM::HD"
-                      }
-                  ]
-              }
+      "$oid": "60504955135663522b880cde"
+    },
+    "name" : "Secure Research Linux Desktop",
+  "description" : "A secure research environment intended to allow researchers to access sensitive data under a higher level of control and data protection.",
+  "fileName" : "ec2-secure-desktop.yml",
+  "tags" : [
+                  {
+                          "Key" : "EstimatedTimeToProvision",
+                          "Value" : "10 Minutes"
+                  },
+                  {
+                          "Key" : "DetailsLink",
+                          "Value" : "https://researchgateway.readthedocs.io/en/latest/SecureResearchLinuxDesktop.html"
+                  },
+                  {
+                          "Key" : "Service",
+                          "Value" : "EC2-SECURE-DESKTOP"
+                  },
+                  {
+                          "Key" : "TypeOfProduct",
+                          "Value" : "Secure"
+                  },
+                  {
+                          "Key" : "ALB",
+                          "Value" : "true"
+                  },
+                  {
+                          "Key" : "ApplicationPort",
+                          "Value" : "8443"
+                  },
+                  {
+                          "Key" : "ApplicationProtocol",
+                          "Value" : "HTTPS"
+                  }
           ],
-          "post_provisioning" : [],
-          "checks_before_assigning_product" : [ 
-              {
-                  "code" : "AMI_ID_REQUIRED",
-                  "is_ami_required" : true,
-                  "ami_id_list" : [ 
-                    {
-                      "us-east-2": "ami-0d1c47ab964ae2b87"
-                    },
-                    {
-                      "us-east-1": "ami-04823729c75214919"
-                    },
-                    {
-                      "us-west-2": "ami-0ae49954dfb447966"
-                    },
-                    {
-                      "us-west-1": "ami-0e618811ec643488b"
-                    },
-                    {
-                      "ap-south-1": "ami-006935d9a6773e4ec"
-                    },
-                    {
-                      "ap-southeast-1": "ami-06b79cf2aee0d5c92"
-                    },
-                    {
-                      "ap-southeast-2": "ami-0d6294dcaac5546e4"
-                    },
-                    {
-                      "ap-east-1": "ami-0f03cd605c32560aa"
-                    },
-                    {
-                      "eu-west-1": "ami-09f6caae59175ba13"
-                    },
-                    {
-                      "eu-west-2": "ami-08f69dc19e82f58ab"
-                    }
+          "owner" : "RL",
+          "portfolio" : "RGPortfolio",
+          "availableRegions" : [ ],
+          "assignedOU" : [ ],
+          "metaData" : {
+                  "pre_provisioning" : [
+                          {
+                                  "code" : "CFT_PARAMS",
+                                  "params" : [
+                                          {
+                                                  "name" : "EnvironmentInstanceFiles",
+                                                  "type" : "RL::SC::PARAM::HD"
+                                          },
+                                          {
+                                                  "name" : "IamPolicyDocument",
+                                                  "type" : "RL::SC::PARAM::HD"
+                                          },
+                                          {
+                                                  "name" : "ALBSecurityGroup",
+                                                  "type" : "RL::SC::PARAM::HD"
+                                          },
+                                          {
+                                                  "name" : "S3Mounts",
+                                                  "type" : "RL::SC::PARAM::HD"
+                                          },
+                                          {
+                                                  "name" : "WorkSpaceSecurityGroup",
+                                                  "type" : "RL::SC::PARAM::HD"
+                                          },
+                                          {
+                                                  "name" : "Subnet",
+                                                  "type" : "RL::SC::PARAM::HD"
+                                          },
+                                          {
+                                                  "name" : "VPC",
+                                                  "type" : "RL::SC::PARAM::HD"
+                                          },
+                                          {
+                                                  "name" : "Namespace",
+                                                  "type" : "RL::SC::PARAM::HD"
+                                          }
+                                  ]
+                          }
                   ],
-                  "ami_path" : "/RL/RG/StandardCatalog/VS-Code"
-              }
-          ],
-          "checks_after_assigning_product" : [],
-          "permission_required" : {},
-          "cost_resource" : true
-      }
+                  "post_provisioning" : [ ],
+                  "checks_before_assigning_product" : [
+                          {
+                                  "Key" : "Secure",
+                                  "Value" : true
+                          },
+                          {
+                                  "code" : "AMI_ID_REQUIRED",
+                                  "is_ami_required" : true,
+                                  "ami_id_list" : [
+                                          {
+                                                  "us-east-2" : "ami-0dee29a828867a412"
+                                          },
+                                          {
+                                                  "us-east-1" : "ami-011ebe24258e615ba"
+                                          },
+                                          {
+                                                  "us-west-2" : "ami-0ac56f9f8b19a73bf"
+                                          },
+                                          {
+                                                  "us-west-1" : "ami-0e0231a98d0ca2679"
+                                          },
+                                          {
+                                                  "ap-south-1" : "ami-0f81ea31ecefeba4f"
+                                          },
+                                          {
+                                                  "ap-southeast-1" : "ami-069d31c5036ef2bef"
+                                          },
+                                          {
+                                                  "ap-southeast-2" : "ami-03a848fa192a4342a"
+                                          },
+                                          {
+                                                  "ap-east-1" : "ami-01819f556745b5d1d"
+                                          },
+                                          {
+                                                  "eu-west-1" : "ami-03dab069555190662"
+                                          }
+                                  ],
+                                  "ami_path" : "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
+                          }
+                  ],
+                  "checks_after_assigning_product" : [ ],
+                  "permission_required" : {
+
+                  },
+                  "cost_resource" : true
+          }
   },
   {
     "_id": {
-      "$oid": "60504955135663522b880ccc"
-      },
-      "name" : "JupyterLab",
-      "description" : "JupyterLab 3.5.0 web-based interactive development environment for notebooks, code, and data. Configure and arrange workflows in data science and machine learning.",
-      "fileName" : "ec2-jupyterLab.yml",
-      "tags" : [ 
-          {
-              "Key" : "EstimatedTimeToProvision",
-              "Value" : "15 Minutes"
-          }, 
-          {
-              "Key" : "DetailsLink",
-              "Value" : "https://researchgateway.readthedocs.io/en/latest/JupyterLab.html"
-          }, 
-          {
-              "Key" : "Service",
-              "Value" : "EC2-JUPYTERLAB"
-          }, 
-          {
-              "Key" : "TypeOfProduct",
-              "Value" : "Research"
-          }, 
-          {
-              "Key" : "ALB",
-              "Value" : "true"
-          }, 
-          {
-              "Key" : "ApplicationPort",
-              "Value" : 443.0
-          }
-      ],
-      "owner" : "RL",
-      "portfolio" : "RGPortfolio",
-      "availableRegions" : [],
-      "assignedOU" : [],
-      "metaData" : {
-          "pre_provisioning" : [ 
-              {
-                  "code" : "CFT_PARAMS",
-                  "params" : [ 
-                      {
-                          "name" : "EnvironmentInstanceFiles",
-                          "type" : "RL::SC::PARAM::HD"
-                      }, 
-                      {
-                          "name" : "IamPolicyDocument",
-                          "type" : "RL::SC::PARAM::HD"
-                      }, 
-                      {
-                          "name" : "S3Mounts",
-                          "type" : "RL::SC::PARAM::HD"
-                      }, 
-                      {
-                          "name" : "Namespace",
-                          "type" : "RL::SC::PARAM::HD"
-                      }
-                  ]
-              }
-          ],
-          "post_provisioning" : [],
-          "checks_before_assigning_product" : [ 
-              {
-                  "code" : "AMI_ID_REQUIRED",
-                  "is_ami_required" : true,
-                  "ami_id_list" : [ 
+      "$oid": "60504955135663522b880dce"
+    },
+    "name" : "Windows Desktop For Secure Research",
+    "description" : "A secure research windows based environment intended to allow researchers to access sensitive data under a higher level of control and data protection.",
+    "fileName" : "ec2-winsecure-desktop.yml",
+    "tags" : [ 
+        {
+            "Key" : "EstimatedTimeToProvision",
+            "Value" : "10 Minutes"
+        }, 
+        {
+            "Key" : "DetailsLink",
+            "Value" : "https://researchgateway.readthedocs.io/en/latest/WindowsDesktopForSecureResearch.html"
+        }, 
+        {
+            "Key" : "Service",
+            "Value" : "EC2-SECURE-DESKTOP"
+        }, 
+        {
+            "Key" : "TypeOfProduct",
+            "Value" : "Secure"
+        }, 
+        {
+            "Key" : "ALB",
+            "Value" : "true"
+        }, 
+        {
+            "Key" : "ApplicationPort",
+            "Value" : "8443"
+        }, 
+        {
+            "Key" : "ApplicationProtocol",
+            "Value" : "HTTPS"
+        }
+    ],
+    "owner" : "RL",
+    "portfolio" : "RGPortfolio",
+    "availableRegions" : [],
+    "assignedOU" : [],
+    "metaData" : {
+        "pre_provisioning" : [ 
+            {
+                "code" : "CFT_PARAMS",
+                "params" : [ 
                     {
-                      "us-east-2": "ami-0d1c47ab964ae2b87"
-                    },
+                        "name" : "EnvironmentInstanceFiles",
+                        "type" : "RL::SC::PARAM::HD"
+                    }, 
                     {
-                      "us-east-1": "ami-04823729c75214919"
-                    },
+                        "name" : "IamPolicyDocument",
+                        "type" : "RL::SC::PARAM::HD"
+                    }, 
                     {
-                      "us-west-2": "ami-0ae49954dfb447966"
-                    },
+                        "name" : "ALBSecurityGroup",
+                        "type" : "RL::SC::PARAM::HD"
+                    }, 
                     {
-                      "us-west-1": "ami-0e618811ec643488b"
-                    },
+                        "name" : "S3Mounts",
+                        "type" : "RL::SC::PARAM::HD"
+                    }, 
                     {
-                      "ap-south-1": "ami-006935d9a6773e4ec"
-                    },
+                        "name" : "WorkSpaceSecurityGroup",
+                        "type" : "RL::SC::PARAM::HD"
+                    }, 
                     {
-                      "ap-southeast-1": "ami-06b79cf2aee0d5c92"
-                    },
+                        "name" : "Subnet",
+                        "type" : "RL::SC::PARAM::HD"
+                    }, 
                     {
-                      "ap-southeast-2": "ami-0d6294dcaac5546e4"
-                    },
+                        "name" : "VPC",
+                        "type" : "RL::SC::PARAM::HD"
+                    }, 
                     {
-                      "ap-east-1": "ami-0f03cd605c32560aa"
-                    },
-                    {
-                      "eu-west-1": "ami-09f6caae59175ba13"
-                    },
-                    {
-                      "eu-west-2": "ami-08f69dc19e82f58ab"
+                        "name" : "Namespace",
+                        "type" : "RL::SC::PARAM::HD"
                     }
-                  ],
-                  "ami_path" : "/RL/RG/StandardCatalog/JupyterLab"
-              }
-          ],
-          "checks_after_assigning_product" : [],
-          "permission_required" : {},
-          "cost_resource" : true
-      }
-  },
-  {
-    "_id": {
-      "$oid": "60504955135663522b880dac"
-      },
-        "name" : "Integrated Genomics Viewer",
-        "description" : "The Integrative Genomics Viewer (IGV) is a high-performance, easy-to-use, interactive tool for the visual exploration of genomic data.",
-        "fileName" : "igv.yml",
-        "tags" : [
-                {
-                        "Key" : "EstimatedTimeToProvision",
-                        "Value" : "10 Minutes"
-                },
-                {
-                        "Key" : "DetailsLink",
-                        "Value" : "https://researchgateway.readthedocs.io/en/latest/IGV.html"
-                },
-                {
-                        "Key" : "Service",
-                        "Value" : "EC2-IGV"
-                },
-                {
-                        "Key" : "TypeOfProduct",
-                        "Value" : "Research"
-                },
-                {
-                        "Key" : "ALB",
-                        "Value" : "true"
-                },
-                {
-                        "Key" : "ApplicationPort",
-                        "Value" : "8443"
-                },
-                {
-                        "Key" : "ApplicationProtocol",
-                        "Value" : "HTTPS"
-                }
+                ]
+            }
         ],
-        "owner" : "RL",
-        "portfolio" : "RGPortfolio",
-        "availableRegions" : [ ],
-        "assignedOU" : [],
-        "metaData" : {
-                "pre_provisioning" : [
-                        {
-                                "code" : "CFT_PARAMS",
-                                "params" : [
-                                        {
-                                                "name" : "EnvironmentInstanceFiles",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "IamPolicyDocument",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "S3Mounts",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "Namespace",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        }
-                                ]
-                        }
+        "post_provisioning" : [],
+        "checks_before_assigning_product" : [ 
+            {
+                "Key" : "Secure",
+                "Value" : true
+            }, 
+            {
+                "code" : "AMI_ID_REQUIRED",
+                "is_ami_required" : true,
+                "ami_id_list" : [ 
+                    {
+                        "us-east-2" : "ami-08ff5d8cce7cb8abd"
+                    }, 
+                    {
+                        "us-east-1" : "ami-02dea6f1818cd4d45"
+                    }, 
+                    {
+                        "us-west-2" : "ami-08ff5d8cce7cb8abd"
+                    }, 
+                    {
+                        "us-west-1" : "ami-0e0231a98d0ca2679"
+                    }, 
+                    {
+                        "ap-south-1" : "ami-0f81ea31ecefeba4f"
+                    }, 
+                    {
+                        "ap-southeast-1" : "ami-0310a1b62ff9600ce"
+                    }, 
+                    {
+                        "ap-southeast-2" : "ami-03a848fa192a4342a"
+                    }, 
+                    {
+                        "ap-east-1" : "ami-01819f556745b5d1d"
+                    }, 
+                    {
+                        "eu-west-1" : "ami-03dab069555190662"
+                    }, 
+                    {
+                        "eu-west-2" : "ami-0c0e9842ff90e2c95"
+                    }
                 ],
-                "post_provisioning" : [ ],
-                "checks_before_assigning_product" : [ ],
-                "checks_after_assigning_product" : [ ],
-                "permission_required" : {
-
-                },
-                "cost_resource" : true
-        }
-},
-{
-  "_id": {
-    "$oid": "60504955135663522b880cde"
-  },
-  "name" : "Secure Research Linux Desktop",
-"description" : "A secure research environment intended to allow researchers to access sensitive data under a higher level of control and data protection.",
-"fileName" : "ec2-secure-desktop.yml",
- "tags" : [
-                {
-                        "Key" : "EstimatedTimeToProvision",
-                        "Value" : "10 Minutes"
-                },
-                {
-                        "Key" : "DetailsLink",
-                        "Value" : "https://researchgateway.readthedocs.io/en/latest/SecureResearchLinuxDesktop.html"
-                },
-                {
-                        "Key" : "Service",
-                        "Value" : "EC2-SECURE-DESKTOP"
-                },
-                {
-                        "Key" : "TypeOfProduct",
-                        "Value" : "Secure"
-                },
-                {
-                        "Key" : "ALB",
-                        "Value" : "true"
-                },
-                {
-                        "Key" : "ApplicationPort",
-                        "Value" : "8443"
-                },
-                {
-                        "Key" : "ApplicationProtocol",
-                        "Value" : "HTTPS"
-                }
+                "ami_path" : "/RL/RG/StandardCatalog/windows-nice-dcv-ami"
+            }
         ],
-        "owner" : "RL",
-        "portfolio" : "RGPortfolio",
-        "availableRegions" : [ ],
-        "assignedOU" : [ ],
-        "metaData" : {
-                "pre_provisioning" : [
-                        {
-                                "code" : "CFT_PARAMS",
-                                "params" : [
-                                        {
-                                                "name" : "EnvironmentInstanceFiles",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "IamPolicyDocument",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "ALBSecurityGroup",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "S3Mounts",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "WorkSpaceSecurityGroup",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "Subnet",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "VPC",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "Namespace",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        }
-                                ]
-                        }
-                ],
-                "post_provisioning" : [ ],
-                "checks_before_assigning_product" : [
-                        {
-                                "Key" : "Secure",
-                                "Value" : true
-                        },
-                        {
-                                "code" : "AMI_ID_REQUIRED",
-                                "is_ami_required" : true,
-                                "ami_id_list" : [
-                                        {
-                                                "us-east-2" : "ami-0dee29a828867a412"
-                                        },
-                                        {
-                                                "us-east-1" : "ami-011ebe24258e615ba"
-                                        },
-                                        {
-                                                "us-west-2" : "ami-0ac56f9f8b19a73bf"
-                                        },
-                                        {
-                                                "us-west-1" : "ami-0e0231a98d0ca2679"
-                                        },
-                                        {
-                                                "ap-south-1" : "ami-0f81ea31ecefeba4f"
-                                        },
-                                        {
-                                                "ap-southeast-1" : "ami-069d31c5036ef2bef"
-                                        },
-                                        {
-                                                "ap-southeast-2" : "ami-03a848fa192a4342a"
-                                        },
-                                        {
-                                                "ap-east-1" : "ami-01819f556745b5d1d"
-                                        },
-                                        {
-                                                "eu-west-1" : "ami-03dab069555190662"
-                                        }
-                                ],
-                                "ami_path" : "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
-                        }
-                ],
-                "checks_after_assigning_product" : [ ],
-                "permission_required" : {
-
-                },
-                "cost_resource" : true
-        }
-},
-{
-  "_id": {
-    "$oid": "60504955135663522b880dce"
-  },
-  "name" : "Windows Desktop For Secure Research",
-  "description" : "A secure research windows based environment intended to allow researchers to access sensitive data under a higher level of control and data protection.",
-  "fileName" : "ec2-winsecure-desktop.yml",
-  "tags" : [ 
-      {
-          "Key" : "EstimatedTimeToProvision",
-          "Value" : "10 Minutes"
-      }, 
-      {
-          "Key" : "DetailsLink",
-          "Value" : "https://researchgateway.readthedocs.io/en/latest/WindowsDesktopForSecureResearch.html"
-      }, 
-      {
-          "Key" : "Service",
-          "Value" : "EC2-SECURE-DESKTOP"
-      }, 
-      {
-          "Key" : "TypeOfProduct",
-          "Value" : "Secure"
-      }, 
-      {
-          "Key" : "ALB",
-          "Value" : "true"
-      }, 
-      {
-          "Key" : "ApplicationPort",
-          "Value" : "8443"
-      }, 
-      {
-          "Key" : "ApplicationProtocol",
-          "Value" : "HTTPS"
-      }
-  ],
-  "owner" : "RL",
-  "portfolio" : "RGPortfolio",
-  "availableRegions" : [],
-  "assignedOU" : [],
-  "metaData" : {
-      "pre_provisioning" : [ 
-          {
-              "code" : "CFT_PARAMS",
-              "params" : [ 
-                  {
-                      "name" : "EnvironmentInstanceFiles",
-                      "type" : "RL::SC::PARAM::HD"
-                  }, 
-                  {
-                      "name" : "IamPolicyDocument",
-                      "type" : "RL::SC::PARAM::HD"
-                  }, 
-                  {
-                      "name" : "ALBSecurityGroup",
-                      "type" : "RL::SC::PARAM::HD"
-                  }, 
-                  {
-                      "name" : "S3Mounts",
-                      "type" : "RL::SC::PARAM::HD"
-                  }, 
-                  {
-                      "name" : "WorkSpaceSecurityGroup",
-                      "type" : "RL::SC::PARAM::HD"
-                  }, 
-                  {
-                      "name" : "Subnet",
-                      "type" : "RL::SC::PARAM::HD"
-                  }, 
-                  {
-                      "name" : "VPC",
-                      "type" : "RL::SC::PARAM::HD"
-                  }, 
-                  {
-                      "name" : "Namespace",
-                      "type" : "RL::SC::PARAM::HD"
-                  }
-              ]
-          }
-      ],
-      "post_provisioning" : [],
-      "checks_before_assigning_product" : [ 
-          {
-              "Key" : "Secure",
-              "Value" : true
-          }, 
-          {
-              "code" : "AMI_ID_REQUIRED",
-              "is_ami_required" : true,
-              "ami_id_list" : [ 
-                  {
-                      "us-east-2" : "ami-08ff5d8cce7cb8abd"
-                  }, 
-                  {
-                      "us-east-1" : "ami-02dea6f1818cd4d45"
-                  }, 
-                  {
-                      "us-west-2" : "ami-08ff5d8cce7cb8abd"
-                  }, 
-                  {
-                      "us-west-1" : "ami-0e0231a98d0ca2679"
-                  }, 
-                  {
-                      "ap-south-1" : "ami-0f81ea31ecefeba4f"
-                  }, 
-                  {
-                      "ap-southeast-1" : "ami-0310a1b62ff9600ce"
-                  }, 
-                  {
-                      "ap-southeast-2" : "ami-03a848fa192a4342a"
-                  }, 
-                  {
-                      "ap-east-1" : "ami-01819f556745b5d1d"
-                  }, 
-                  {
-                      "eu-west-1" : "ami-03dab069555190662"
-                  }, 
-                  {
-                      "eu-west-2" : "ami-0c0e9842ff90e2c95"
-                  }
-              ],
-              "ami_path" : "/RL/RG/StandardCatalog/windows-nice-dcv-ami"
-          }
-      ],
-      "checks_after_assigning_product" : [],
-      "permission_required" : {},
-      "cost_resource" : true
+        "checks_after_assigning_product" : [],
+        "permission_required" : {},
+        "cost_resource" : true
+    }
   }
-}
-
 
 ]

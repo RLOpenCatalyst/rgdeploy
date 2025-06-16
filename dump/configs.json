@@ -1,174 +1,26 @@
 [
   {
     "_id": {
-      "$oid": "601bfa30a130c6255886823c"
-    },
-    "key": "snsUrl",
-    "value": "https://rpqa-np.rlcatalyst.com/"
-  },
-  {
-    "_id": {
-      "$oid": "603623aa5fa691d0e712e95c"
-    },
-    "key": "TypeOfCatalogProduct",
-    "value": ["All", "Research", "IT Applications", "Secure"]
-  },
-  {
-    "_id": {
-      "$oid": "60f6d697710884c5a1b12ef5"
-    },
-    "key": "region",
-    "helpText": [
-      {
-        "key": "US East (N. Virginia) us-east-1",
-        "value": "us-east-1"
-      },
-      {
-        "key": "US East (Ohio) us-east-2",
-        "value": "us-east-2"
-      },
-      {
-        "key": "US West (N. California) us-west-1",
-        "value": "us-west-1"
-      },
-      {
-        "key": "US West (Oregon) us-west-2",
-        "value": "us-west-2"
-      },
-      {
-        "key": "Asia Pacific (Mumbai) ap-south-1",
-        "value": "ap-south-1"
-      },
-      {
-        "key": "Asia Pacific (Singapore) ap-southeast-1",
-        "value": "ap-southeast-1"
-      },
-      {
-        "key": "Asia Pacific (Sydney) ap-southeast-2",
-        "value": "ap-southeast-2"
-      },
-      {
-        "key": "Europe (London) eu-west-2",
-        "value": "eu-west-2"
-      }
-    ],
-    "configType": "region"
-  },
-  {
-    "_id": {
-      "$oid": "6103f9875259157a97b4413c"
+      "$oid": "611525242f8746728471ab5b"
     },
     "helpText": [
       {
-        "key": "Why do I need to create a organization?",
-        "value": "An Organizational Unit represents a department or business unit within your organization. Create an O.U. to group projects together. A Principal Investigator owns the O.U. and can administer all aspects of the O.U. You will be able to get an overview of the budget and costs for this group."
+        "key": "Secure Research",
+        "value": "Use a secure research project to enable research using datasets with sensitive data that need to be processed and analyzed in an environment from where the data cannot be extracted without approval. A secure research project has no access to the internet and users cannot download any data except via approved egress requests.",
+        "readMoreLink": "https://researchgateway.readthedocs.io/en/latest/Features.html#how-to-add-a-new-project"
       },
       {
-        "key": "Do I have to add an account to my organization?",
-        "value": "Yes. All AWS resources in your organization are created in the linked AWS account. Without an account, Research Gateway will not be able to create resources for your organization."
+        "key": "Data Library",
+        "value": "Use a data library project to manage datasets, create internal studies, enable researchers to ingress data securely, and enable data administrators to review egress applications for approval.",
+        "readMoreLink": "https://researchgateway.readthedocs.io/en/latest/Features.html#how-to-add-a-new-project"
       },
       {
-        "key": "Organization Name : Enter a unique and descriptive organization name.",
-        "value": "Example : Medical Research",
-        "tags": ["organizationName"]
-      },
-      {
-        "key": "Organization Description: Add your organization description",
-        "value": "Example : This organization has projects that uses remotely sensed data products and measurements for studying processes.",
-        "tags": ["organizationDescription"]
-      },
-      {
-        "key": "Account Details: Select the account from the list",
-        "value": "Example : Choose any of the account id from the list. If list is empty, you can add account by clicking add account button",
-        "tags": ["add_accounts"]
-      },
-      {
-        "key": "Add Users: Select principal users who can create and manage projects within this organizational unit",
-        "value": "Example : Choose any user from the list. If list is empty, you can add new user by clicking add users button",
-        "tags": ["add_users"]
+        "key": "Ingress Gateway",
+        "value": "A project of type ingress gateway allows users to upload files to a personalized storage area and submit an ingress request. After approval, these files are made available in the IngressStore folder that is mounted to their workspaces.",
+        "readMoreLink": "https://researchgateway.readthedocs.io/en/latest/Features.html#how-to-add-a-new-project"
       }
     ],
-    "configType": "create_org_helpText"
-  },
-  {
-    "_id": {
-      "$oid": "61124d2eca692c1c641fa2da"
-    },
-    "helpText": [
-      {
-        "key": "Why do I need to create a project?",
-        "value": "A project helps you to bring together resources, catalog items, accounts and collaborators easily. You can set a budget for the project and Pause or Stop the project at any time. \n\nResources created from within a project are tagged to that project. This helps in cost and budget management.\n\nResearchers added to a project can share resources."
-      },
-      {
-        "key": "Do I have to add an account to my project?",
-        "value": "Yes. All AWS resources in your project are created in the linked AWS account. Without an account, Research Gateway will not be able to create resources for your project."
-      },
-      {
-        "key": "I already manage my own Service Catalog portfolio. Do I have to still use the Standard Catalog from Research Gateway?",
-        "value": "No. You are free to `Bring your own catalog`. While creating your project, choose the option `Bring your own catalog` to sync your catalog portfolio to Research Gateway."
-      },
-      {
-        "key": "Project Name : Enter a unique and descriptive project name.",
-        "value": "Example : Medical Research Project",
-        "tags": ["project_name"]
-      },
-      {
-        "key": "Project Description: Add your project description",
-        "value": "Example : This project uses remotely sensed data products and measurements for studying processes.",
-        "tags": ["project_desc"]
-      },
-      {
-        "key" : "How can I add more than 1 project at a time?",
-        "value" : "We have a Project Copies field using which we can create N number of projects at a time.",
-        "tags" : ["project_copies"]
-      },
-      {
-        "key": "Budget Available : Budget should be greater then 0",
-        "value": "Example : 1000",
-        "tags": ["project_budget"]
-      },
-      {
-        "key": "Account Details: Select the account from the list",
-        "value": "Example : Choose any one of the account id from the list. If list is empty, you can add account by clicking add account button",
-        "tags": ["add_accounts"]
-      },
-      {
-        "key": "Add Users: Select researchers from the list",
-        "value": "Example : Choose any one of the user from the list. If list is empty, you can add new user by clicking add users button",
-        "tags": ["add_users"]
-      },
-      {
-        "key": "Add Products : Select catalog type from the list",
-        "value": "Example : Choose any one of the catalog type from the list.",
-        "tags": ["add_products"]
-      },
-      {
-        "key": "What products can I get from the Standard Catalog",
-        "value": "The RLCatalyst Research Gateway standard catalog brings in many of the products commonly used in scientific research computing. The products span many different categories like compute, storage, databases etc. For a full list click https://researchgateway.readthedocs.io/en/latest/Appendices.html#appendix-b",
-        "tags": ["add_products"]
-      },
-      {
-        "key" : "What products can I get from the Bring all catalog items?",
-        "value" : "This option will sync all the products which do not have a project tag that matches any of the projects in this account. For BYOC to work, the role assumed by the Portal in the project account must be added to the portfolio manually",
-        "tags" : ["ownCatalog"]
-      }, 
-      {
-        "key" : "What products can I get from the Bring specific catalog items?",
-        "value" : "This option will pull in any products that are tagged with the same tag which user provides in the UI. For BYOC to work, the role assumed by the Portal in the project account must be added to the portfolio manually",
-        "tags" : ["ownCatalogWithTag"]
-      },
-      {
-        "key": "What is Secure Research?",
-        "value": "Secure Research is a configuration that allows you to conduct research on sensitive data by restricting access to the workspace so that it is only accessible via a controlled client. The data cannot be downloaded through the interface and the outputs can be extracted from the environment only via an approval process.",
-        "tags": ["add_accounts"]
-      },
-      {
-        "key": "How can I enable Secure Research?",
-        "value": "To enable Secure Research you need to first enable Secure Research at the account setting level. Secure Research projects can only be created using settings that have been enabled for Secure Research. On the create project page, select an account that mentions (Secure Research). Then choose Secure Research under the project type section.",
-        "tags": ["add_accounts"]
-      }
-    ],
-    "configType": "create_project_helpText"
+    "configType": "project_type"
   },
   {
     "_id": {
@@ -202,63 +54,607 @@
       {
         "key": "Account Name : Enter a unique and descriptive account name.",
         "value": "Example : Research account",
-        "tags": ["account_name"]
+        "tags": [
+          "account_name"
+        ]
       },
       {
         "key": "Access Key: Add access key of your AWS account.",
         "value": "Example : AKIAIOSFODNN7EXAMPLE.",
-        "tags": ["access_key"]
+        "tags": [
+          "access_key"
+        ]
       },
       {
         "key": "Secret Key: Add secret key of your AWS account.",
         "value": "Example : wJalrXUtnFEMI/K7M/bPxRfiCYEXAMPLEKEY",
-        "tags": ["secret_key"]
+        "tags": [
+          "secret_key"
+        ]
       },
       {
         "key": "Region: Select a region of your AWS account.",
         "value": "Example : us-east-1",
-        "tags": ["region"]
+        "tags": [
+          "region"
+        ]
       },
       {
         "key": "Account Number: Add your AWS account number.",
         "value": "Example : 071938519317",
-        "tags": ["account_number"]
+        "tags": [
+          "account_number"
+        ]
       },
       {
         "key": "Use default VPC",
         "value": "Research Gateway uses the default VPC for provisioning resources from the Standard Catalog. If you check this option, Research Gateway will check if a default VPC exists and will create one if it does not exist. If you do not check this option, provisioning resources from Standard Catalog may fail. You may still be able to provision resources which allow explicit selection of networking parameters like VPC, Subnets, Security Groups etc.",
-        "tags": ["vpc"]
-      }, 
+        "tags": [
+          "vpc"
+        ]
+      },
       {
         "key": "What is Secure Research?",
         "value": "Secure Research is a configuration that allows you to conduct research on sensitive data by restricting access to the workspace so that it is only accessible via a controlled client. The data cannot be downloaded through the interface and the outputs can be extracted from the environment only via an approval process.To enable secure research you have to perform some manual steps with the help of the Research Gateway support team.",
-        "tags": ["add_accounts"]
-      } 
+        "tags": [
+          "add_accounts"
+        ]
+      }
     ],
     "configType": "add_account_helpText"
   },
   {
     "_id": {
-      "$oid": "611525242f8746728471ab5b"
+      "$oid": "6103f9875259157a97b4413c"
     },
     "helpText": [
       {
-        "key": "Secure Research",
-        "value": "Use a secure research project to enable research using datasets with sensitive data that need to be processed and analyzed in an environment from where the data cannot be extracted without approval. A secure research project has no access to the internet and users cannot download any data except via approved egress requests.",
-        "readMoreLink": "https://researchgateway.readthedocs.io/en/latest/Features.html#how-to-add-a-new-project"
+        "key": "Why do I need to create a organization?",
+        "value": "An Organizational Unit represents a department or business unit within your organization. Create an O.U. to group projects together. A Principal Investigator owns the O.U. and can administer all aspects of the O.U. You will be able to get an overview of the budget and costs for this group."
       },
       {
-        "key": "Data Library",
-        "value": "Use a data library project to manage datasets, create internal studies, enable researchers to ingress data securely, and enable data administrators to review egress applications for approval.",
-        "readMoreLink": "https://researchgateway.readthedocs.io/en/latest/Features.html#how-to-add-a-new-project" 
+        "key": "Do I have to add an account to my organization?",
+        "value": "Yes. All AWS resources in your organization are created in the linked AWS account. Without an account, Research Gateway will not be able to create resources for your organization."
       },
       {
-        "key": "Ingress Gateway",
-        "value": "A project of type ingress gateway allows users to upload files to a personalized storage area and submit an ingress request. After approval, these files are made available in the IngressStore folder that is mounted to their workspaces.",
-        "readMoreLink": "https://researchgateway.readthedocs.io/en/latest/Features.html#how-to-add-a-new-project"
-      }     
+        "key": "Organization Name : Enter a unique and descriptive organization name.",
+        "value": "Example : Medical Research",
+        "tags": [
+          "organizationName"
+        ]
+      },
+      {
+        "key": "Organization Description: Add your organization description",
+        "value": "Example : This organization has projects that uses remotely sensed data products and measurements for studying processes.",
+        "tags": [
+          "organizationDescription"
+        ]
+      },
+      {
+        "key": "Account Details: Select the account from the list",
+        "value": "Example : Choose any of the account id from the list. If list is empty, you can add account by clicking add account button",
+        "tags": [
+          "add_accounts"
+        ]
+      },
+      {
+        "key": "Add Users: Select principal users who can create and manage projects within this organizational unit",
+        "value": "Example : Choose any user from the list. If list is empty, you can add new user by clicking add users button",
+        "tags": [
+          "add_users"
+        ]
+      }
     ],
-    "configType": "project_type"
+    "configType": "create_org_helpText"
+  },
+  {
+    "_id": {
+      "$oid": "61124d2eca692c1c641fa2da"
+    },
+    "helpText": [
+      {
+        "key": "Why do I need to create a project?",
+        "value": "A project helps you to bring together resources, catalog items, accounts and collaborators easily. You can set a budget for the project and Pause or Stop the project at any time. \n\nResources created from within a project are tagged to that project. This helps in cost and budget management.\n\nResearchers added to a project can share resources."
+      },
+      {
+        "key": "Do I have to add an account to my project?",
+        "value": "Yes. All AWS resources in your project are created in the linked AWS account. Without an account, Research Gateway will not be able to create resources for your project."
+      },
+      {
+        "key": "I already manage my own Service Catalog portfolio. Do I have to still use the Standard Catalog from Research Gateway?",
+        "value": "No. You are free to `Bring your own catalog`. While creating your project, choose the option `Bring your own catalog` to sync your catalog portfolio to Research Gateway."
+      },
+      {
+        "key": "Project Name : Enter a unique and descriptive project name.",
+        "value": "Example : Medical Research Project",
+        "tags": [
+          "project_name"
+        ]
+      },
+      {
+        "key": "Project Description: Add your project description",
+        "value": "Example : This project uses remotely sensed data products and measurements for studying processes.",
+        "tags": [
+          "project_desc"
+        ]
+      },
+      {
+        "key": "How can I add more than 1 project at a time?",
+        "value": "We have a Project Copies field using which we can create N number of projects at a time.",
+        "tags": [
+          "project_copies"
+        ]
+      },
+      {
+        "key": "Budget Available : Budget should be greater then 0",
+        "value": "Example : 1000",
+        "tags": [
+          "project_budget"
+        ]
+      },
+      {
+        "key": "Account Details: Select the account from the list",
+        "value": "Example : Choose any one of the account id from the list. If list is empty, you can add account by clicking add account button",
+        "tags": [
+          "add_accounts"
+        ]
+      },
+      {
+        "key": "Add Users: Select researchers from the list",
+        "value": "Example : Choose any one of the user from the list. If list is empty, you can add new user by clicking add users button",
+        "tags": [
+          "add_users"
+        ]
+      },
+      {
+        "key": "Add Products : Select catalog type from the list",
+        "value": "Example : Choose any one of the catalog type from the list.",
+        "tags": [
+          "add_products"
+        ]
+      },
+      {
+        "key": "What products can I get from the Standard Catalog",
+        "value": "The RLCatalyst Research Gateway standard catalog brings in many of the products commonly used in scientific research computing. The products span many different categories like compute, storage, databases etc. For a full list click https://researchgateway.readthedocs.io/en/latest/Appendices.html#appendix-b",
+        "tags": [
+          "add_products"
+        ]
+      },
+      {
+        "key": "What products can I get from the Bring all catalog items?",
+        "value": "This option will sync all the products which do not have a project tag that matches any of the projects in this account. For BYOC to work, the role assumed by the Portal in the project account must be added to the portfolio manually",
+        "tags": [
+          "ownCatalog"
+        ]
+      },
+      {
+        "key": "What products can I get from the Bring specific catalog items?",
+        "value": "This option will pull in any products that are tagged with the same tag which user provides in the UI. For BYOC to work, the role assumed by the Portal in the project account must be added to the portfolio manually",
+        "tags": [
+          "ownCatalogWithTag"
+        ]
+      },
+      {
+        "key": "What is Secure Research?",
+        "value": "Secure Research is a configuration that allows you to conduct research on sensitive data by restricting access to the workspace so that it is only accessible via a controlled client. The data cannot be downloaded through the interface and the outputs can be extracted from the environment only via an approval process.",
+        "tags": [
+          "add_accounts"
+        ]
+      },
+      {
+        "key": "How can I enable Secure Research?",
+        "value": "To enable Secure Research you need to first enable Secure Research at the account setting level. Secure Research projects can only be created using settings that have been enabled for Secure Research. On the create project page, select an account that mentions (Secure Research). Then choose Secure Research under the project type section.",
+        "tags": [
+          "add_accounts"
+        ]
+      }
+    ],
+    "configType": "create_project_helpText"
+  },
+  {
+    "_id": {
+      "$oid": "66458ffce8e65a5d48c34faf"
+    },
+    "rstudio": {
+      "pre_provisioning": [
+        {
+          "code": "CFT_PARAMS",
+          "params": [
+            {
+              "name": "EnvironmentInstanceFiles",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "IamPolicyDocument",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "S3Mounts",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "Namespace",
+              "type": "RL::SC::PARAM::HD"
+            }
+          ]
+        }
+      ],
+      "post_provisioning": [],
+      "checks_before_assigning_product": [],
+      "checks_after_assigning_product": [],
+      "permission_required": {},
+      "cost_resource": true
+    }
+  },
+  {
+    "_id": {
+      "$oid": "603623aa5fa691d0e712e95c"
+    },
+    "key": "TypeOfCatalogProduct",
+    "value": [
+      "All",
+      "Research",
+      "IT Applications",
+      "Secure"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "679868604885f0c06d65445c"
+    },
+    "key": "catalogMetaData",
+    "value": {
+      "ec2-secure-desktop": {
+        "pre_provisioning": [
+          {
+            "code": "CFT_PARAMS",
+            "params": [
+              {
+                "name": "EnvironmentInstanceFiles",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "IamPolicyDocument",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "ALBSecurityGroup",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "S3Mounts",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "WorkSpaceSecurityGroup",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "Subnet",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "VPC",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "Namespace",
+                "type": "RL::SC::PARAM::HD"
+              }
+            ]
+          }
+        ],
+        "post_provisioning": [],
+        "checks_before_assigning_product": [
+          {
+            "Key": "Secure",
+            "Value": true
+          },
+          {
+            "code": "AMI_ID_REQUIRED",
+            "is_ami_required": true,
+            "ami_id_list": [
+              {
+                "us-east-2": "ami-076410efa482b3b81"
+              },
+              {
+                "us-east-1": "ami-02cd29ed4e0be8b0d"
+              },
+              {
+                "us-west-2": "ami-09608104e1755b293"
+              },
+              {
+                "us-west-1": "ami-0ba866bdae57102c7"
+              },
+              {
+                "ap-south-1": "ami-07934c4869e148ce8"
+              },
+              {
+                "ap-southeast-1": "ami-040f23f165cc12673"
+              },
+              {
+                "ap-southeast-2": "ami-04d9cbb2a37cab0b6"
+              },
+              {
+                "ap-east-1": "ami-01819f556745b5d1d"
+              },
+              {
+                "eu-west-1": "ami-03dab069555190662"
+              },
+              {
+                "eu-west-2": "ami-008bd62db8157ffff"
+              }
+            ],
+            "ami_path": "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
+          }
+        ],
+        "checks_after_assigning_product": [],
+        "permission_required": {},
+        "cost_resource": true
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6798693e4885f0c06d65445d"
+    },
+    "key": "catalogMetaData",
+    "value": {
+      "ec2": {
+        "pre_provisioning": [
+          {
+            "code": "CFT_PARAMS",
+            "params": [
+              {
+                "name": "EnvironmentInstanceFiles",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "IamPolicyDocument",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "S3Mounts",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "Namespace",
+                "type": "RL::SC::PARAM::HD"
+              }
+            ]
+          }
+        ],
+        "post_provisioning": [],
+        "checks_before_assigning_product": [],
+        "checks_after_assigning_product": [],
+        "permission_required": {},
+        "cost_resource": true
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "679cb83e760541ad5e87d7b9"
+    },
+    "key": "catalogMetaData",
+    "value": {
+      "ec2-dcv": {
+        "pre_provisioning": [
+          {
+            "code": "CFT_PARAMS",
+            "params": [
+              {
+                "name": "EnvironmentInstanceFiles",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "IamPolicyDocument",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "S3Mounts",
+                "type": "RL::SC::PARAM::HD"
+              },
+              {
+                "name": "Namespace",
+                "type": "RL::SC::PARAM::HD"
+              }
+            ]
+          }
+        ],
+        "post_provisioning": [],
+        "checks_before_assigning_product": [
+          {
+            "code": "AMI_ID_REQUIRED",
+            "is_ami_required": true,
+            "ami_id_list": [
+              {
+                "us-east-2": "ami-09c01aececde818fd"
+              },
+              {
+                "us-east-1": "ami-0b5fdc4291f61615f"
+              },
+              {
+                "us-west-2": "ami-0ac56f9f8b19a73bf"
+              },
+              {
+                "us-west-1": "ami-0e0231a98d0ca2679"
+              },
+              {
+                "ap-south-1": "ami-0f81ea31ecefeba4f"
+              },
+              {
+                "ap-southeast-1": "ami-0dc38989093722401"
+              },
+              {
+                "ap-southeast-2": "ami-03a848fa192a4342a"
+              },
+              {
+                "ap-east-1": "ami-01819f556745b5d1d"
+              },
+              {
+                "eu-west-1": "ami-03dab069555190662"
+              }
+            ],
+            "ami_path": "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
+          }
+        ],
+        "checks_after_assigning_product": [],
+        "permission_required": {}
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "663b604476964689564dc998"
+    },
+    "key": "chatAssistantConfig",
+    "value": {
+      "chatAssistantURL": "https://chat.rlcatalyst.com/Documentation_Bot/",
+      "chatAssistantLogo": "../assets/images/chatAssistant.png"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "628b094788660e80ceb36ba3"
+    },
+    "key": "cromwellPipeline",
+    "value": [
+      {
+        "pipeline_name": "seq-format-validation",
+        "pipeline_git_url": "https://github.com/gatk-workflows/seq-format-validation.git"
+      },
+      {
+        "pipeline_name": "seq-format-conversion",
+        "pipeline_git_url": "https://github.com/gatk-workflows/seq-format-conversion.git"
+      },
+      {
+        "pipeline_name": "gatk4-rnaseq-germline-snps-indels",
+        "pipeline_git_url": "https://github.com/gatk-workflows/gatk4-rnaseq-germline-snps-indels.git"
+      },
+      {
+        "pipeline_name": "gatk4-germline-snps-indels",
+        "pipeline_git_url": "https://github.com/gatk-workflows/gatk4-germline-snps-indels.git"
+      },
+      {
+        "pipeline_name": "gatk4-data-processing",
+        "pipeline_git_url": "https://github.com/gatk-workflows/gatk4-data-processing.git"
+      },
+      {
+        "pipeline_name": "gatk4-basic-joint-genotyping",
+        "pipeline_git_url": "https://github.com/gatk-workflows/gatk4-basic-joint-genotyping.git"
+      }
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "67b01bd7dbf6eb46f07fe035"
+    },
+    "key": "deleteLocalProvisionedProductIfNotInSC",
+    "value": false
+  },
+  {
+    "_id": {
+      "$oid": "62b6c70a7dec087675b33788"
+    },
+    "key": "ebsCompatibleProducts",
+    "value": {
+      "productList": [
+        "ec2",
+        "cromwell",
+        "rstudio",
+        "ec2-dcv",
+        "nextflow",
+        "ec2-remote-desktop",
+        "ec2-secure-desktop"
+      ]
+    }
+  },
+  {
+    "_id": {
+      "$oid": "66ab770d7fbb9d06900fb937"
+    },
+    "key": "egressRequestMails",
+    "value": [
+      {
+        "key": "data admin",
+        "value": {
+          "initiated": "request initiated",
+          "pending": "Hi,A new egress request, <request-Id>, has been submitted by <submitter-email> on <date-of-submission> in the project, <project-name>, and needs your approval.Please sign in to the Research Portal and click on the project card. Click on the Egress Requests tab. Find the egress request with the id mentioned above. You can Approve or Reject the request from the context menu (3-dots icon) of the request.To review the files, click on “Review” in the context menu. This action will launch a new workspace in the project. Once the workspace is active, please connect to it via Remote Desktop. The files submitted in the request will be visible under /home/ec2-user/studies/<request-Id>.Note that all current pending requests are mounted to the same workspace under different folders labelled with the request-Id.You can then review the files using the tool of your choice which will be preinstalled on the machine.  Once you review the files, log in to the Research Gateway and approve the request from the Egress Requests tab.The Research Gateway team.",
+          "approved": "approved by data admin",
+          "rejected": "rejected by data admin"
+        }
+      },
+      {
+        "key": "researcher",
+        "value": {
+          "initiated": "requested initiated for researcher",
+          "pending": "pending for researcher",
+          "approved": "Hi,The Data Administrator for project <project-name> has approved your egress request, <request-Id>. You can now download the files from the Egress Store tab of the workspace you submitted the request from. Please note that the Download option will be disabled if you submit a new request.The Research Gateway team.",
+          "rejected": "rejected for researcher"
+        }
+      },
+      {
+        "key": "signature",
+        "value": "The Research Gateway Team."
+      }
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "680f5d794266d6c035d7518d"
+    },
+    "key": "egressReviewersList",
+    "value": [ 
+    ],
+    "helpText": [
+      "List of reviewers for egress process"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "663b631f28fd863b08cb6a9d"
+    },
+    "key": "kmsKeys",
+    "Value": [
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "67b991428574fbf9260f6772"
+    },
+    "key": "numDaysForCostSync",
+    "value": 10
+  },
+  {
+    "_id": {
+      "$oid": "626fb82256aaa6ec4fe242e9"
+    },
+    "key": "projectConfig",
+    "value": {
+      "maxProjectCount": "10",
+      "standardCatalogLink": "https://researchgateway.readthedocs.io/en/latest/",
+      "ownCatalogLink": "https://researchgateway.readthedocs.io/en/latest/",
+      "ownCatalogWithTagLink": "https://researchgateway.readthedocs.io/en/latest/",
+      "isProductDailyCostMigration_v1_13_0_Required": false,
+      "projectStorage": "https://researchgateway.readthedocs.io/en/latest/GettingStarted.html#project-storage",
+      "addProjectLink": "https://researchgateway.readthedocs.io/en/latest/Features.html#how-to-add-a-new-project"
+    },
+    "studySelectionCount": 10
+  },
+  {
+    "_id": {
+      "$oid": "6239b4f485c63a8c118d8e17"
+    },
+    "key": "projectCostControl",
+    "value": {
+      "isCostControlEnabled": true,
+      "defaultAllowProjectActionsOverride": true,
+      "projectPauseThresholdPercentage": 80,
+      "projectStopThresholdPercentage": 90,
+      "costControlReadMoreLink": "https://researchgateway.readthedocs.io/en/latest/",
+      "budgetMaxAllowedValue": 50000
+    }
   },
   {
     "_id": {
@@ -266,7 +662,19 @@
     },
     "key": "projectStorage",
     "value": {
-      "productList": ["ec2", "rstudio", "nextflow", "cromwell", "ec2-dcv", "sagemaker", "ec2-igv", "ec2-secure-desktop", "ec2-jupyterlab", "ec2-vscode"],
+      "productList": [
+        "ec2",
+        "rstudio",
+        "nextflow",
+        "cromwell",
+        "ec2-dcv",
+        "sagemaker",
+        "ec2-igv",
+        "ec2-secure-desktop",
+        "ec2-jupyterlab",
+        "ec2-vscode",
+        "ec2-remote-desktop"
+      ],
       "s3Mounts": {
         "ProjectStorage": {
           "id": "ProjectStorage",
@@ -302,7 +710,10 @@
           {
             "Sid": "studyListS3Access1",
             "Effect": "Allow",
-            "Action": ["s3:ListBucket", "s3:ListBucketVersions"],
+            "Action": [
+              "s3:ListBucket",
+              "s3:ListBucketVersions"
+            ],
             "Resource": "",
             "Condition": {
               "StringLike": {
@@ -340,6 +751,73 @@
   },
   {
     "_id": {
+      "$oid": "60f6d697710884c5a1b12ef5"
+    },
+    "key": "region",
+    "helpText": [
+      {
+        "key": "US East (N. Virginia) us-east-1",
+        "value": "us-east-1"
+      },
+      {
+        "key": "US East (Ohio) us-east-2",
+        "value": "us-east-2"
+      },
+      {
+        "key": "US West (N. California) us-west-1",
+        "value": "us-west-1"
+      },
+      {
+        "key": "US West (Oregon) us-west-2",
+        "value": "us-west-2"
+      },
+      {
+        "key": "Asia Pacific (Sydney) ap-southeast-2",
+        "value": "ap-southeast-2"
+      },
+      {
+        "key": "Asia Pacific (Seoul) ap-northeast-2",
+        "value": "ap-northeast-2"
+      },
+      {
+        "key": "Asia Pacific (Mumbai) ap-south-1",
+        "value": "ap-south-1"
+      }
+    ],
+    "configType": "region"
+  },
+  {
+    "_id": {
+      "$oid": "66cd91a8c5a38d1b21e03775"
+    },
+    "key": "retryConfig",
+    "value": {
+      "intervalInSeconds": 6,
+      "maxTimes": 10
+    }
+  },
+  {
+    "_id": {
+      "$oid": "66a66c739b51e099de50ab72"
+    },
+    "key": "reviewWorkspace",
+    "value": {
+      "preferedReviewWorkspace": "Windows with Python R",
+      "defaultReviewWorkspace": "Windows with Python R"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "66963856fe7568c459062c0c"
+    },
+    "key": "reviewWorkspace",
+    "value": {
+      "preferedReviewWorkspace": "Windows Desktop For Secure Research",
+      "defaultReviewWorkspace": "Secure Research Linux Desktop"
+    }
+  },
+  {
+    "_id": {
       "$oid": "61fbd4239fab988868a9d00e"
     },
     "key": "rgSetupVideo",
@@ -363,116 +841,83 @@
   },
   {
     "_id": {
-      "$oid": "6239b4f485c63a8c118d8e17"
+      "$oid": "666a849290cd656dc7d23193"
     },
-    "key": "projectCostControl",
+    "key": "s3BucketLimit",
+    "value": 215
+  },
+  {
+    "_id": {
+      "$oid": "67da8c474f09ce27c0236c81"
+    },
+    "key": "s3ThrottleConfig",
     "value": {
-      "isCostControlEnabled": true,
-      "defaultAllowProjectActionsOverride": true,
-      "projectPauseThresholdPercentage": 80,
-      "projectStopThresholdPercentage": 90,
-      "costControlReadMoreLink": "https://researchgateway.readthedocs.io/en/latest/",
-      "budgetMaxAllowedValue": 50000
+      "limit": 2,
+      "interval": 3000
     }
   },
   {
-    "_id" : { 
-      "$oid": "626fb82256aaa6ec4fe242e9"
-    },
-    "key" : "projectConfig",
-    "value" : {
-        "maxProjectCount" : "10",
-        "standardCatalogLink" : "https://researchgateway.readthedocs.io/en/latest/",
-        "ownCatalogLink" : "https://researchgateway.readthedocs.io/en/latest/",
-        "ownCatalogWithTagLink" : "https://researchgateway.readthedocs.io/en/latest/",
-        "isProductDailyCostMigration_v1_13_0_Required" : true,
-        "projectStorage" : "https://researchgateway.readthedocs.io/en/latest/GettingStarted.html#project-storage",
-        "addProjectLink" : "https://researchgateway.readthedocs.io/en/latest/Features.html#how-to-add-a-new-project"
-    },
-    "studySelectionCount" : 2
-  },
-  {
-    "_id" : { 
-      "$oid": "62b6c70a7dec087675b33797"
-    },
-    "key" : "usersConfig",
-    "value" : {
-        "maxBulkUserCount" : 20,
-        "csvHeaderValues" : [ 
-          "email", 
-          "first_name", 
-          "last_name", 
-          "role", 
-          "userTags"
-      ]
-    }
-  },
-  {
-    "_id" : { 
-        "$oid": "628b094788660e80ceb36ba3"
-      },
-    "key": "cromwellPipeline",
-    "value": [
-      {
-        "pipeline_name": "seq-format-validation",
-        "pipeline_git_url": "https://github.com/gatk-workflows/seq-format-validation.git"
-      },
-      {
-        "pipeline_name": "seq-format-conversion",
-        "pipeline_git_url": "https://github.com/gatk-workflows/seq-format-conversion.git"
-      },
-      {
-        "pipeline_name": "gatk4-rnaseq-germline-snps-indels",
-        "pipeline_git_url": "https://github.com/gatk-workflows/gatk4-rnaseq-germline-snps-indels.git"
-      },
-      {
-        "pipeline_name": "gatk4-germline-snps-indels",
-        "pipeline_git_url": "https://github.com/gatk-workflows/gatk4-germline-snps-indels.git"
-      },
-      {
-        "pipeline_name": "gatk4-data-processing",
-        "pipeline_git_url": "https://github.com/gatk-workflows/gatk4-data-processing.git"
-      },
-      {
-        "pipeline_name": "gatk4-basic-joint-genotyping",
-        "pipeline_git_url": "https://github.com/gatk-workflows/gatk4-basic-joint-genotyping.git"
+    "_id": {
+      "$oid": {
+        "$oid": "664c7d14fc619e0ba56fb9cc"
       }
+    },
+    "key": "settingCreateSkipUpdateBucketPolicy",
+    "value": false
+  },
+  {
+    "_id": {
+      "$oid": "601bfa30a130c6255886823c"
+    },
+    "key": "snsUrl",
+    "value": "https://rpqa-np.rlcatalyst.com/"
+  },
+  {
+    "_id": {
+      "$oid": "6627c02329cae83ac971fe64"
+    },
+    "key": "study",
+    "message": "This config help us to configure the external studies in the product launch form",
+    "value": {
+      "productList": [
+        "ec2",
+        "rstudio",
+        "nextflow",
+        "cromwell",
+        "sagemaker",
+        "ec2-igv",
+        "ec2-dcv",
+        "ec2-vscode",
+        "ec2-jupyterlab",
+        "ec2-secure-desktop",
+        "ec2-remote-desktop"
+      ]
+    },
+    "studySelectionCount": 11
+  },
+  {
+    "_id": {
+      "$oid": "67ee4fb8c49bb01b737c546c"
+    },
+    "key": "useDBForBudget",
+    "value": [
+      "67ee4b2e141fab6fe35edae3"
     ]
   },
   {
-        "key" : "study",
-        "message" : "This config help us to configure the external studies in the product launch form",
-        "value" : {
-                "productList" : [
-                        "ec2",
-                        "rstudio",
-                        "nextflow",
-                        "cromwell",
-                        "sagemaker",
-                        "ec2-igv",
-                        "ec2-secure-desktop",
-                        "ec2-dcv",
-                        "ec2-vscode",
-                        "ec2-jupyterlab"
-
-                ]
-        },
-        "studySelectionCount" : 5.0
-},
-{
-  "_id" : { 
-    "$oid": "62b6c70a7dec087675b33788"
-  },
-  "key" : "ebsCompatibleProducts",
-  "value" : {
-          "productList" : [
-                  "ec2",
-                  "cromwell",
-                  "rstudio",
-                  "ec2-dcv",
-                  "nextflow"
-
-          ]
+    "_id": {
+      "$oid": "62b6c70a7dec087675b33797"
+    },
+    "key": "usersConfig",
+    "value": {
+      "maxBulkUserCount": 200,
+      "csvHeaderValues": [
+        "email",
+        "first_name",
+        "last_name",
+        "role",
+        "userTags"
+      ]
+    }
   }
-}
 ]
