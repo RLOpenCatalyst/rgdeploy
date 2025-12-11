@@ -35,9 +35,7 @@ This guide describes how to deploy the Research Gateway application using the ne
 1. **Upload Scripts to S3**
 
    ```bash
-   aws s3 cp makeconfigs-inplace.sh s3://<your-bucket>/
-   aws s3 cp updatescripts.sh s3://<your-bucket>/
-   # Upload any other required scripts
+  ./upload-assets.sh
    ```
 
 2. **Prepare Parameters**
