@@ -35,7 +35,7 @@ This guide describes how to deploy the Research Gateway application using the ne
 1. **Upload Scripts to S3**
 
    ```bash
-  ./upload-assets.sh
+      ./upload-assets.sh
    ```
 
 2. **Prepare Parameters**
