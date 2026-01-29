@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.1.0"
+version="0.2.0"
 echo "Connecting to DB....(connect-db.sh v$version)"
 
 if [ "$1" == "-h" ]; then
@@ -36,7 +36,7 @@ fi
 if command -v mongosh >/dev/null 2>&1; then
 	echo "Using mongosh to connect..."
 	mongosh --ssl --host "$mydocdburl:27017" --sslCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" \
-		--username "$mydbuser" --password "$mydbuserpwd"
+		--username "$mydbuser" --password "$mydbuserpwd" --retryWrites=false
 elif command -v mongo >/dev/null 2>&1; then
 	echo "Using mongo to connect..."
 	mongo --ssl --host "$mydocdburl:27017" --sslCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" \
