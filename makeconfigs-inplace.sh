@@ -2,24 +2,19 @@
 version="0.1.0"
 echo "Making configs locally...(makeconfigs.sh v$version)"
 # Ensure right number of params
-if [ $# -lt 12 ]; then
-	echo 'At least 11 parameters are required!'
+if [ $# -lt 8 ]; then
+	echo 'At least 8 parameters are required!'
 	echo '  Param 1: AWS Cognito User Pool id'
 	echo '  Param 2: AWS Cognito client id'
 	echo '  Param 3: RG Bucket Name (The bucket where CFT templates are stored)'
 	echo '  Param 4: App username'
-	echo '  Param 5: App user password'
-	echo '  Param 6: Run Id'
-	echo '  Param 7: URL to reach RG'
+	echo '  Param 5: URL to reach RG'
 	echo '           e.g https://rg.example.com'
 	echo '           Note that the protocol will be picked from this param!'
-	echo '  Param 8: AWS Region'
-	echo '  Param 9: AWS InstanceRoleName'
-	echo '  Param 10: AWS Account Number. Optional if running on an EC2 in the'
-	echo '            same account to which Research Gateway is to be deployed'
-	echo '  Param 11: Hosted Zone Id in Route53 to be used for enabling SSL'
+	echo '  Param 6: AWS Region'
+	echo '  Param 7: Hosted Zone Id in Route53 to be used for enabling SSL'
     echo '            in projects'
-	echo '  Param 12: AWS secret ARN'
+	echo '  Param 8: AWS secret ARN'
 	exit 1
 fi
 
@@ -27,21 +22,31 @@ myuserpoolid=$1
 myclientid=$2
 mys3bucket=$3
 myappuser=$4
-myapppwd=$5
-myrunid=$6
-myurl=$7
-region=$8
-role_name=$9
-secret_arn=${12}
+myapppwd=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 24)
+myrunid=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 4)
+myurl=$5
+# Get the IMDSv2 token
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+# Get IAM Role name
+role_name=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/iam/security-credentials/ | head -n 1)
+
+# Get Account ID
+ac_name=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .accountId)
+
+region=$6
+secret_arn=${8}
 RG_HOME=$(mktemp -d -t "config.$myrunid.XXX")
 echo "RG_HOME=$RG_HOME"
-RG_SRC=$(pwd)
+[ -z "$RG_SRC" ] && RG_SRC='/home/ubuntu/rgdeploy'
 echo "RG_SRC=$RG_SRC"
 [ -z "$RG_ENV" ] && RG_ENV='PROD'
 echo "RG_ENV=$RG_ENV"
 echo "Region : $region"
 echo "Role name : $role_name"
-ac_name=${10}
 if [ -z "$ac_name" ]; then
 	ac_name=$(
 		wget -q -O - http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .accountId
@@ -49,12 +54,11 @@ if [ -z "$ac_name" ]; then
 	[ -z "$ac_name" ] && echo "Error: Account Number is needed" && exit 1
 fi
 echo "Account number : $ac_name"
-r53_hosted_zone=${11}
+r53_hosted_zone=${7}
 generated_token=$(
 	date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 24
 	echo
 )
-
 echo "Generated token : $generated_token"
 if [ -z "$myurl" ]; then
 	echo "ERROR: No RG URL passed. Exiting."
@@ -128,7 +132,7 @@ jq -r ".db_ssl_enable=true" "$mytemp/mongo-config.json" |
 	jq -r ".db_auth_config.password=\"$myapppwd\"" |
 	jq -r ".db_auth_config.secretName=\"$secret_arn\"" |
 	jq -r '.db_auth_config.authenticateDb="admin"' >"${RG_HOME}/config/mongo-config.json"
-tar -C "$RG_HOME" -czf config.tar.gz "config"/*
+tar -C $RG_HOME -cvzf config.tar.gz "config"
 tar -tf config.tar.gz
 rm -rf "$RG_HOME"
 echo 'Configuration changed successfully'

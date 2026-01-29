@@ -18,6 +18,7 @@ tar --keep-newer-files -xvf $RG_SRC/config.tar.gz -C $RG_HOME
 tar -xvf $RG_SRC/config.tar.gz -C $RG_SRC
 
 grep -i 'version=' /usr/local/sbin/fix*.sh /usr/local/sbin/start_server.sh
+chmod +x "$RG_SRC/scripts/*.sh"
 # Check if any of the scripts are later versions than those present
 # in the AMI
 if [ ! -f /usr/local/sbin/fixips.sh ] || [ $RG_SRC/scripts/fixips.sh -nt /usr/local/sbin/fixips.sh ]; then

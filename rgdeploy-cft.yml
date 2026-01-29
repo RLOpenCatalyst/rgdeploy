@@ -1,0 +1,860 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::SecretsManager-2020-07-23
+Description: >
+  Unified CloudFormation Template for Research Gateway.
+  Provisions ALB, Cognito, DocumentDB, EC2, and all required resources in a single stack.
+  VPC and subnets must be created externally and passed as parameters.
+
+Parameters:
+  RgSRC:
+    Type: String
+    Default: "/home/ubuntu/rgdeploy"
+    Description: Directory path where Research Gateway deployment files will be stored
+  AMIId:
+    Description: The AMI for the EC2 instance running Research Gateway
+    Type: AWS::EC2::Image::Id
+  CFTBucketName:
+    Description: S3 bucket holding deployment/config files
+    Type: String
+  VPC:
+    Description: VPC for all resources
+    Type: String
+  PublicSubnet1:
+    Description: Public subnet 1 for ALB
+    Type: String
+  PublicSubnet2:
+    Description: Public subnet 2 for ALB
+    Type: String
+  PublicSubnet3:
+    Description: Public subnet 3 for ALB
+    Type: String
+  PrivateSubnet1:
+    Description: Private subnet 1 for DocumentDB/EC2
+    Type: String
+  PrivateSubnet2:
+    Description: Private subnet 2 for DocumentDB/EC2
+    Type: String
+  PrivateSubnet3:
+    Description: Private subnet 3 for DocumentDB/EC2
+    Type: String
+  KeyPairName:
+    Description: Keypair for EC2 SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+  Environment:
+    Description: Deployment environment (DEV, QA, STAGE, PROD)
+    Type: String
+    AllowedValues: [DEV, QA, STAGE, PROD]
+  RGUrl:
+    Description: URL at which Research Gateway will be accessed
+    Type: String
+  CertificateArn:
+    Description: ACM Certificate ARN for SSL (optional)
+    Type: String
+    Default: ""
+  HostedZoneId:
+    Description: Route53 Hosted Zone ID for the RG domain (required for config generation)
+    Type: String
+  BaseAccountPolicyName:
+    Description: Name for RG Portal Base Account Policy
+    Type: String
+  AdminEmail:
+    Description: Email address for the first admin user
+    Type: String
+
+Conditions:
+  UseSSL:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref CertificateArn
+          - ""
+  DoNotUseSSL:
+    Fn::Equals:
+      - !Ref CertificateArn
+      - ""
+
+Resources:
+
+  RGInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http/https/ssh to client host
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0  
+          
+
+  RGApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${Environment}-rg-alb"
+      Scheme: internet-facing
+      Type: application
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+        - !Ref PublicSubnet3
+      SecurityGroups:
+        - !Ref RGInstanceSecurityGroup
+      IpAddressType: ipv4
+
+  RGTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${Environment}-rg-target"
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      TargetType: instance
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 2
+      Matcher:
+        HttpCode: "200"
+
+  RGHTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: DoNotUseSSL
+    Properties:
+      LoadBalancerArn: !Ref RGApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref RGTargetGroup
+
+  RGHTTPRedirectListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: UseSSL
+    Properties:
+      LoadBalancerArn: !Ref RGApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: "443"
+            Host: "#{host}"
+            Path: "/#{path}"
+            Query: "#{query}"
+            StatusCode: HTTP_301
+
+  RGHTTPSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: UseSSL
+    Properties:
+      LoadBalancerArn: !Ref RGApplicationLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-2016-08
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref RGTargetGroup
+
+  # Portal IAM Role
+  RGPortalRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: The role used by the EC2 Instance running the portal
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
+        - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
+        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+        - Ref: ResearchGatewayRolePolicy
+      Path: /
+  ResearchGatewayInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - Ref: RGPortalRole
+  ResearchGatewayRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Ref BaseAccountPolicyName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "InstancePermissions"
+            Effect: Allow
+            Action:
+              - ec2:DescribeImages
+              - ec2:CopyImage
+              - ec2:ModifyImageAttribute
+              - ec2:CreateNetworkInterface
+              - ec2:ModifyInstanceMetadataOptions
+              - elasticloadbalancing:RegisterTargets
+              - sts:AssumeRole
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: "*"
+          - Sid: "RoleRelatedPermissions"
+            Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+              - iam:CreateRole
+              - iam:DetachRolePolicy
+            Resource: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${BaseAccountPolicyName}"
+          - Sid: "PolicyRelatedPermissions"
+            Effect: Allow
+            Action:
+              - iam:CreatePolicy
+              - iam:CreatePolicyVersion
+              - iam:DeletePolicy
+              - iam:DeletePolicyVersion
+              - iam:UpdateAssumeRolePolicy
+            Resource: 
+              - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
+  DnsRecord:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneId: !Ref HostedZoneId
+        Name: !Select [2, !Split ["/", !Ref RGUrl]]
+        Type: A
+        AliasTarget:
+          DNSName: !GetAtt RGApplicationLoadBalancer.DNSName
+          HostedZoneId: !GetAtt RGApplicationLoadBalancer.CanonicalHostedZoneID
+
+  # EC2 Instance for Research Gateway Portal
+  RGEC2Instance:
+      Type: AWS::EC2::Instance
+      DependsOn: DnsRecord
+      Properties:
+        ImageId: !Ref AMIId
+        InstanceType: t3.large
+        Monitoring: true
+        DisableApiTermination: false
+        IamInstanceProfile: !Ref ResearchGatewayInstanceProfile
+        KeyName: !Ref KeyPairName
+        BlockDeviceMappings:
+          - DeviceName: /dev/sda1
+            Ebs:
+              VolumeType: gp2
+              VolumeSize: 80
+              DeleteOnTermination: true
+              Encrypted: true
+        SubnetId: !Ref PrivateSubnet1
+        SecurityGroupIds:
+          - !Ref RGInstanceSecurityGroup
+        UserData:
+          Fn::Base64: !Sub
+            - |
+              #!/bin/bash
+              exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+              export RG_HOME=/opt/deploy/sp2
+              export RG_ENV=${Environment}
+              export RG_SRC=${RgSRC}
+              export S3_SOURCE="${CFTBucketName}"
+              export REGION=${AWS::Region}
+
+              mkdir -p ${RgSRC}
+              apt-get update
+              apt-get install -y jq curl gnupg
+
+              wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | tee /etc/apt/trusted.gpg.d/server-8.0.asc
+              echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+              apt-get update
+              apt-get install -y mongodb-mongosh
+
+              mongosh --version
+
+              aws s3 cp s3://${CFTBucketName}/updatescripts.sh ${RgSRC}
+              aws s3 cp s3://${CFTBucketName}/makeconfigs-inplace.sh ${RgSRC}
+              chmod +x ${RgSRC}/updatescripts.sh
+              chmod +x ${RgSRC}/makeconfigs-inplace.sh
+
+              aws s3 cp s3://${CFTBucketName}/config.tar.gz ${RgSRC}
+              tar -xzvf ${RgSRC}/config.tar.gz -C ${RgSRC}
+
+              APPUSER="rguser"
+              APPUSERPWD=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 24)
+              RUNID=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 4)
+
+              TOKEN=$(wget --method=PUT --header="X-aws-ec2-metadata-token-ttl-seconds: 21600" -qO- http://169.254.169.254/latest/api/token)
+              ROLE_NAME="$(wget --header="X-aws-ec2-metadata-token: $TOKEN" -qO- http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
+              ACCT_ID=$(wget --header="X-aws-ec2-metadata-token: $TOKEN" -qO- http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .accountId)
+
+              ${RgSRC}/makeconfigs-inplace.sh \
+                ${CognitoUserPool} \
+                ${CognitoUserPoolClient} \
+                ${CFTBucketName} \
+                "rguser" \
+                ${RGUrl} \
+                ${AWS::Region} \
+                ${HostedZoneId} \
+                ${DocDBClusterRotationSecret}
+
+              aws s3 cp config.tar.gz s3://${CFTBucketName}/
+
+              rm -rf $RG_HOME/config
+              ${RgSRC}/updatescripts.sh
+
+              fixconfigs.sh
+              fixdocdb.sh ${DBClusterEndpoint} ${Environment}-cc rguser $(aws secretsmanager get-secret-value --secret-id ${DocDBClusterRotationSecret} --region ${AWS::Region} --query SecretString --output text | jq -r .password) ${RGUrl}
+
+              chmod +x /usr/local/sbin/swarm_init.sh
+              start_server.sh ${RGUrl} ${RGTargetGroupArn}
+
+              RG_HOME=/opt/deploy/sp2
+              baseurl=$(cat "$RG_HOME/config/config.json" | jq -r '.baseURL' | sed -e 's#/$##')
+              token=$(cat "$RG_HOME/config/notification-config.json" | jq -r '.tokenID[0]')
+
+              if [ -z "$baseurl" ]; then
+                echo "Base URL is not configured in config.json. Exiting"
+                exit 1
+              fi
+
+              TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+              instanceid=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+              data="{\"username\":\"rgadmin\",\"first_name\":\"Admin\",\"last_name\":\"User\",\"email\":\"${AdminEmail}\",\"password\":\"RgAdmin@$instanceid\",\"level\":2}"
+
+              curl -c cookies.txt -X GET -H "Content-Type: application/json" -H "token:$token" $baseurl/user/signup
+              ctoken=$(awk '/XSRF-TOKEN/ {print $7}' cookies.txt)
+
+              message=$(curl -b cookies.txt --location --request POST -H "X-CSRF-Token:$ctoken" --header "token:$token" --header "Content-Type: application/json" --data-raw "$data" "$baseurl/user/signup" | jq -r '.message')
+
+              /opt/aws/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource RGEC2Instance --region ${AWS::Region}
+            - RGTargetGroupArn: !GetAtt RGTargetGroup.TargetGroupArn
+              Environment: !Ref Environment
+              RgSRC: !Ref RgSRC
+              RGUrl: !Ref RGUrl
+              CFTBucketName: !Ref CFTBucketName
+              CognitoUserPool: !Ref CognitoUserPool
+              CognitoUserPoolClient: !Ref CognitoUserPoolClient
+              HostedZoneId: !Ref HostedZoneId
+              DocDBClusterRotationSecret: !Ref DocDBClusterRotationSecret
+              DBClusterEndpoint: !GetAtt DBCluster.Endpoint
+              AdminEmail: !Ref AdminEmail
+
+              
+      CreationPolicy:
+        ResourceSignal:
+          Timeout: PT9M
+
+  DocumentDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Amazon DocumentDB Security Group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 27017
+          ToPort: 27017
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "RG-DocDB-SG-${AWS::StackName}"
+
+  # VPC Endpoint Security Group for Secrets Manager
+  VpcendpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: vpc endpoint Security Group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "0"
+          ToPort: "65535"
+          CidrIp: "0.0.0.0/0"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "RG-VPCEndpoint-SG-${AWS::StackName}"
+
+  # Secrets Manager VPC Endpoint
+  SecretsManagerVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      SecurityGroupIds:
+        - !GetAtt VpcendpointSecurityGroup.GroupId
+      VpcEndpointType: Interface
+      ServiceName:
+        Fn::Sub: com.amazonaws.${AWS::Region}.secretsmanager
+      PrivateDnsEnabled: true
+      VpcId: !Ref VPC
+
+  # DocumentDB Secret
+  DocDBClusterRotationSecret:
+    Type: "AWS::SecretsManager::Secret"
+    Properties:
+      Name: !Sub "RG-DocDB-Secret-${AWS::StackName}"
+      Description: secrets for DocumentDB
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "rguser"}'
+        GenerateStringKey: "password"
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\'
+      Tags:
+        - Key: Name
+          Value: !Sub "RG-DocDB-Secret-${AWS::StackName}"
+
+  # DocumentDB Subnet Group
+  DocumentDBSubnetGroup:
+    Type: AWS::DocDB::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet Group for DocumentDB
+      DBSubnetGroupName: !Sub "RG-DocDB-SubnetGroup-${AWS::StackName}"
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      Tags:
+        - Key: Name
+          Value: !Sub "RG-DocDB-SubnetGroup-${AWS::StackName}"
+
+  # DocumentDB Cluster
+  DBCluster:
+    Type: "AWS::DocDB::DBCluster"
+    DeletionPolicy: Delete
+    Properties:
+      DBClusterIdentifier: !Sub "RG-DocDB-Cluster-${AWS::StackName}"
+      MasterUsername: rguser
+      MasterUserPassword:
+        Fn::Sub: "{{resolve:secretsmanager:${DocDBClusterRotationSecret}::password}}"
+      EngineVersion: 4.0.0
+      DBSubnetGroupName: !Ref DocumentDBSubnetGroup
+      VpcSecurityGroupIds:
+        - !GetAtt DocumentDBSecurityGroup.GroupId
+      StorageEncrypted: true
+
+  # DocumentDB Instance
+  DBInstance:
+    Type: "AWS::DocDB::DBInstance"
+    Properties:
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: !Sub "RG-DocDB-Instance-${AWS::StackName}"
+      DBInstanceClass: db.t3.medium
+    DependsOn: DBCluster
+
+  # Secret Attachment
+  SecretDocDBClusterAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref DocDBClusterRotationSecret
+      TargetId: !Ref DBCluster
+      TargetType: AWS::DocDB::DBCluster
+
+  # Secret Rotation Schedule
+  SecretRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    DependsOn: SecretDocDBClusterAttachment
+    Properties:
+      SecretId: !Ref DocDBClusterRotationSecret
+      # RotationRules should be here, not under HostedRotationLambda
+      RotationRules:
+        Duration: 6h
+        ScheduleExpression: "rate(30 days)"
+      HostedRotationLambda:
+        RotationType: MongoDBSingleUser
+        RotationLambdaName: MongoDBSingleUser
+        # These should be lists of IDs/references
+        VpcSecurityGroupIds:
+           !Join [",", [!GetAtt DocumentDBSecurityGroup.GroupId]]
+        VpcSubnetIds: !Join [",", [!Ref PrivateSubnet1, !Ref PrivateSubnet2]]
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogDelivery
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DeleteLogGroup
+                Resource: arn:aws:logs:*:*:*
+
+  # Cognito Lambda: Post Confirmation
+  LambdaFunction1:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: "This trigger is invoked after a user is confirmed, allowing you to send custom messages or to add custom logic, for example for analytics."
+      Environment:
+        Variables:
+          PORTAL_LINK: !Ref RGUrl
+      FunctionName: !Sub "post_verification_send_message-${AWS::StackName}"
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref CFTBucketName
+        S3Key: post_verification_send_message.zip
+      Role: !GetAtt "LambdaExecutionRole.Arn"
+      MemorySize: 128
+      Runtime: "nodejs18.x"
+      Timeout: 60
+      TracingConfig:
+        Mode: "PassThrough"
+
+  # Cognito Lambda: Pre Verification Custom Message
+  LambdaFunction2:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: "This trigger is invoked before a verification or MFA message is sent, allowing you to customize the message dynamically."
+      Environment:
+        Variables:
+          PORTAL_LINK: !Ref RGUrl
+      FunctionName: !Sub "pre_verification_custom_message-${AWS::StackName}"
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref CFTBucketName
+        S3Key: pre_verification_custom_message.zip
+      Role: !GetAtt "LambdaExecutionRole.Arn"
+      MemorySize: 128
+      Runtime: "nodejs18.x"
+      Timeout: 3
+      TracingConfig:
+        Mode: "PassThrough"
+
+  # Cognito User Pool
+  CognitoUserPool:
+    Type: "AWS::Cognito::UserPool"
+    Properties:
+      UserPoolName: !Sub "RGUserPool-${AWS::StackName}"
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 90
+      LambdaConfig:
+        CustomMessage: !GetAtt LambdaFunction2.Arn
+        PostConfirmation: !GetAtt LambdaFunction1.Arn
+      Schema:
+        - Name: "sub"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: false
+          Required: true
+          StringAttributeConstraints:
+            MinLength: "1"
+            MaxLength: "2048"
+        - Name: "name"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "given_name"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "family_name"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "middle_name"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "nickname"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "preferred_username"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "profile"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "picture"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "website"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "email"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: true
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "email_verified"
+          AttributeDataType: "Boolean"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+        - Name: "gender"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "birthdate"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "10"
+            MaxLength: "10"
+        - Name: "zoneinfo"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "locale"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "phone_number"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "address"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "0"
+            MaxLength: "2048"
+        - Name: "updated_at"
+          AttributeDataType: "Number"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          NumberAttributeConstraints:
+            MinValue: "0"
+        - Name: "created_by"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "1"
+            MaxLength: "256"
+        - Name: "user"
+          AttributeDataType: "String"
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "1"
+            MaxLength: "256"
+      AutoVerifiedAttributes:
+        - "email"
+      AliasAttributes:
+        - "preferred_username"
+        - "email"
+      SmsVerificationMessage: "Your verification code is {####}. "
+      EmailVerificationMessage: "Your verification code is {####}. "
+      EmailVerificationSubject: "Your verification code"
+      SmsAuthenticationMessage: "Your authentication code is {####}. "
+      MfaConfiguration: "OFF"
+      EmailConfiguration:
+        EmailSendingAccount: "COGNITO_DEFAULT"
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+        InviteMessageTemplate:
+          SMSMessage: "Your username is {username} and temporary password is {####}. "
+          EmailMessage: "Your username is {username} and temporary password is {####}. "
+          EmailSubject: "Your temporary password"
+      UserPoolTags:
+        RLgroup: ""
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Priority: 1
+            Name: "verified_email"
+          - Priority: 2
+            Name: "verified_phone_number"
+      UsernameConfiguration:
+        CaseSensitive: true
+      VerificationMessageTemplate:
+        SmsMessage: "Your verification code is {####}. "
+        EmailMessage: "Your verification code is {####}. "
+        EmailSubject: "Your verification code"
+        DefaultEmailOption: "CONFIRM_WITH_CODE"
+
+  # Cognito User Pool Client
+  CognitoUserPoolClient:
+    Type: "AWS::Cognito::UserPoolClient"
+    Properties:
+      UserPoolId: !Ref CognitoUserPool
+      ClientName: !Sub "RGUserPoolClient-${AWS::StackName}"
+      RefreshTokenValidity: 30
+      ReadAttributes:
+        - "address"
+        - "birthdate"
+        - "email"
+        - "email_verified"
+        - "family_name"
+        - "gender"
+        - "given_name"
+        - "locale"
+        - "middle_name"
+        - "name"
+        - "nickname"
+        - "phone_number"
+        - "picture"
+        - "preferred_username"
+        - "profile"
+        - "updated_at"
+        - "website"
+        - "zoneinfo"
+        - "custom:created_by"
+        - "custom:user"
+      WriteAttributes:
+        - "address"
+        - "birthdate"
+        - "email"
+        - "family_name"
+        - "gender"
+        - "given_name"
+        - "locale"
+        - "middle_name"
+        - "name"
+        - "nickname"
+        - "phone_number"
+        - "picture"
+        - "preferred_username"
+        - "profile"
+        - "updated_at"
+        - "website"
+        - "zoneinfo"
+        - "custom:created_by"
+        - "custom:user"
+      ExplicitAuthFlows:
+        - "ALLOW_ADMIN_USER_PASSWORD_AUTH"
+        - "ALLOW_CUSTOM_AUTH"
+        - "ALLOW_REFRESH_TOKEN_AUTH"
+        - "ALLOW_USER_PASSWORD_AUTH"
+        - "ALLOW_USER_SRP_AUTH"
+      PreventUserExistenceErrors: "LEGACY"
+
+  # Lambda invoke permissions for Cognito triggers
+  UserPoolCustomMessageLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      Principal: cognito-idp.amazonaws.com
+      FunctionName: !Ref LambdaFunction2
+      SourceArn:
+        Fn::Sub: arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPool}
+  UserPoolPostConfirmationLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      Principal: cognito-idp.amazonaws.com
+      FunctionName: !Ref LambdaFunction1
+      SourceArn:
+        Fn::Sub: arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPool}
+
+
+Outputs:
+  ApplicationLoadBalancer:
+    Description: The created load balancer
+    Value: !Ref RGApplicationLoadBalancer
+  LoadBalancerSecurityGroup:
+    Description: The security group for the ALB
+    Value: !Ref RGInstanceSecurityGroup
+  ResearchGatewayTargetGroupArn:
+    Description: The ARN of the Target Group used by the stack
+    Value: !Ref RGTargetGroup

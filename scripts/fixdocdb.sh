@@ -18,8 +18,7 @@ fi
 # If user is using DocumentDB, it also means we are not using local mongodb.
 # So disable the mongod service
 
-systemctl disable mongod
-service mongod stop
+
 # Fetch IMDSv2 session token
 TOKEN=$(wget --method=PUT --header="X-aws-ec2-metadata-token-ttl-seconds: 21600" -qO- http://169.254.169.254/latest/api/token)
 myip=$(wget --header="X-aws-ec2-metadata-token: $TOKEN" -qO- http://169.254.169.254/latest/meta-data/local-ipv4)
@@ -36,6 +35,13 @@ echo "RG_SRC=$RG_SRC"
 [ -z "$S3_SOURCE" ] && S3_SOURCE=rg-deployment-docs
 echo "S3_SOURCE=$S3_SOURCE"
 
+systemctl disable mongod 2>/dev/null
+service mongod stop 2>/dev/null
+
+# URL-encode the password to handle special chars
+encoded_pwd=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$mydbuserpwd'''))")
+
+# Setup baseurl for SNS callback
 if [ -z "$myurl" ]; then
 	if [ -z "$public_host_name" ]; then
 		echo "ERROR: No RG URL passed. Instance does not have public hostname. One of the two is required. Not modifying configs."
@@ -52,9 +58,18 @@ else
 	fi
 fi
 echo "snsUrl will be set to $baseurl"
-
-# Modify the database to create roles and configs
 echo "Modifying database $1 to create defaults"
+if command -v mongosh >/dev/null 2>&1; then
+  mongo_cmd="mongosh"
+  echo "Using mongosh to connect..."
+elif command -v mongo >/dev/null 2>&1; then
+  mongo_cmd="mongo"
+  echo "Using mongo to connect..."
+else
+  echo "Error: Neither mongosh nor mongo is installed. Please install one of them to proceed."
+  exit 1
+fi
+
 if [ ! -f "$RG_SRC/dump.tar.gz" ]; then
 	echo "No seed DB in $RG_SRC."
 else
@@ -68,9 +83,9 @@ unzip -o "$RG_SRC/dump.zip" -d "$RG_SRC"
 if [ ! "$(ls -A $RG_SRC/dump)" ]; then
 	echo "Error: No files found in dump folder. Your database cannot be seeded."
 else
-	mongoimport --host "$mydocdburl:27017" --ssl \
+  	mongoimport --host "$mydocdburl:27017" --ssl \
 		--sslCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" \
-		--username "$mydbuser" --password "$mydbuserpwd" \
+                --username "$mydbuser" --password "$mydbuserpwd" \
 		--db "${mydbname}" --collection=standardcatalogitems --jsonArray\
 		"$RG_SRC/dump/standardcatalogitems.json"
 	mongoimport --host "$mydocdburl:27017" --ssl \
@@ -83,19 +98,28 @@ else
 		--username "$mydbuser" --password "$mydbuserpwd" \
 		--db "${mydbname}" --collection=studies --jsonArray\
 		"$RG_SRC/dump/studies.json"
-
 fi
 
-if [ -z "$baseurl" ]; then
-	echo "WARNING: Base URL is not passed. Skipping snsUrl configuration in DB."
-else
-	mongo --ssl --host "$mydocdburl:27017" --sslCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" \
-		--username "$mydbuser" --password "$mydbuserpwd" <<EOF
+# Insert snsUrl into DB if URL was provided
+if [ -n "$baseurl" ]; then
+  $mongo_cmd "mongodb://$mydbuser:$encoded_pwd@$mydocdburl:27017/$mydbname?retryWrites=false&tls=true&authMechanism=SCRAM-SHA-1" --tlsCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" <<EOF
 use $mydbname
-db.configs.remove({"key":"snsUrl"});
-db.configs.insert({"key":"snsUrl","value":"$baseurl"});
+db.configs.deleteMany({"key":"snsUrl"});
+db.configs.insertOne({"key":"snsUrl","value":"$baseurl"});
 EOF
 fi
+
+install_time=$(date -Is | base64 | tr -d '\n')
+install_uid=$(uuidgen)
+echo "Adding simplified InstallationDetails to DB..."
+$mongo_cmd "mongodb://$mydbuser:$encoded_pwd@$mydocdburl:27017/$mydbname?retryWrites=false&tls=true&authMechanism=SCRAM-SHA-1" --tlsCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" <<EOF
+use $mydbname
+db.configs.deleteMany({"key": "InstallationDetails"});
+db.configs.insertOne({
+  "key": "InstallationDetails",
+  "value": ["$install_uid", "$install_time"]
+});
+EOF
 
 # rootca="${RG_HOME}/config/rootCA.key"
 # rlca="${RG_HOME}/config/RL-CA.pem"
