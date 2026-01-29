@@ -3,7 +3,7 @@ pandas
 scikit-learn
 matplotlib
 seaborn
-jupyterlab==3.5.0
+jupyterlab==3.6.7
 tensorflow==2.12.*
 torch
 torchvision
