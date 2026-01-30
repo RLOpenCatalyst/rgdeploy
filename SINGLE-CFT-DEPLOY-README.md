@@ -16,29 +16,32 @@ This guide describes how to deploy the Research Gateway application using the ne
 
 1. **AWS Account** with sufficient permissions to create VPC, EC2, IAM, Cognito, DocumentDB, S3, and related resources.
 2. **VPC and Subnets**: You must have an existing VPC with at least 3 public and 3 private subnets.
-3. **ACM Certificate** (optional): For SSL, create or import a certificate in AWS Certificate Manager.
-4. **AWS CLI**: Installed and configured (`aws configure`).
-5. **jq**: Installed on your local machine and available in the EC2 AMI.
-6. **S3 Bucket**: A bucket to store deployment scripts and configuration files.
-7. **Scripts**: Ensure the following files are uploaded to your S3 bucket:
+3. **Subdomain for Research Gateway**: This will be the URL at which you access Research Gateway (rg.example.com) and the workspaces (workspace1.rg.example.com). You will have to work with your domain hosting provider to delegate the subdomain to Route 53.
+4. **ACM Certificate** (optional): For SSL, create or import a certificate in AWS Certificate Manager. This certificate must be issued to the subdomain you plan to use for the Research Gateway application.
+5. **Route 53 HostedZoneId**: For the subdomain you choose for your Research Gateway
+6. **AWS CLI**: Installed and configured (`aws configure`). CloudShell should already be configured for this.
+7. **jq**: Installed on your local machine and available in the EC2 AMI.
+8. **Deployment source files** Clone this repository to a local folder on your machine or in CloudShell. The folder you clone the repo into will be referenced as RgSrc in the next section.
+9. **S3 Bucket**: A bucket to store deployment scripts and configuration files. Choose a name for the bucket and create it in your deployment account.
+10. **Scripts**: Ensure the following files are uploaded to your S3 bucket:
     - `makeconfigs-inplace.sh`
     - `updatescripts.sh`
     - `post_verification_send_message.zip`
     - `pre_verification_custom_message.zip`
     - Any other scripts referenced in UserData or by the application
-8. **CloudFormation Template**: `rgdeploy-cft.yml` must be present in your working directory.
+
+    To upload files use the following script:
+    ```bash
+        ./upload-assets.sh
+    ```
+11. **CloudFormation Template**: `rgdeploy-cft.yml` must be present in your working directory.
+12. **EC2 AMI**: Use the AMI-Id of the latest Amazon Linux available. It should already have docker installed and enabled.
 
 ---
 
-## Parameters Required
+## Parameters For the deployment script
 
-1. **Upload Scripts to S3**
-
-   ```bash
-      ./upload-assets.sh
-   ```
-
-2. **Prepare Parameters**
+1. **Prepare Parameters**
 
 Gather the following information
  ------------------------------------------------------------------------------------------------------
@@ -59,7 +62,7 @@ Gather the following information
 | `RGUrl`                     | Research Gateway URL (e.g., `https://myrg.example.com`)                |
 | `CertificateArn`            | ARN of the ACM Certificate (optional; used for enabling SSL/TLS)       |
 | `HostedZoneId`              | Route 53 Hosted Zone ID for domain name configuration                  |
-| `BaseAccountPolicyName`     | Name of the base IAM policy for RG Portal accounts                     |
+| `BaseAccountPolicyName`     | Name you want to give to the base IAM policy for RG Portal accounts                     |
 | `AdminEmail`                | Email address of the initial administrator user                        |
 | `region`                    | AWS region where the stack will be deployed                            |
  ------------------------------------------------------------------------------------------------------
