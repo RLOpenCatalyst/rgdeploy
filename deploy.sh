@@ -41,6 +41,7 @@ if [ "$1" = "-f" ]; then
 	appuserpassword=$(jq -r '.appuserpassword' <<<"${myinput}")
 	adminpassword=$(jq -r '.adminpassword' <<<"${myinput}")
 	S3_SOURCE=$(jq -r '.s3src' <<<"${myinput}")
+	SKIP_S3_COPY=$(jq -r '.skip_s3_copy	' <<<"${myinput}")
 	echo "Run ID: $runid"
 	echo "APPUSER: $appuser"
 	echo "APPUSERPWD: $appuserpassword"
@@ -224,82 +225,87 @@ else
 	fi
 fi
 # Populate the new S3 bucket with RG Deployment files
-echo "Copying docker-compose.yml file"
-aws s3 cp "$localhome"/docker-compose.yml s3://"$bucketname"
-echo "Copying nginx.conf file"
-aws s3 cp "$localhome"/nginx.conf s3://"$bucketname"
-echo "Copying updatescripts.sh file"
-aws s3 cp "$localhome"/updatescripts.sh s3://"$bucketname"
+if ! [ "$SKIP_S3_COPY" = "true" ]; then
+	echo "Copying deployment files to bucket $bucketname"
+	echo "Copying docker-compose.yml file"
+	aws s3 cp "$localhome"/docker-compose.yml s3://"$bucketname"
+	echo "Copying nginx.conf file"
+	aws s3 cp "$localhome"/nginx.conf s3://"$bucketname"
+	echo "Copying updatescripts.sh file"
+	aws s3 cp "$localhome"/updatescripts.sh s3://"$bucketname"
 
 
-#Modify file rg_userpool.yml to refer new S3 bucket
-#sed -i -e "s/S3Bucket:.*/S3Bucket: $bucketname/" "$localhome"/rg_userpool.yml
+	#Modify file rg_userpool.yml to refer new S3 bucket
+	#sed -i -e "s/S3Bucket:.*/S3Bucket: $bucketname/" "$localhome"/rg_userpool.yml
 
-#Copy extracted cft template to the new bucket
-echo "Copying deployment files to new bucket"
-aws s3 sync "$localhome/cft-templates/" s3://"$bucketname/"
+	#Copy extracted cft template to the new bucket
+	echo "Copying deployment files to new bucket"
+	aws s3 sync "$localhome/cft-templates/" s3://"$bucketname/"
 
-echo "Copying config files to new bucket"
-tar -czf config.tar.gz config/*
-tar -tf config.tar.gz
-aws s3 cp "$localhome"/config.tar.gz s3://"$bucketname"
-rm -f config.tar.gz
+	echo "Copying config files to new bucket"
+	tar -czf config.tar.gz config/*
+	tar -tf config.tar.gz
+	aws s3 cp "$localhome"/config.tar.gz s3://"$bucketname"
+	rm -f config.tar.gz
 
-echo "Copying script files to new bucket"
-sed -i "s/secret_name/RL-RG-$runid-$env/g"  "$localhome"/scripts/connect-db.sh  
-tar -czf scripts.tar.gz scripts/*
-tar -tf scripts.tar.gz
-aws s3 cp "$localhome"/scripts.tar.gz s3://"$bucketname"
-rm -f scripts.tar.gz
+	echo "Copying script files to new bucket"
+	sed -i "s/secret_name/RL-RG-$runid-$env/g"  "$localhome"/scripts/connect-db.sh  
+	tar -czf scripts.tar.gz scripts/*
+	tar -tf scripts.tar.gz
+	aws s3 cp "$localhome"/scripts.tar.gz s3://"$bucketname"
+	rm -f scripts.tar.gz
 
-echo "Copying bootstrap scripts to new bucket"
-aws s3 cp "$localhome"/scripts/bootstrap-scripts/ s3://"$bucketname/"bootstrap-scripts --recursive
-
-
-echo "Copying lambda files to new bucket"
-cd "$localhome"/lambdas || exit
-zip -j pre_verification_custom_message.zip pre_verification_custom_message/index.js
-zip -j post_verification_send_message.zip post_verification_send_message/index.js
-aws s3 cp ./pre_verification_custom_message.zip s3://"$bucketname"
-aws s3 cp ./post_verification_send_message.zip s3://"$bucketname"
-rm -f ./pre_verification_custom_message.zip ./post_verification_send_message.zip
-
-echo "Copying Image Builder files to new bucket"
-cd "$localhome"/products || exit
-tar -czf nextflow-advanced.tar.gz Nextflow-Advanced/*
-aws s3 cp ./nextflow-advanced.tar.gz s3://"$bucketname/"
-rm -f nextflow-advanced.tar.gz
-tar -czf rstudio.tar.gz RStudio/*
-aws s3 cp ./rstudio.tar.gz s3://"$bucketname/"
-rm -f rstudio.tar.gz
-tar -czf nicedcv.tar.gz Nicedcv/*
-aws s3 cp ./nicedcv.tar.gz s3://"$bucketname/"
-rm -f nicedcv.tar.gz
-zip -r ec2-winsecure-image.zip ec2-secure-windows/*
-aws s3 cp ./ec2-winsecure-image.zip s3://"$bucketname/"
-rm -f ec2-winsecure-image.zip
-tar -czf Rhelnicedcv.tar.gz Rhelnicedcv/*
-aws s3 cp ./Rhelnicedcv.tar.gz s3://"$bucketname/"
-rm -f Rhelnicedcv.tar.gz
+	echo "Copying bootstrap scripts to new bucket"
+	aws s3 cp "$localhome"/scripts/bootstrap-scripts/ s3://"$bucketname/"bootstrap-scripts --recursive
 
 
-cp ./PCluster/machine-images/config/infra/files/pcluster/slurm-main.yaml  ./PCluster/machine-images/config/infra/files/pcluster/slurm.yaml
-cp ./PCluster/machine-images/config/infra/files/pcluster/batch-main.yaml  ./PCluster/machine-images/config/infra/files/pcluster/batch.yaml
-sed -i "s/tempbucket/$bucketname/g" ./PCluster/machine-images/config/infra/files/pcluster/slurm.yaml
-sed -i "s/tempbucket/$bucketname/g" ./PCluster/machine-images/config/infra/files/pcluster/batch.yaml
-tar -czf PCluster.tar.gz PCluster/*
-aws s3 cp ./PCluster.tar.gz s3://"$bucketname/"
-rm -f ./PCluster/machine-images/config/infra/files/pcluster/slurm.yaml
-rm -f ./PCluster/machine-images/config/infra/files/pcluster/batch.yaml 
-rm -f PCluster.tar.gz
+	echo "Copying lambda files to new bucket"
+	cd "$localhome"/lambdas || exit
+	zip -j pre_verification_custom_message.zip pre_verification_custom_message/index.js
+	zip -j post_verification_send_message.zip post_verification_send_message/index.js
+	aws s3 cp ./pre_verification_custom_message.zip s3://"$bucketname"
+	aws s3 cp ./post_verification_send_message.zip s3://"$bucketname"
+	rm -f ./pre_verification_custom_message.zip ./post_verification_send_message.zip
 
-echo "Copying Database seed-data files to new bucket"
-cd "$localhome" || exit
-zip dump.zip dump/*
-unzip -l dump.zip
-aws s3 cp dump.zip s3://"$bucketname/"
-rm -f dump.zip
+	echo "Copying Image Builder files to new bucket"
+	cd "$localhome"/products || exit
+	tar -czf nextflow-advanced.tar.gz Nextflow-Advanced/*
+	aws s3 cp ./nextflow-advanced.tar.gz s3://"$bucketname/"
+	rm -f nextflow-advanced.tar.gz
+	tar -czf rstudio.tar.gz RStudio/*
+	aws s3 cp ./rstudio.tar.gz s3://"$bucketname/"
+	rm -f rstudio.tar.gz
+	tar -czf nicedcv.tar.gz Nicedcv/*
+	aws s3 cp ./nicedcv.tar.gz s3://"$bucketname/"
+	rm -f nicedcv.tar.gz
+	zip -r ec2-winsecure-image.zip ec2-secure-windows/*
+	aws s3 cp ./ec2-winsecure-image.zip s3://"$bucketname/"
+	rm -f ec2-winsecure-image.zip
+	tar -czf Rhelnicedcv.tar.gz Rhelnicedcv/*
+	aws s3 cp ./Rhelnicedcv.tar.gz s3://"$bucketname/"
+	rm -f Rhelnicedcv.tar.gz
 
+
+	cp ./PCluster/machine-images/config/infra/files/pcluster/slurm-main.yaml  ./PCluster/machine-images/config/infra/files/pcluster/slurm.yaml
+	cp ./PCluster/machine-images/config/infra/files/pcluster/batch-main.yaml  ./PCluster/machine-images/config/infra/files/pcluster/batch.yaml
+	sed -i "s/tempbucket/$bucketname/g" ./PCluster/machine-images/config/infra/files/pcluster/slurm.yaml
+	sed -i "s/tempbucket/$bucketname/g" ./PCluster/machine-images/config/infra/files/pcluster/batch.yaml
+	tar -czf PCluster.tar.gz PCluster/*
+	aws s3 cp ./PCluster.tar.gz s3://"$bucketname/"
+	rm -f ./PCluster/machine-images/config/infra/files/pcluster/slurm.yaml
+	rm -f ./PCluster/machine-images/config/infra/files/pcluster/batch.yaml 
+	rm -f PCluster.tar.gz
+
+	echo "Copying Database seed-data files to new bucket"
+	cd "$localhome" || exit
+	zip dump.zip dump/*
+	unzip -l dump.zip
+	aws s3 cp dump.zip s3://"$bucketname/"
+	rm -f dump.zip
+	
+else
+  echo "Skipping S3 copy as per user request"
+fi
 #=====================================================================================================
 function get_stack_status() {
 	stackname=$1
