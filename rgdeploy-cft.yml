@@ -358,11 +358,6 @@ Resources:
               DBClusterEndpoint: !GetAtt DBCluster.Endpoint
               AdminEmail: !Ref AdminEmail
 
-              
-      CreationPolicy:
-        ResourceSignal:
-          Timeout: PT9M
-
   DocumentDBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
