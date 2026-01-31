@@ -281,20 +281,52 @@ Resources:
 
               mkdir -p ${RgSRC}
               apt-get update
-              apt-get install -y jq curl gnupg
+              apt-get install -y jq curl gnupg ca-certificates lsb-release unzip
+              install -m 0755 -d /etc/apt/keyrings
+
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+                  | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+              chmod a+r /etc/apt/keyrings/docker.gpg
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+                    https://download.docker.com/linux/ubuntu \
+                      $(lsb_release -cs) stable" \
+                     |  tee /etc/apt/sources.list.d/docker.list 
 
               wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | tee /etc/apt/trusted.gpg.d/server-8.0.asc
               echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
               apt-get update
               apt-get install -y mongodb-mongosh
-
               mongosh --version
+              apt install -y \
+                docker-ce \
+                  docker-ce-cli \
+                    containerd.io \
+                      docker-buildx-plugin \
+                        docker-compose-plugin
+              systemctl enable docker
+              systemctl start docker
+              sudo usermod -aG docker ubuntu
+
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
+                   -o "awscliv2.zip"
+              unzip awscliv2.zip
+              ./aws/install
+              
+              mkdir -p ${RG_HOME}/catalog
+              mkdir -p ${RG_HOME}/topologies
+              mkdir -p ${RG_HOME}/integrations
+              mkdir -p ${RG_HOME}/logs
+              mkdir -p ${RG_HOME}/slogs
+              mkdir -p ${RG_HOME}/notification_sink_logs
+
 
               aws s3 cp s3://${CFTBucketName}/updatescripts.sh ${RgSRC}
               aws s3 cp s3://${CFTBucketName}/makeconfigs-inplace.sh ${RgSRC}
               chmod +x ${RgSRC}/updatescripts.sh
               chmod +x ${RgSRC}/makeconfigs-inplace.sh
 
+              aws s3 cp s3://${CFTBucketName}/nginx.conf ${RG_HOME}/
               aws s3 cp s3://${CFTBucketName}/config.tar.gz ${RgSRC}
               tar -xzvf ${RgSRC}/config.tar.gz -C ${RgSRC}
 
@@ -320,6 +352,11 @@ Resources:
 
               rm -rf $RG_HOME/config
               ${RgSRC}/updatescripts.sh
+              curl -LO https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2404-x86_64-100.14.1.tgz
+              tar -xvzf mongodb-database-tools-ubuntu2404-x86_64-100.14.1.tgz
+              cd mongodb-database-tools-ubuntu2404-x86_64-100.14.1/bin
+              mv * /usr/local/bin/
+              mongoimport --version
 
               fixconfigs.sh
               fixdocdb.sh ${DBClusterEndpoint} ${Environment}-cc rguser $(aws secretsmanager get-secret-value --secret-id ${DocDBClusterRotationSecret} --region ${AWS::Region} --query SecretString --output text | jq -r .password) ${RGUrl}
