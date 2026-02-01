@@ -273,7 +273,7 @@ Resources:
               #!/bin/bash
               exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
-              export RG_HOME=/opt/deploy/sp2
+              export RG_HOME=${RgHome}
               export RG_ENV=${Environment}
               export RG_SRC=${RgSRC}
               export S3_SOURCE="${CFTBucketName}"
@@ -313,12 +313,12 @@ Resources:
               unzip awscliv2.zip
               ./aws/install
               
-              mkdir -p ${RG_HOME}/catalog
-              mkdir -p ${RG_HOME}/topologies
-              mkdir -p ${RG_HOME}/integrations
-              mkdir -p ${RG_HOME}/logs
-              mkdir -p ${RG_HOME}/slogs
-              mkdir -p ${RG_HOME}/notification_sink_logs
+              mkdir -p ${RgHome}/catalog
+              mkdir -p ${RgHome}/topologies
+              mkdir -p ${RgHome}/integrations
+              mkdir -p ${RgHome}/logs
+              mkdir -p ${RgHome}/slogs
+              mkdir -p ${RgHome}/notification_sink_logs
 
 
               aws s3 cp s3://${CFTBucketName}/updatescripts.sh ${RgSRC}
@@ -326,7 +326,7 @@ Resources:
               chmod +x ${RgSRC}/updatescripts.sh
               chmod +x ${RgSRC}/makeconfigs-inplace.sh
 
-              aws s3 cp s3://${CFTBucketName}/nginx.conf ${RG_HOME}/
+              aws s3 cp s3://${CFTBucketName}/nginx.conf ${RgHome}/
               aws s3 cp s3://${CFTBucketName}/config.tar.gz ${RgSRC}
               tar -xzvf ${RgSRC}/config.tar.gz -C ${RgSRC}
 
@@ -350,7 +350,7 @@ Resources:
 
               aws s3 cp config.tar.gz s3://${CFTBucketName}/
 
-              rm -rf $RG_HOME/config
+              rm -rf ${RgHome}/config
               ${RgSRC}/updatescripts.sh
               curl -LO https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2404-x86_64-100.14.1.tgz
               tar -xvzf mongodb-database-tools-ubuntu2404-x86_64-100.14.1.tgz
@@ -364,9 +364,8 @@ Resources:
               chmod +x /usr/local/sbin/swarm_init.sh
               start_server.sh ${RGUrl} ${RGTargetGroupArn}
 
-              RG_HOME=/opt/deploy/sp2
-              baseurl=$(cat "$RG_HOME/config/config.json" | jq -r '.baseURL' | sed -e 's#/$##')
-              token=$(cat "$RG_HOME/config/notification-config.json" | jq -r '.tokenID[0]')
+              baseurl=$(cat "/opt/deploy/sp2/config/config.json" | jq -r '.baseURL' | sed -e 's#/$##')
+              token=$(cat "/opt/deploy/sp2/config/notification-config.json" | jq -r '.tokenID[0]')
 
               if [ -z "$baseurl" ]; then
                 echo "Base URL is not configured in config.json. Exiting"
@@ -382,7 +381,6 @@ Resources:
 
               message=$(curl -b cookies.txt --location --request POST -H "X-CSRF-Token:$ctoken" --header "token:$token" --header "Content-Type: application/json" --data-raw "$data" "$baseurl/user/signup" | jq -r '.message')
 
-              /opt/aws/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource RGEC2Instance --region ${AWS::Region}
             - RGTargetGroupArn: !GetAtt RGTargetGroup.TargetGroupArn
               Environment: !Ref Environment
               RgSRC: !Ref RgSRC
@@ -394,6 +392,7 @@ Resources:
               DocDBClusterRotationSecret: !Ref DocDBClusterRotationSecret
               DBClusterEndpoint: !GetAtt DBCluster.Endpoint
               AdminEmail: !Ref AdminEmail
+              RgHome: /opt/deploy/sp2
 
   DocumentDBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
