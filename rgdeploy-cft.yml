@@ -268,57 +268,105 @@ Resources:
         SecurityGroupIds:
           - !Ref RGInstanceSecurityGroup
         UserData:
-          Fn::Base64: !Sub
+          Fn::Base64: !Sub 
             - |
-              #!/bin/bash
-              exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+              #!/usr/bin/env bash
+              set -euxo pipefail
 
-              export RG_HOME=${RgHome}
+              exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
+
+                            export RG_HOME=${RgHome}
               export RG_ENV=${Environment}
               export RG_SRC=${RgSRC}
               export S3_SOURCE="${CFTBucketName}"
               export REGION=${AWS::Region}
 
               mkdir -p ${RgSRC}
-              apt-get update
-              apt-get install -y jq curl gnupg ca-certificates lsb-release unzip
-              install -m 0755 -d /etc/apt/keyrings
+              mkdir -p "${RgHome}"/{catalog,topologies,integrations,logs,slogs,notification_sink_logs}
 
-              curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+              echo "==== Starting EC2 bootstrap ===="
+
+              # --------------------------------------------------------------------
+              # Detect OS
+              # --------------------------------------------------------------------
+              source /etc/os-release
+              echo "Detected OS: $NAME ($ID $VERSION_ID)"
+
+              # --------------------------------------------------------------------
+              # Common variables
+              # --------------------------------------------------------------------
+              MONGOSH_VERSION="2.2.6"
+
+              # --------------------------------------------------------------------
+              # OS-specific package install + Docker setup
+              # --------------------------------------------------------------------
+              if [[ "$ID" == "ubuntu" ]]; then
+                echo "Configuring Ubuntu system"
+
+                apt-get update -y
+                apt-get install -y \
+                  jq curl wget gnupg ca-certificates lsb-release unzip tar
+
+                # Docker (official Ubuntu repo)
+                install -m 0755 -d /etc/apt/keyrings
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
                   | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                chmod a+r /etc/apt/keyrings/docker.gpg
 
-              chmod a+r /etc/apt/keyrings/docker.gpg
-              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-                    https://download.docker.com/linux/ubuntu \
-                      $(lsb_release -cs) stable" \
-                     |  tee /etc/apt/sources.list.d/docker.list 
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+                  https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+                  | tee /etc/apt/sources.list.d/docker.list
 
-              wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | tee /etc/apt/trusted.gpg.d/server-8.0.asc
-              echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
-              apt-get update
-              apt-get install -y mongodb-mongosh
+                apt-get update -y
+                apt-get install -y \
+                  docker-ce docker-ce-cli containerd.io \
+                  docker-buildx-plugin docker-compose-plugin
+
+                systemctl enable docker
+                systemctl start docker
+
+                usermod -aG docker ubuntu
+
+              elif [[ "$ID" == "amzn" ]]; then
+                echo "Configuring Amazon Linux system"
+
+                dnf update -y
+                dnf install -y --allowerasing\
+                  curl docker
+
+                systemctl enable docker
+                systemctl start docker
+
+                usermod -aG docker ec2-user
+
+              else
+                echo "Unsupported OS: $ID"
+                exit 1
+              fi
+
+              # --------------------------------------------------------------------
+              # Install mongosh (OS-agnostic tarball)
+              # --------------------------------------------------------------------
+              echo "Installing mongosh $MONGOSH_VERSION"
+
+              curl -LO https://downloads.mongodb.com/compass/mongosh-$MONGOSH_VERSION-linux-x64.tgz
+              tar -xzf mongosh-$MONGOSH_VERSION-linux-x64.tgz
+              mv mongosh-$MONGOSH_VERSION-linux-x64/bin/mongosh /usr/local/bin/
+              chmod +x /usr/local/bin/mongosh
+
               mongosh --version
-              apt install -y \
-                docker-ce \
-                  docker-ce-cli \
-                    containerd.io \
-                      docker-buildx-plugin \
-                        docker-compose-plugin
-              systemctl enable docker
-              systemctl start docker
-              sudo usermod -aG docker ubuntu
 
-              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
-                   -o "awscliv2.zip"
-              unzip awscliv2.zip
-              ./aws/install
-              
-              mkdir -p ${RgHome}/catalog
-              mkdir -p ${RgHome}/topologies
-              mkdir -p ${RgHome}/integrations
-              mkdir -p ${RgHome}/logs
-              mkdir -p ${RgHome}/slogs
-              mkdir -p ${RgHome}/notification_sink_logs
+              # --------------------------------------------------------------------
+              # Install AWS CLI v2 (safe on both OSes)
+              # --------------------------------------------------------------------
+              if ! command -v aws >/dev/null 2>&1; then
+                echo "Installing AWS CLI v2"
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+                unzip awscliv2.zip
+                ./aws/install
+              fi
+
+              aws --version
 
 
               aws s3 cp s3://${CFTBucketName}/updatescripts.sh ${RgSRC}
@@ -352,11 +400,25 @@ Resources:
 
               rm -rf ${RgHome}/config
               ${RgSRC}/updatescripts.sh
-              curl -LO https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2404-x86_64-100.14.1.tgz
-              tar -xvzf mongodb-database-tools-ubuntu2404-x86_64-100.14.1.tgz
-              cd mongodb-database-tools-ubuntu2404-x86_64-100.14.1/bin
+
+              MONGO_TOOLS_VERSION="100.14.1"
+
+              if [[ "$ID" == "ubuntu" ]]; then
+                MONGO_TOOLS_OS="ubuntu2404"
+              elif [[ "$ID" == "amzn" ]]; then
+                MONGO_TOOLS_OS="amazon2023"
+              else
+                echo "Unsupported OS for MongoDB Database Tools: $ID"
+                exit 1
+              fi
+
+              curl -LO "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-$MONGO_TOOLS_OS-x86_64-$MONGO_TOOLS_VERSION.tgz"
+              tar -xvzf "mongodb-database-tools-$MONGO_TOOLS_OS-x86_64-$MONGO_TOOLS_VERSION.tgz"
+              cd "mongodb-database-tools-$MONGO_TOOLS_OS-x86_64-$MONGO_TOOLS_VERSION/bin"
               mv * /usr/local/bin/
+
               mongoimport --version
+
 
               fixconfigs.sh
               fixdocdb.sh ${DBClusterEndpoint} ${Environment}-cc rguser $(aws secretsmanager get-secret-value --secret-id ${DocDBClusterRotationSecret} --region ${AWS::Region} --query SecretString --output text | jq -r .password) ${RGUrl}
