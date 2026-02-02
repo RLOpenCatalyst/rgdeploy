@@ -20,8 +20,8 @@ This guide describes how to deploy the Research Gateway application using the ne
 4. **ACM Certificate** (optional): For SSL, create or import a certificate in AWS Certificate Manager. This certificate must be issued to the subdomain you plan to use for the Research Gateway application.
 5. **Route 53 HostedZoneId**: For the subdomain you choose for your Research Gateway
 6. **AWS CLI**: Installed and configured (`aws configure`). CloudShell should already be configured for this.
-7. **jq**: Installed on your local machine and available in the EC2 AMI.
-8. **Deployment source files** Clone this repository to a local folder on your machine or in CloudShell. The folder you clone the repo into will be referenced as RgSrc in the next section.
+7. **jq**: Installed on your local machine. CloudShell is recommended for this setup task.
+8. **Deployment source files** Clone this repository to a local folder on your machine or in CloudShell. 
 9. **S3 Bucket**: A bucket to store deployment scripts and configuration files. Choose a name for the bucket and create it in your deployment account.
 10. **Scripts**: Ensure the following files are uploaded to your S3 bucket:
     - `makeconfigs-inplace.sh`
@@ -35,7 +35,7 @@ This guide describes how to deploy the Research Gateway application using the ne
         ./upload-assets.sh
     ```
 11. **CloudFormation Template**: `rgdeploy-cft.yml` must be present in your working directory.
-12. **EC2 AMI**: Use the AMI-Id of the latest Amazon Linux available. It should already have docker installed and enabled.
+12. **EC2 AMI**: Use the AMI-Id of the latest Amazon Linux or Ubuntu 24.04 release available in the region you are deploying in. The deployment code attempts to deploy jq curl wget aws (CLI) and docker. If you need to deploy frequently, create an AMI with the above tools pre-installed and use that AMI-Id as a parameter. Note that the code only handles Amazon Linux 2023 and Ubuntu 24.04. If you want to use a different base OS, you may need to modify the UserData section in rgdeploy-cft.yml appropriately.
 
 ---
 
@@ -47,7 +47,7 @@ Gather the following information
  ------------------------------------------------------------------------------------------------------
 | **Parameter**               | **Description**                                                        |
 | --------------------------- | ---------------------------------------------------------------------- |
-| `RgSRC`                     | Directory path for deployment files (Default: `/home/ubuntu/rgdeploy`) |
+| `RgSRC`                     | Folder path for deployment files  (Default: `/home/ec2-user/rgdeploy`) |
 | `AMIId`                     | Amazon Machine Image ID used to launch the EC2 instance                |
 | `CFTBucketName`             | Name of the S3 bucket storing CloudFormation templates                 |
 | `VPC`                       | ID of the VPC where the infrastructure will be deployed                |
