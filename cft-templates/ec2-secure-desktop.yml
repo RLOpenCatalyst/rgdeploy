@@ -315,9 +315,6 @@ Resources:
                 # Get the session token
                 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
                 
-                # Get the region to build the parameter name
-                region=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
-                echo "Retrieved region ${region} from metadata service"
                 
                 # Get the instance id to build the parameter name
                 instance_id=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
@@ -326,7 +323,7 @@ Resources:
                 session_id="rg-session"
                 auth_token=`uuidgen`
                 parameter_name="/RL/RG/secure-desktop/auth-token/$instance_id"
-                aws ssm put-parameter --name "$parameter_name" --type "String" --value '{"auth_token":"'$auth_token'","session_id":"'$session_id'"}' --region $region --overwrite
+                aws ssm put-parameter --name "$parameter_name" --type "String" --value '{"auth_token":"'$auth_token'","session_id":"'$session_id'"}' --region ${AWS::Region} --overwrite
                 echo "User token set successfully"
             "/home/ec2-user/supervisor/supervisord.conf":
               mode: "000644"

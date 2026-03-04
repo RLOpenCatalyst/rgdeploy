@@ -599,83 +599,85 @@
   },
   {
     "key": "projectStorage",
-    "value": [
-      "ec2",
-      "rstudio",
-      "nextflow",
-      "cromwell",
-      "ec2-dcv",
-      "sagemaker",
-      "ec2-igv",
-      "ec2-secure-desktop",
-      "ec2-jupyterlab",
-      "ec2-vscode",
-      "ec2-remote-desktop"
-    ],
-    "s3Mounts": {
-      "ProjectStorage": {
-        "id": "ProjectStorage",
-        "prefix": "Shared/"
-      }
-    },
-    "iamPolicyDocument": {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Sid": "S3StudyReadWriteAccess",
-          "Effect": "Allow",
-          "Action": [
-            "s3:GetObject",
-            "s3:GetObjectTagging",
-            "s3:GetObjectTorrent",
-            "s3:GetObjectVersion",
-            "s3:GetObjectVersionTagging",
-            "s3:GetObjectVersionTorrent",
-            "s3:AbortMultipartUpload",
-            "s3:ListMultipartUploadParts",
-            "s3:PutObject",
-            "s3:PutObjectAcl",
-            "s3:PutObjectTagging",
-            "s3:PutObjectVersionTagging",
-            "s3:DeleteObject",
-            "s3:DeleteObjectTagging",
-            "s3:DeleteObjectVersion",
-            "s3:DeleteObjectVersionTagging"
-          ],
-          "Resource": []
-        },
-        {
-          "Sid": "studyListS3Access1",
-          "Effect": "Allow",
-          "Action": [
-            "s3:ListBucket",
-            "s3:ListBucketVersions"
-          ],
-          "Resource": "",
-          "Condition": {
-            "StringLike": {
-              "s3:prefix": []
-            }
-          }
-        },
-        {
-          "Sid": "S3ScriptsReadAccess",
-          "Action": "s3:GetObject",
-          "Resource": "",
-          "Effect": "Allow"
-        },
-        {
-          "Sid": "S3ScriptsListAccess",
-          "Condition": {
-            "StringLike": {
-              "s3:prefix": ""
+    "value": {
+      "productList": [
+        "ec2",
+        "rstudio",
+        "nextflow",
+        "cromwell",
+        "ec2-dcv",
+        "sagemaker",
+        "ec2-igv",
+        "ec2-secure-desktop",
+        "ec2-jupyterlab",
+        "ec2-vscode",
+        "ec2-remote-desktop"
+      ],
+      "s3Mounts": {
+        "ProjectStorage": {
+          "id": "ProjectStorage",
+          "prefix": "Shared/"
+        }
+      },
+      "iamPolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "S3StudyReadWriteAccess",
+            "Effect": "Allow",
+            "Action": [
+              "s3:GetObject",
+              "s3:GetObjectTagging",
+              "s3:GetObjectTorrent",
+              "s3:GetObjectVersion",
+              "s3:GetObjectVersionTagging",
+              "s3:GetObjectVersionTorrent",
+              "s3:AbortMultipartUpload",
+              "s3:ListMultipartUploadParts",
+              "s3:PutObject",
+              "s3:PutObjectAcl",
+              "s3:PutObjectTagging",
+              "s3:PutObjectVersionTagging",
+              "s3:DeleteObject",
+              "s3:DeleteObjectTagging",
+              "s3:DeleteObjectVersion",
+              "s3:DeleteObjectVersionTagging"
+            ],
+            "Resource": []
+          },
+          {
+            "Sid": "studyListS3Access1",
+            "Effect": "Allow",
+            "Action": [
+              "s3:ListBucket",
+              "s3:ListBucketVersions"
+            ],
+            "Resource": "",
+            "Condition": {
+              "StringLike": {
+                "s3:prefix": []
+              }
             }
           },
-          "Action": "s3:ListBucket",
-          "Resource": "",
-          "Effect": "Allow"
-        }
-      ]
+          {
+            "Sid": "S3ScriptsReadAccess",
+            "Action": "s3:GetObject",
+            "Resource": "",
+            "Effect": "Allow"
+          },
+          {
+            "Sid": "S3ScriptsListAccess",
+            "Condition": {
+              "StringLike": {
+                "s3:prefix": ""
+              }
+            },
+            "Action": "s3:ListBucket",
+            "Resource": "",
+            "Effect": "Allow"
+          }
+        ]
+      }
     }
   },
   {
@@ -726,14 +728,7 @@
   {
     "key": "reviewWorkspace",
     "value": {
-      "preferedReviewWorkspace": "Windows with Python R",
-      "defaultReviewWorkspace": "Windows with Python R"
-    }
-  },
-  {
-    "key": "reviewWorkspace",
-    "value": {
-      "preferedReviewWorkspace": "Windows Desktop For Secure Research",
+      "preferedReviewWorkspace": "Secure Research Linux Desktop",
       "defaultReviewWorkspace": "Secure Research Linux Desktop"
     }
   },
