@@ -503,7 +503,6 @@ Resources:
       VpcEndpointType: Interface
       ServiceName:
         Fn::Sub: com.amazonaws.${AWS::Region}.secretsmanager
-      PrivateDnsEnabled: true
       VpcId: !Ref VPC
 
   # DocumentDB Secret
