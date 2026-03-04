@@ -5,7 +5,7 @@
     },
     "name": "Amazon S3",
     "description": "Amazon Simple Storage Service (Amazon S3) is an object storage service that offers scalability, data availability, security, and performance",
-    "fileName": "s3.yml",
+    "fileName": "s3.yaml",
     "tags": [
       {
         "Key": "EstimatedTimeToProvision",
@@ -43,14 +43,157 @@
       "cost_resource": true,
       "checks_before_assigning_product": [
         {
-          "Key": "DataLibrary",
-          "Value": true
+          "Key": "projectTypeCompatibility",
+          "Value": "DataLibrary"
         },
         {
-          "Key": "IngressGateway",
-          "Value": true
+          "Key": "projectTypeCompatibility",
+          "Value": "IngressGateway"
         }
       ]
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6997def27624b14410a26a16"
+    },
+    "name": "Secure Research Linux Desktop",
+    "description": "A secure research environment intended to allow researchers to access sensitive data under a higher level of control and data protection.",
+    "fileName": "ec2-secure-desktop.yml",
+    "tags": [
+      { "Key": "EstimatedTimeToProvision", "Value": "10 Minutes" },
+      {
+        "Key": "DetailsLink",
+        "Value": "https://researchgateway.readthedocs.io/en/latest/SecureResearchLinuxDesktop.html"
+      },
+      { "Key": "Service", "Value": "EC2-SECURE-DESKTOP" },
+      { "Key": "TypeOfProduct", "Value": "Secure" },
+      { "Key": "ALB", "Value": "true" },
+      { "Key": "ApplicationPort", "Value": "8443" },
+      { "Key": "ApplicationProtocol", "Value": "HTTPS" }
+    ],
+    "owner": "RL",
+    "portfolio": "RGPortfolio",
+    "availableRegions": [],
+    "assignedOU": [ ],
+    "metaData": {
+      "pre_provisioning": [
+        {
+          "code": "CFT_PARAMS",
+          "params": [
+            {
+              "name": "EnvironmentInstanceFiles",
+              "type": "RL::SC::PARAM::HD"
+            },
+            { "name": "IamPolicyDocument", "type": "RL::SC::PARAM::HD" },
+            { "name": "ALBSecurityGroup", "type": "RL::SC::PARAM::HD" },
+            { "name": "S3Mounts", "type": "RL::SC::PARAM::HD" },
+            {
+              "name": "WorkSpaceSecurityGroup",
+              "type": "RL::SC::PARAM::HD"
+            },
+            { "name": "Subnet", "type": "RL::SC::PARAM::HD" },
+            { "name": "VPC", "type": "RL::SC::PARAM::HD" },
+            { "name": "Namespace", "type": "RL::SC::PARAM::HD" }
+          ]
+        }
+      ],
+      "post_provisioning": [],
+      "checks_before_assigning_product": [
+        { "Key": "Secure", "Value": true },
+        {
+          "code": "AMI_ID_REQUIRED",
+          "is_ami_required": true,
+          "ami_id_list": [
+            { "us-east-2": "ami-020d2c6f41e3431d7" },
+            { "us-east-1": "ami-011ebe24258e615ba" },
+            { "us-west-2": "ami-0ac56f9f8b19a73bf" },
+            { "us-west-1": "ami-0e0231a98d0ca2679" },
+            { "ap-south-1": "ami-0f81ea31ecefeba4f" },
+            { "ap-southeast-1": "ami-069d31c5036ef2bef" },
+            { "ap-southeast-2": "ami-03a848fa192a4342a" },
+            { "ap-east-1": "ami-01819f556745b5d1d" },
+            { "eu-west-1": "ami-03dab069555190662" }
+          ],
+          "ami_path": "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
+        },
+        { "Key": "projectTypeCompatibility", "Value": "Secure" }
+      ],
+      "checks_after_assigning_product": [],
+      "permission_required": {},
+      "cost_resource": true
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6997deda7624b14410a26a15"
+    },
+    "name": "Windows Desktop For Secure Research",
+    "description": "A secure research windows based environment intended to allow researchers to access sensitive data under a higher level of control and data protection.",
+    "fileName": "ec2-winsecure-desktop.yml",
+    "tags": [
+      { "Key": "EstimatedTimeToProvision", "Value": "10 Minutes" },
+      {
+        "Key": "DetailsLink",
+        "Value": "https://researchgateway.readthedocs.io/en/latest/WindowsDesktopForSecureResearch.html"
+      },
+      { "Key": "Service", "Value": "EC2-SECURE-DESKTOP" },
+      { "Key": "TypeOfProduct", "Value": "Secure" },
+      { "Key": "ALB", "Value": "true" },
+      { "Key": "ApplicationPort", "Value": "8443" },
+      { "Key": "ApplicationProtocol", "Value": "HTTPS" }
+    ],
+    "owner": "RL",
+    "portfolio": "RGPortfolio",
+    "availableRegions": [],
+    "assignedOU": [ ],
+    "metaData": {
+      "pre_provisioning": [
+        {
+          "code": "CFT_PARAMS",
+          "params": [
+            {
+              "name": "EnvironmentInstanceFiles",
+              "type": "RL::SC::PARAM::HD"
+            },
+            { "name": "IamPolicyDocument", "type": "RL::SC::PARAM::HD" },
+            { "name": "ALBSecurityGroup", "type": "RL::SC::PARAM::HD" },
+            { "name": "S3Mounts", "type": "RL::SC::PARAM::HD" },
+            {
+              "name": "WorkSpaceSecurityGroup",
+              "type": "RL::SC::PARAM::HD"
+            },
+            { "name": "Subnet", "type": "RL::SC::PARAM::HD" },
+            { "name": "VPC", "type": "RL::SC::PARAM::HD" },
+            { "name": "Namespace", "type": "RL::SC::PARAM::HD" }
+          ]
+        }
+      ],
+      "post_provisioning": [],
+      "checks_before_assigning_product": [
+        { "Key": "Secure", "Value": true },
+        {
+          "code": "AMI_ID_REQUIRED",
+          "is_ami_required": true,
+          "ami_id_list": [
+            { "us-east-2": "ami-08ff5d8cce7cb8abd" },
+            { "us-east-1": "ami-02dea6f1818cd4d45" },
+            { "us-west-2": "ami-08ff5d8cce7cb8abd" },
+            { "us-west-1": "ami-0e0231a98d0ca2679" },
+            { "ap-south-1": "ami-0f81ea31ecefeba4f" },
+            { "ap-southeast-1": "ami-0310a1b62ff9600ce" },
+            { "ap-southeast-2": "ami-03a848fa192a4342a" },
+            { "ap-east-1": "ami-01819f556745b5d1d" },
+            { "eu-west-1": "ami-03dab069555190662" },
+            { "eu-west-2": "ami-0c0e9842ff90e2c95" }
+          ],
+          "ami_path": "/RL/RG/StandardCatalog/windows-nice-dcv-ami"
+        },
+        { "Key": "projectTypeCompatibility", "Value": "Secure" }
+      ],
+      "checks_after_assigning_product": [],
+      "permission_required": {},
+      "cost_resource": true
     }
   }
 ]
