@@ -190,7 +190,6 @@ Resources:
         - arn:aws:iam::aws:policy/IAMReadOnlyAccess
         - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
         - arn:aws:iam::aws:policy/SecretsManagerReadWrite
-        - Ref: ResearchGatewayRolePolicy
       Path: /
   ResearchGatewayInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -225,7 +224,7 @@ Resources:
               - iam:CreateRole
               - iam:DetachRolePolicy
             Resource: 
-              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${BaseAccountPolicyName}"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${RGPortalRole}"
           - Sid: "PolicyRelatedPermissions"
             Effect: Allow
             Action:
@@ -236,6 +235,11 @@ Resources:
               - iam:UpdateAssumeRolePolicy
             Resource: 
               - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
+  ResearchGatewayRoleAttachment:
+    Type: AWS::IAM::RolePolicyAttachment
+    Properties:
+      Role: !Ref RGPortalRole
+      PolicyArn: !Ref ResearchGatewayRolePolicy
   DnsRecord:
       Type: AWS::Route53::RecordSet
       Properties:
