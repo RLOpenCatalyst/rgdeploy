@@ -19,7 +19,7 @@ This guide describes how to deploy the Research Gateway application using the ne
 3. **Subdomain for Research Gateway**: This will be the URL at which you access Research Gateway (rg.example.com) and the workspaces (workspace1.rg.example.com). You will have to work with your domain hosting provider to delegate the subdomain to Route 53.
 4. **ACM Certificate** (optional): For SSL, create or import a certificate in AWS Certificate Manager. This certificate must be issued to the subdomain you plan to use for the Research Gateway application.
 5. **Route 53 HostedZoneId**: For the subdomain you choose for your Research Gateway
-6. **AWS CLI**: Installed and configured (`aws configure`). CloudShell should already be configured for this.
+6. **AWS CLI**: Installed and configured (`aws configure`). CloudShell should already be configured for this but run the command and set the region.
 7. **jq**: Installed on your local machine. CloudShell is recommended for this setup task.
 8. **Deployment source files** Clone this repository to a local folder on your machine or in CloudShell. 
 9. **S3 Bucket**: A bucket to store deployment scripts and configuration files. Choose a name for the bucket and create it in your deployment account.
