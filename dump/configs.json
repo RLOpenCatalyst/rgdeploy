@@ -1,5 +1,6 @@
 [
   {
+    "key": "project_type",    
     "helpText": [
       {
         "key": "Secure Research",
@@ -20,6 +21,7 @@
     "configType": "project_type"
   },
   {
+    "key": "add_account_helpText",
     "helpText": [
       {
         "key": "What should I do prior to 'Add Account'?",
@@ -98,6 +100,7 @@
     "configType": "add_account_helpText"
   },
   {
+    "key": "create_org_helpText",
     "helpText": [
       {
         "key": "Why do I need to create a organization?",
@@ -139,6 +142,7 @@
     "configType": "create_org_helpText"
   },
   {
+    "key": "create_project_helpText",
     "helpText": [
       {
         "key": "Why do I need to create a project?",
@@ -240,38 +244,6 @@
     "configType": "create_project_helpText"
   },
   {
-    "rstudio": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "EnvironmentInstanceFiles",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "IamPolicyDocument",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "S3Mounts",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-    }
-  },
-  {
     "key": "TypeOfCatalogProduct",
     "value": [
       "All",
@@ -370,12 +342,7 @@
         "checks_after_assigning_product": [],
         "permission_required": {},
         "cost_resource": true
-      }
-    }
-  },
-  {
-    "key": "catalogMetaData",
-    "value": {
+      },
       "ec2": {
         "pre_provisioning": [
           {
@@ -405,12 +372,7 @@
         "checks_after_assigning_product": [],
         "permission_required": {},
         "cost_resource": true
-      }
-    }
-  },
-  {
-    "key": "catalogMetaData",
-    "value": {
+      },
       "ec2-dcv": {
         "pre_provisioning": [
           {
@@ -474,14 +436,37 @@
         ],
         "checks_after_assigning_product": [],
         "permission_required": {}
-      }
+      },
+      "rstudio": {
+      "pre_provisioning": [
+        {
+          "code": "CFT_PARAMS",
+          "params": [
+            {
+              "name": "EnvironmentInstanceFiles",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "IamPolicyDocument",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "S3Mounts",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "Namespace",
+              "type": "RL::SC::PARAM::HD"
+            }
+          ]
+        }
+      ],
+      "post_provisioning": [],
+      "checks_before_assigning_product": [],
+      "checks_after_assigning_product": [],
+      "permission_required": {},
+      "cost_resource": true
     }
-  },
-  {
-    "key": "chatAssistantConfig",
-    "value": {
-      "chatAssistantURL": "https://chat.rlcatalyst.com/Documentation_Bot/",
-      "chatAssistantLogo": "../assets/images/chatAssistant.png"
     }
   },
   {
@@ -754,7 +739,7 @@
   },
   {
     "key": "s3BucketLimit",
-    "value": 215
+    "value": 100
   },
   {
     "key": "s3ThrottleConfig",
@@ -766,9 +751,6 @@
   {
     "key": "settingCreateSkipUpdateBucketPolicy",
     "value": false
-  },
-  {
-    "studySelectionCount": 5
   },
   {
     "key": "snsUrl",
@@ -810,147 +792,18 @@
   {
     "key": "useDBForBudget",
     "value": [
-      "67ee4b2e141fab6fe35edae3"
+      ""
     ]
-  },
-  {
-    "key": "study",
-    "message": "This config help us to configure the external studies in the product launch form",
-    "value": {
-      "productList": [
-        "ec2",
-        "rstudio",
-        "nextflow",
-        "cromwell",
-        "sagemaker",
-        "ec2-igv",
-        "ec2-secure-desktop",
-        "ec2-dcv",
-        "ec2-vscode",
-        "ec2-jupyterlab",
-        "ec2-remote-desktop"
-      ]
-    },
-    "studySelectionCount": 5
-  },
-  {
-    "key": "ebsCompatibleProducts",
-    "value": {
-      "productList": [
-        "ec2",
-        "cromwell",
-        "rstudio",
-        "ec2-dcv",
-        "nextflow",
-        "ec2-remote-desktop",
-        "ec2-secure-desktop"
-      ]
-    }
-  },
-  {
-    "key": "settingCreateSkipUpdateBucketPolicy",
-    "value": false
-  },
-  {
-    "key": "retryConfig",
-    "value": {
-      "intervalInSeconds": 6,
-      "maxTimes": 10
-    }
-  },
-  {
-    "key": "s3ThrottleConfig",
-    "value": {
-      "limit": 2,
-      "interval": 3000
-    }
   },
   {
     "key": "EVENT_WRITER",
     "value": true
   },
   {
-    "key": "numDaysForCostSync",
-    "value": 10
-  },
-  {
-    "key": "egressReviewersList",
-    "value": [],
-    "helpText": [
-      "List of reviewers for egress process"
-    ]
-  },
-  {
-    "key": "reviewWorkspace",
-    "value": {
-      "preferedReviewWorkspace": "Windows Desktop For Secure Research",
-      "defaultReviewWorkspace": "Secure Research Linux Desktop"
-    }
-  },
-  {
-    "key": "egressRequestMails",
-    "value": [
-      {
-        "key": "data admin",
-        "value": {
-          "initiated": "request initiated",
-          "pending": "Hi,A new egress request, <request-Id>, has been submitted by <submitter-email> on <date-of-submission> in the project, <project-name>, and needs your approval.Please sign in to the Research Portal and click on the project card. Click on the Egress Requests tab. Find the egress request with the id mentioned above. You can Approve or Reject the request from the context menu (3-dots icon) of the request.To review the files, click on “Review” in the context menu. This action will launch a new workspace in the project. Once the workspaceis active, please connect to it via Remote Desktop. The files submitted in the request will be visible under /home/ec2-user/studies/<request-Id>.Note that all current pending requests are mounted to the same workspace under different folders labelled with the request-Id.You can then review the files using the tool of your choice which will be preinstalled on the machine.  Once you review the files, log in to the Research Gateway and approve the request from the Egress Requests tab.The Research Gateway team.",
-          "approved": "approved by data admin",
-          "rejected": "rejected by data admin"
-        }
-      },
-      {
-        "key": "researcher",
-        "value": {
-          "initiated": "requested initiated for researcher",
-          "pending": "pending for researcher",
-          "approved": "Hi,The Data Administrator for project <project-name> has approved your egress request, <request-Id>. You can now download the files from the Egress Store tab of the workspace you submitted the request from. Please note that the Download option will be disabled if you submit a new request.The Research Gateway team.",
-          "rejected": "rejected for researcher"
-        }
-      },
-      {
-        "key": "signature",
-        "value": "The Research Gateway Team."
-      }
-    ]
-  },
-  {
     "key": "chatAssistantConfig",
     "value": {
       "chatAssistantURL": "https://chat.rlcatalyst.com/Documentation_Bot/",
       "chatAssistantLogo": "../assets/images/chatAssistant.png"
-    }
-  },
-  {
-    "key": "deleteLocalProvisionedProductIfNotInSC",
-    "value": false
-  },
-  {
-    "key": "s3BucketLimit",
-    "value": 150
-  },
-  {
-    "key": "chatAssistantConfig",
-    "value": {
-      "chatAssistantURL": "https://chat.rlcatalyst.com/Documentation_Bot/",
-      "chatAssistantLogo": "../assets/images/chatAssistant.png"
-    }
-  },
-  {
-    "key": "kmsKeys",
-    "Value": []
-  },
-  {
-    "key": "usersConfig",
-    "value": {
-      "maxBulkUserCount": 200,
-      "csvHeaderValues": [
-        "email",
-        "first_name",
-        "last_name",
-        "role",
-        "userTags"
-      ]
     }
   }
 ]
