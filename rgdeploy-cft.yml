@@ -234,7 +234,7 @@ Resources:
               - iam:DeletePolicyVersion
               - iam:UpdateAssumeRolePolicy
             Resource: 
-              - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
+              - "arn:aws:iam::*:policy/RG-Portal-CrossAccount-Policy*"
   ResearchGatewayRoleAttachment:
     Type: AWS::IAM::RolePolicyAttachment
     Properties:
