@@ -209,8 +209,7 @@
         "termsAndConditions": "REPLACE_WITH_TERMS_CONDITIONS_DOC_URL"
     },
     "environmentInstanceFilesMap":{
-
-      "eu-west-2":"rg-entenvironment-instancefiles-london"
+      "ENV_FILE_MAP_REGION":"ENV_FILE_MAP_BUCKET_NAME"
     },  
   "s3BucketLimit" : 100,
   "eodReportTime":{

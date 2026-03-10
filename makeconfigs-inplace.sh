@@ -99,7 +99,8 @@ jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
     jq -r ".route53.hostedZoneId=\"${r53_hosted_zone}\"" |
 	jq -r ".AWSCognito.region=\"$region\"" |
 	jq -r ".sampleCSVBucketRegion=\"$region\"" |
-	jq -r ".enableB2CMode=false" >"${RG_HOME}/config/config.json"
+	jq -r ".enableB2CMode=false" |
+	sed -e "s/ENV_FILE_MAP_REGION/$region/" -e "s/ENV_FILE_MAP_BUCKET_NAME/$mys3bucket/" >"${RG_HOME}/config/config.json"
 echo "Modifying snsConfig.json"
 if [ -z "$snsprotocol" ]; then
 	echo "WARNING: SNS protocol could not be determined. Did you pass in the correct RG URL?"
