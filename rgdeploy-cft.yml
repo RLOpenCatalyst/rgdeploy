@@ -74,10 +74,10 @@ Conditions:
 
 Resources:
 
-  RGInstanceSecurityGroup:
+  RGALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow http/https/ssh to client host
+      GroupDescription: Allow HTTP/HTTPS from anywhere to Application Load Balancer
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -88,14 +88,23 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
       SecurityGroupEgress:
         - IpProtocol: "-1"
-          CidrIp: 0.0.0.0/0  
-          
+          CidrIp: 0.0.0.0/0
+
+  RGInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow traffic from ALB to client host
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !GetAtt RGALBSecurityGroup.GroupId
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
 
   RGApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -108,7 +117,7 @@ Resources:
         - !Ref PublicSubnet2
         - !Ref PublicSubnet3
       SecurityGroups:
-        - !Ref RGInstanceSecurityGroup
+        - !Ref RGALBSecurityGroup
       IpAddressType: ipv4
 
   RGTargetGroup:
@@ -950,7 +959,7 @@ Outputs:
     Value: !Ref RGApplicationLoadBalancer
   LoadBalancerSecurityGroup:
     Description: The security group for the ALB
-    Value: !Ref RGInstanceSecurityGroup
+    Value: !Ref RGALBSecurityGroup
   ResearchGatewayTargetGroupArn:
     Description: The ARN of the Target Group used by the stack
     Value: !Ref RGTargetGroup
