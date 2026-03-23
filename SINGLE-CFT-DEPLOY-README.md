@@ -15,7 +15,11 @@ This guide describes how to deploy the Research Gateway application using the ne
 ## Prerequisites
 
 1. **AWS Account** with sufficient permissions to create VPC, EC2, IAM, Cognito, DocumentDB, S3, and related resources.
-2. **VPC and Subnets**: You must have an existing VPC with at least 3 public and 3 private subnets. The machines in the private subnet must have a route to the internet via a NAT Gateway or NAT instance to download and install requisite software.
+2. **VPC and Subnets**: You must have an existing VPC with at least 3 public and 3 private subnets. The 3 public subnets are associated with the Application Load Balancer that sits in front of the application and terminates traffic from the client browser. The 3 private subnets are associated with the DocumentDB cluster that holds the portal data. End user workspaces are created in one private subnet. That private subnet must have a route to the internet via a NAT Gateway or NAT instance to download and install requisite software. We also recommend that the following VPC endpoints be created:
+    - S3 Gateway Endpoint. This is used by the workspaces to download bootstrap scripts from the template bucket in the main orchestration account.
+    - SSM, SSM-Messages, EC2-Messages. These interface endpoints are used by the workspaces to communicate with the Systems Manager service.
+    - Cloudformation endpoint. This interface endpoint is used by the workspaces to signal completion of the post-provisioning tasks.
+    - Secrets Manager endpoint. This interface endpoint is used by the workspaes to fetch and set tokens that are used to connect to the secure URLs.
 3. **Subdomain for Research Gateway**: This will be the URL at which you access Research Gateway (rg.example.com) and the workspaces (workspace1.rg.example.com). You will have to work with your domain hosting provider to delegate the subdomain to Route 53.
 4. **ACM Certificate** (optional): For SSL, create or import a certificate in AWS Certificate Manager. This certificate must be issued to the subdomain you plan to use for the Research Gateway application.
 5. **Route 53 HostedZoneId**: For the subdomain you choose for your Research Gateway
