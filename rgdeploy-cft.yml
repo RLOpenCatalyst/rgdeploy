@@ -407,7 +407,8 @@ Resources:
                 ${RGUrl} \
                 ${AWS::Region} \
                 ${HostedZoneId} \
-                ${DocDBClusterRotationSecret}
+                ${DocDBClusterRotationSecret} \
+                ${CognitoUserPoolClient.ClientSecret}
 
               aws s3 cp config.tar.gz s3://${CFTBucketName}/
 
@@ -884,6 +885,7 @@ Resources:
     Properties:
       UserPoolId: !Ref CognitoUserPool
       ClientName: !Sub "RGUserPoolClient-${AWS::StackName}"
+      GenerateSecret: true
       RefreshTokenValidity: 30
       ReadAttributes:
         - "address"
@@ -963,3 +965,6 @@ Outputs:
   ResearchGatewayTargetGroupArn:
     Description: The ARN of the Target Group used by the stack
     Value: !Ref RGTargetGroup
+  CognitoUserPoolClientSecret:
+    Description: Secret for the Cognito User Pool client
+    Value: !GetAtt CognitoUserPoolClient.ClientSecret

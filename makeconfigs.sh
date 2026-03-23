@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.1.0"
+version="0.1.1"
 echo "Making configs locally...(makeconfigs.sh v$version)"
 # Ensure right number of params
 if [ $# -lt 12 ]; then
@@ -20,6 +20,7 @@ if [ $# -lt 12 ]; then
 	echo '  Param 11: Hosted Zone Id in Route53 to be used for enabling SSL'
     echo '            in projects'
 	echo '  Param 12: AWS secret ARN'
+	echo '  Param 13: Cognito User Pool Client Secret'
 	exit 1
 fi
 
@@ -33,6 +34,7 @@ myurl=$7
 region=$8
 role_name=$9
 secret_arn=${12}
+myclientsecret=${13}
 RG_HOME=$(mktemp -d -t "config.$myrunid.XXX")
 echo "RG_HOME=$RG_HOME"
 RG_SRC=$(pwd)
@@ -91,6 +93,7 @@ jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
 	jq -r ".cftTemplateURL=\"$s3url\"" |
 	jq -r ".AWSCognito.userPoolId=\"$myuserpoolid\"" |
 	jq -r ".AWSCognito.clientId=\"$myclientid\"" |
+	jq -r ".AWSCognito.clientsecret=\"$myclientsecret\"" |
     jq -r ".route53.domainName=\"${r53_domain_name}\"" |
     jq -r ".route53.hostedZoneId=\"${r53_hosted_zone}\"" |
 	jq -r ".AWSCognito.region=\"$region\"" |

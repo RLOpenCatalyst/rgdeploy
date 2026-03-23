@@ -434,8 +434,9 @@ if [ $stack_status -eq 0 ]; then
 	fi	
 fi
 
-#Capture User Pool Client ID
+#Capture User Pool Client ID and Client Secret
 userpoolclient_id=$(aws cloudformation describe-stack-resources --stack-name "$userpoolstackname" --logical-resource-id CognitoUserPoolClient | jq -r '.StackResources [] | .PhysicalResourceId')
+userpoolclient_secret=$(aws cloudformation describe-stack-resources --stack-name "$userpoolstackname" --logical-resource-id CognitoUserPoolClientSecret | jq -r '.StackResources [] | .PhysicalResourceId')
 #Capture User Pool ID
 userpool_id=$(aws cloudformation describe-stack-resources --stack-name "$userpoolstackname" --logical-resource-id CognitoUserPool | jq -r '.StackResources [] | .PhysicalResourceId')
 if [ -z "$userpoolclient_id" ] || [ -z "$userpool_id" ]; then
@@ -523,7 +524,7 @@ secretdb_arn=$(aws secretsmanager get-secret-value --secret-id RL-RG-$runid-$env
 echo "Creating configs locally"
 export RG_ENV="$env"
 ./makeconfigs.sh "$userpool_id" "$userpoolclient_id"  "$bucketname" "$appuser" "$appuserpassword" \
-            "$runid" "$rgurl" "$region" "ROLE_NAME" "$ac_name" "$hosted_zone" "$secretdb_arn"
+            "$runid" "$rgurl" "$region" "ROLE_NAME" "$ac_name" "$hosted_zone" "$secretdb_arn" "$userpoolclient_secret"
 echo "Uploading configs to $bucketname"
 aws s3 cp "$localhome"/config.tar.gz s3://"$bucketname"
 secpassword=$(aws secretsmanager get-secret-value --secret-id RL-RG-$runid-$env  --version-stage AWSCURRENT | jq --raw-output .SecretString| jq -r ."password")
