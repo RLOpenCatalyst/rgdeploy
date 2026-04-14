@@ -18,7 +18,7 @@ services:
       - sp2net
 
   cc-3102:
-    image: relevancelab/researchportal:_finops_1.23.0_b10
+    image: relevancelab/researchportal:_a18_1.23.0_b3083
     secrets:
       - source: sp2prod-config.json
         target: /rlc/cc/server/app/config/config.json
@@ -42,7 +42,7 @@ services:
     
     
   scheduler-3102:
-    image: relevancelab/researchportal:_finops_1.23.0_b10
+    image: relevancelab/researchportal:_a18_1.23.0_b3083
     secrets:
       - source: sp2prod-config.json
         target: /rlc/cc/server/app/config/config.json
