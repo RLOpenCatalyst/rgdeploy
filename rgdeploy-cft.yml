@@ -612,7 +612,7 @@ Resources:
         ScheduleExpression: "rate(30 days)"
       HostedRotationLambda:
         RotationType: MongoDBSingleUser
-        RotationLambdaName: MongoDBSingleUser
+        RotationLambdaName: !Sub "MongoDBSingleUser-${AWS::StackName}"
         # These should be lists of IDs/references
         VpcSecurityGroupIds:
            !Join [",", [!GetAtt DocumentDBSecurityGroup.GroupId]]
