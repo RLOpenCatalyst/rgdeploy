@@ -195,12 +195,12 @@ Resources:
             Action:
               - iam:DeleteRolePermissionsBoundary
               - iam:PutRolePermissionsBoundary
-            Resource: !GetAtt RGPortalRole.Arn
+            Resource: "*"
           - Sid: DenyUnapprovedPolicyAttachment
             Effect: Deny
             Action:
               - iam:AttachRolePolicy
-            Resource: !GetAtt RGPortalRole.Arn
+            Resource: "*"
             Condition:
               StringNotLike:
                 iam:PolicyARN:
@@ -211,7 +211,7 @@ Resources:
                   - arn:aws:iam::aws:policy/IAMReadOnlyAccess
                   - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
                   - arn:aws:iam::aws:policy/SecretsManagerReadWrite
-                  - !Ref ResearchGatewayRolePolicy
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:policy/${BaseAccountPolicyName}"
 
   RGPortalRole:
     Type: AWS::IAM::Role
