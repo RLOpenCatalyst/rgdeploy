@@ -83,10 +83,45 @@ Conditions:
     Fn::Not:
       - Condition: UseDocumentDB
 Resources:
+  RGPortalPermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AWS::StackName}-RGPortalPermissionsBoundary"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowGeneralActions
+            Effect: Allow
+            Action: "*"
+            Resource: "*"
+          - Sid: DenyBoundaryTampering
+            Effect: Deny
+            Action:
+              - iam:DeleteRolePermissionsBoundary
+              - iam:PutRolePermissionsBoundary
+            Resource: "*"
+          - Sid: DenyUnapprovedPolicyAttachment
+            Effect: Deny
+            Action:
+              - iam:AttachRolePolicy
+            Resource: "*"
+            Condition:
+              StringNotLike:
+                iam:PolicyARN:
+                  - arn:aws:iam::aws:policy/AmazonS3FullAccess
+                  - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+                  - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+                  - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
+                  - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+                  - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
+                  - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:policy/${BaseAccountPolicyName}"
+
   RGPortalRole:
     Type: AWS::IAM::Role
     Properties:
       Description: The role used by the EC2 Instance running the portal
+      PermissionsBoundary: !Ref RGPortalPermissionsBoundary
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -133,20 +168,10 @@ Resources:
             Effect: Allow
             Action:
               - iam:AttachRolePolicy
-              - iam:CreateRole
               - iam:DetachRolePolicy
-            Resource: 
-              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${BaseAccountPolicyName}"
-          - Sid: "PolicyRelatedPermissions"
-            Effect: Allow
-            Action:
-              - iam:CreatePolicy
-              - iam:CreatePolicyVersion
-              - iam:DeletePolicy
-              - iam:DeletePolicyVersion
               - iam:UpdateAssumeRolePolicy
             Resource: 
-              - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
+              - !GetAtt RGPortalRole.Arn
   RGPortalSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
