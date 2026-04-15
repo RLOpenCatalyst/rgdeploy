@@ -47,6 +47,8 @@ echo "RG_HOME=$RG_HOME"
 echo "RG_SRC=$RG_SRC"
 [ -z "$RG_ENV" ] && RG_ENV='PROD'
 echo "RG_ENV=$RG_ENV"
+[ -z "$STACK_NAME" ] && STACK_NAME='sp2'
+echo "STACK_NAME=$STACK_NAME"
 echo "Region : $region"
 echo "Role name : $role_name"
 if [ -z "$ac_name" ]; then
@@ -103,7 +105,7 @@ jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
 	jq -r ".AWSCognito.region=\"$region\"" |
 	jq -r ".sampleCSVBucketRegion=\"$region\"" |
 	jq -r ".enableB2CMode=false" |
-	sed -e "s/ENV_FILE_MAP_REGION/$region/" -e "s/ENV_FILE_MAP_BUCKET_NAME/$mys3bucket/" >"${RG_HOME}/config/config.json"
+	sed -e "s/ENV_FILE_MAP_REGION/$region/" -e "s/ENV_FILE_MAP_BUCKET_NAME/$mys3bucket/" -e "s/REPLACE_WITH_STACK_NAME/$STACK_NAME/g" >"${RG_HOME}/config/config.json"
 echo "Modifying snsConfig.json"
 if [ -z "$snsprotocol" ]; then
 	echo "WARNING: SNS protocol could not be determined. Did you pass in the correct RG URL?"

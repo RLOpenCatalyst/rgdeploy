@@ -49,6 +49,7 @@ cp "${RG_HOME}/config/trustPolicy.json" "$mytemp"
 
 echo "Modifying config.json"
 jq -r ".baseAccountInstanceRoleName=\"$role_name\"" "$mytemp/config.json" >"${RG_HOME}/config/config.json"
+sed -i "s/REPLACE_WITH_STACK_NAME/$STACK_NAME/g" "${RG_HOME}/config/config.json"
 
 echo "Modifying notification-config.json"
 jq -r ".tokenID=[\"$instanceid\"]" "$mytemp/notification-config.json" >"${RG_HOME}/config/notification-config.json"
