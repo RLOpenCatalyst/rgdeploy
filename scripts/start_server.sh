@@ -1,6 +1,7 @@
 #!/bin/bash
-version="0.1.9"
+version="0.1.10"
 echo "Starting server....(start_server.sh v$version)"
+export STACK_NAME="${STACK_NAME:-sp2}"
 if [ "$1" == "-h" ]; then
 	echo "Usage: $(basename $0) <application_url> <target_group_arn>"
 	echo '    Param 1: (optional) URL for SNS Callback'
@@ -10,7 +11,7 @@ if [ "$1" == "-h" ]; then
 	exit 0
 fi
 
-[ -z "$RG_HOME" ] && RG_HOME='/opt/deploy/sp2'
+[ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 echo "RG_HOME=$RG_HOME"
 
 myurl=$1
@@ -53,7 +54,7 @@ echo "Creating secrets"
 fixsecrets.sh
 
 echo "Starting stack..."
-docker stack deploy -c $RG_HOME/docker-compose.yml sp2
+docker stack deploy -c "$RG_HOME/docker-compose.yml" "${STACK_NAME}"
 
 #Wait for 30 secs
 sleep 5

@@ -64,6 +64,7 @@ Gather the following information
 | `KeyPairName`               | Name of the EC2 Key Pair used for SSH access                           |
 | `Environment`               | Deployment environment (`DEV`, `QA`, `STAGE`, `PROD`)                  |
 | `RGUrl`                     | Research Gateway URL (e.g., `https://myrg.example.com`)                |
+| `RGStackName`               | Optional application stack directory name under `/opt/deploy` (Default: `sp2`) |
 | `CertificateArn`            | ARN of the ACM Certificate (optional; used for enabling SSL/TLS)       |
 | `HostedZoneId`              | Route 53 Hosted Zone ID for domain name configuration                  |
 | `BaseAccountPolicyName`     | Name you want to give to the base IAM policy for RG Portal accounts                     |
@@ -94,6 +95,7 @@ Replace all values in angle brackets (`<...>`) with your actual configuration.
   --keypair <KEYPAIR_NAME> \
   --env <ENV> \
   --rg-url <RG_URL> \
+  --rg-stack-name <RG_STACK_NAME> \
   --certificate-arn <CERT_ARN> \
   --region <AWS_REGION> \
   --hostedzoneid <ROUTE53_HOSTED_ZONE_ID> \
@@ -123,6 +125,7 @@ Below is a sample deployment command with example values.
   --keypair my-ec2-keypair \
   --env DEV \
   --rg-url https://myrg.example.com \
+  --rg-stack-name sp2 \
   --certificate-arn arn:aws:acm:us-east-1:123456789012:certificate/abcd-1234 \
   --region us-east-1 \
   --hostedzoneid Z3P5QSUBK4POTI \
@@ -131,9 +134,10 @@ Below is a sample deployment command with example values.
 ```
 
 **Notes:**
-- All parameters are required except `--certificate-arn` (omit for non-SSL).
-- Ensure the ALB and Target Group ARNs are correct and exist in your AWS account.
-- The script will deploy the unified stack using `rgdeploy-cft.yml`.
+- `--rg-stack-name` is optional and defaults to `sp2` when omitted.
+- `--rg-stack-name` maps to CloudFormation parameter `RGStackName` and controls the deployment path `/opt/deploy/<name>` on the EC2 instance.
+- `--certificate-arn` can be omitted for non-SSL deployments.
+- The script deploys the unified stack using `rgdeploy-cft.yml`.
 
 2. **What Happens During Deployment**
 

@@ -18,6 +18,7 @@
 #     --keypair <KEYPAIR_NAME> \
 #     --env <ENV> \
 #     --rg-url <RG_URL> \
+#     --rg-stack-name <RG_STACK_NAME> \
 #     --certificate-arn <CERT_ARN> \
 #     --region <AWS_REGION>
 
@@ -40,6 +41,7 @@ while [[ $# -gt 0 ]]; do
     --keypair) KEYPAIR_NAME="$2"; shift; shift ;;
     --env) ENVIRONMENT="$2"; shift; shift ;;
     --rg-url) RG_URL="$2"; shift; shift ;;
+    --rg-stack-name) RG_STACK_NAME="$2"; shift; shift ;;
     --certificate-arn) CERT_ARN="$2"; shift; shift ;;
     --region) REGION="$2"; shift; shift ;;
     --hostedzoneid) HOSTED_ZONE_ID="$2"; shift; shift ;;
@@ -48,6 +50,8 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
+
+[ -z "$RG_STACK_NAME" ] && RG_STACK_NAME="sp2"
 
 # Validate all required parameters
 REQUIRED_VARS=(
@@ -91,6 +95,7 @@ aws cloudformation deploy \
     CertificateArn="$CERT_ARN" \
     HostedZoneId="$HOSTED_ZONE_ID" \
     BaseAccountPolicyName="$BASE_POLICY_NAME" \
-    AdminEmail="$ADMIN_EMAIL"
+    AdminEmail="$ADMIN_EMAIL" \
+    RGStackName="$RG_STACK_NAME"
 
 echo "Deployment initiated. Monitor the progress in AWS CloudFormation Console."

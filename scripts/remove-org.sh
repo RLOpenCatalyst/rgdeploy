@@ -1,6 +1,7 @@
 #!/bin/bash
-version="0.1.0"
+version="0.1.1"
 echo "remove-org.sh v($version)"
+STACK_NAME="${STACK_NAME:-sp2}"
 
 
 if [ "$1" == "-h" ] ||  [ $# -lt 1 ];then
@@ -20,7 +21,7 @@ echo "DB name: $db_name";
 echo "Organization to delete: $org_name";
 echo "Organization Id: $org_id";
 
-[ -z "$RG_HOME" ] && RG_HOME='/opt/deploy/sp2'
+[ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 echo "RG_HOME=$RG_HOME"
 myinput=$(cat "$RG_HOME/config/mongo-config.json")
 if [ -z "$myinput" ]; then

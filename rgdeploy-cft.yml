@@ -60,6 +60,10 @@ Parameters:
   AdminEmail:
     Description: Email address for the first admin user
     Type: String
+  RGStackName:
+    Description: Logical stack directory name used under /opt/deploy
+    Type: String
+    Default: sp2
 
 Conditions:
   UseSSL:
@@ -406,6 +410,7 @@ Resources:
               aws s3 cp s3://${CFTBucketName}/makeconfigs-inplace.sh ${RgSRC}
               chmod +x ${RgSRC}/updatescripts.sh
               chmod +x ${RgSRC}/makeconfigs-inplace.sh
+              export STACK_NAME=${RGStackName}
 
               aws s3 cp s3://${CFTBucketName}/nginx.conf ${RgHome}/
               aws s3 cp s3://${CFTBucketName}/config.tar.gz ${RgSRC}
@@ -460,8 +465,8 @@ Resources:
               chmod +x /usr/local/sbin/swarm_init.sh
               start_server.sh ${RGUrl} ${RGTargetGroupArn}
 
-              baseurl=$(cat "/opt/deploy/sp2/config/config.json" | jq -r '.baseURL' | sed -e 's#/$##')
-              token=$(cat "/opt/deploy/sp2/config/notification-config.json" | jq -r '.tokenID[0]')
+              baseurl=$(cat "/opt/deploy/${STACK_NAME}/config/config.json" | jq -r '.baseURL' | sed -e 's#/$##')
+              token=$(cat "/opt/deploy/${STACK_NAME}/config/notification-config.json" | jq -r '.tokenID[0]')
 
               if [ -z "$baseurl" ]; then
                 echo "Base URL is not configured in config.json. Exiting"
@@ -488,7 +493,7 @@ Resources:
               DocDBClusterRotationSecret: !Ref DocDBClusterRotationSecret
               DBClusterEndpoint: !GetAtt DBCluster.Endpoint
               AdminEmail: !Ref AdminEmail
-              RgHome: /opt/deploy/sp2
+              RgHome: !Sub /opt/deploy/${RGStackName}
 
   DocumentDBSecurityGroup:
     Type: AWS::EC2::SecurityGroup

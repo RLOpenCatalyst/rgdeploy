@@ -1,5 +1,6 @@
 #!/bin/bash
-version='0.1.0'
+version='0.1.1'
+STACK_NAME="${STACK_NAME:-sp2}"
 usage() {
 	echo "Usage: $0 [-h] | -f <file-name> [-t]"
 	echo "Version: $version"
@@ -104,7 +105,7 @@ add_user() {
 }
 
 if [ -z "$TEST" ]; then
-	[ -z "$RG_HOME" ] && RG_HOME=/opt/deploy/sp2
+	[ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 	baseurl=$(jq -r '.baseURL' "$RG_HOME/config/config.json" | sed -e 's#/$##')
 	token=$(jq -r '.tokenID[0]' "$RG_HOME/config/notification-config.json")
 

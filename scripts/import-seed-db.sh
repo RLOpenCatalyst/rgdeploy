@@ -1,6 +1,7 @@
 #!/bin/bash
-version="0.1.1"
+version="0.1.2"
 echo "Connecting to DB....(connect-db.sh v$version)"
+STACK_NAME="${STACK_NAME:-sp2}"
 
 if [ "$1" == "-h" ]; then
 	echo "Usage: $(basename $0) [ALL | <collection-name>]"
@@ -13,7 +14,7 @@ fi
 if [ $# -gt 1 ]; then
 	mycollection=$2
 fi
-[ -z "$RG_HOME" ] && RG_HOME='/opt/deploy/sp2'
+[ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 echo "RG_HOME=$RG_HOME"
 [ -z "$RG_SRC" ] && RG_SRC='/home/ubuntu'
 echo "RG_SRC=$RG_SRC"

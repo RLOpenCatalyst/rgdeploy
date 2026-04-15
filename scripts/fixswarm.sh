@@ -1,14 +1,15 @@
 #!/bin/bash
-version="0.1.3"
+version="0.1.4"
 echo "Fixing swarm....(fixswarm.sh v$version)"
+STACK_NAME="${STACK_NAME:-sp2}"
 
-[ -z "$RG_HOME" ] && RG_HOME='/opt/deploy/sp2'
+[ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 echo "RG_HOME=$RG_HOME"
 
 # Remove the stack which is deployed if any
-echo "Removing sp2 stack"
-docker stack remove sp2
-old_secrets=$(docker secret ls | grep -i sp2prod | awk '{print $1}')
+echo "Removing ${STACK_NAME} stack"
+docker stack remove "${STACK_NAME}"
+old_secrets=$(docker secret ls | grep -i "${STACK_NAME}prod" | awk '{print $1}')
 if [ -n "$old_secrets" ]; then
 	echo "Found old secrets. Removing..."
 	echo "$old_secrets" |

@@ -65,6 +65,10 @@ Parameters:
   BaseAccountPolicyName:
     Description: Name for RG Portal Base Account Policy
     Type: String
+  RGStackName:
+    Description: Logical stack directory name used under /opt/deploy
+    Type: String
+    Default: sp2
 Conditions:
   DocumentDBSelected:
     Fn::Equals:
@@ -234,7 +238,8 @@ Resources:
             - !Sub |
               #!/bin/bash
               exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-              export RG_HOME=/opt/deploy/sp2
+              export STACK_NAME=${RGStackName}
+              export RG_HOME=/opt/deploy/${RGStackName}
               export RG_ENV=${Environment}
               export RG_SRC=/home/ubuntu
               export S3_SOURCE="${CFTBucketName}"
@@ -249,7 +254,8 @@ Resources:
             - !Sub |
               #!/bin/bash
               exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-              export RG_HOME=/opt/deploy/sp2
+              export STACK_NAME=${RGStackName}
+              export RG_HOME=/opt/deploy/${RGStackName}
               export RG_ENV=${Environment}
               export RG_SRC=/home/ubuntu
               export S3_SOURCE="${CFTBucketName}"

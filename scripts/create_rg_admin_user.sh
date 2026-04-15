@@ -1,5 +1,6 @@
 #!/bin/bash
-[ -z $RG_HOME ] && RG_HOME=/opt/deploy/sp2
+STACK_NAME="${STACK_NAME:-sp2}"
+[ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 baseurl=`cat "$RG_HOME/config/config.json" | jq -r '.baseURL'| sed -e 's#/$##'`
 token=`cat "$RG_HOME/config/notification-config.json" | jq -r '.tokenID[0]'`
 
