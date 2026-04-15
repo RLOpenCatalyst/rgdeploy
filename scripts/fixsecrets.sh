@@ -6,7 +6,7 @@ STACK_NAME="${STACK_NAME:-sp2}"
 [ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 echo "RG_HOME=$RG_HOME"
 
-old_secrets=$(docker secret ls | grep -i "${STACK_NAME}prod" | awk '{print $1}')
+old_secrets=$(docker secret ls | awk '{print $2}' | rg "^(${STACK_NAME}prod|${STACK_NAME})-(config|alert-config)\\.json$" || true)
 if [ -n "$old_secrets" ]; then
 	echo "Found old secrets. Removing..."
 	echo "$old_secrets" |
@@ -14,5 +14,5 @@ if [ -n "$old_secrets" ]; then
 			docker secret rm "$mysecret"
 		done
 fi
-docker secret create "${STACK_NAME}prod-config.json" "${RG_HOME}/config/config.json"
-docker secret create "${STACK_NAME}prod-alert-config.json" "${RG_HOME}/config/alert-config.json"
+docker secret create "${STACK_NAME}-config.json" "${RG_HOME}/config/config.json"
+docker secret create "${STACK_NAME}-alert-config.json" "${RG_HOME}/config/alert-config.json"
