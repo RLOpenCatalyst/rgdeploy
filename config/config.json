@@ -6,6 +6,12 @@
     "express_sid_key": "express.sid",
     "sessionSecret": "sessionSekret"
   },
+  "sessionConfig":{
+    "secret":"REPLACE_WITH_SESSION_SECRET",
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  },
   "AWSCognito": {
     "userPoolId": "REPLACE_WITH_COGNITO_POOL_ID",
     "clientId": "REPLACE_WITH_COGNITO_CLIENT_ID",

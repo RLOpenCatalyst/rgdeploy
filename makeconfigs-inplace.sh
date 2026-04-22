@@ -89,6 +89,7 @@ echo "Modifying config.json"
 if [ -z "$baseurl" ]; then
 	echo "WARNING: Base URL is not passed. config.json file may not be configured correctly"
 fi
+session_secret=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 24
 jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
 	jq -r ".googleOAuthCredentials.callbackURL=\"$baseurl\"" |
 	jq -r ".baseAccountInstanceRoleName=\"$role_name\"" |
@@ -105,6 +106,7 @@ jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
 	jq -r ".AWSCognito.region=\"$region\"" |
 	jq -r ".sampleCSVBucketRegion=\"$region\"" |
 	jq -r ".enableB2CMode=false" |
+	jq -r ".sessionConfig.secret=\"$session_secret\"" |
 	sed -e "s/ENV_FILE_MAP_REGION/$region/" -e "s/ENV_FILE_MAP_BUCKET_NAME/$mys3bucket/" -e "s/REPLACE_WITH_STACK_NAME/$STACK_NAME/g" >"${RG_HOME}/config/config.json"
 echo "Modifying snsConfig.json"
 if [ -z "$snsprotocol" ]; then
