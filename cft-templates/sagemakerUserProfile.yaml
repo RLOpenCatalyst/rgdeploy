@@ -393,7 +393,7 @@ Resources:
                           AppName="default",
                           ResourceSpec={
                               "InstanceType": instance_type,
-                              "SageMakerImageArn": "arn:aws:sagemaker:us-east-1:081325390199:image/sagemaker-distribution-cpu"
+                              "SageMakerImageArn": f"arn:aws:sagemaker:{region}:081325390199:image/sagemaker-distribution-cpu"
                           },
                           Tags=[
                               *common_tags,
