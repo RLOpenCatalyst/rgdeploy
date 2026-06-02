@@ -65,7 +65,7 @@ Resources:
               - ssm:GetParameter
               - ssm:PutParameter
               - ssm:DescribeParameters
-            Resource: "*"
+            Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/RL/RG/nice-dcv/auth-token/*"
           - Sid: AllowAccessToEncryptionKeys
             Effect: Allow
             Action:

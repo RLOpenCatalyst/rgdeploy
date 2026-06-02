@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Verifying required utilities
 echo "Verifying utilities are installed"
@@ -6,7 +7,7 @@ apps=(jq aws)
 for program in "${apps[@]}"; do
 	if ! command -v "$program" >/dev/null 2>&1; then
 		echo "$program not found. This Script needs jq and aws cli. Please install the application/s and restart deployment, Exiting."
-		exit
+		exit 1
 	else
 		echo "$program found"
 	fi

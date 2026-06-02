@@ -87,7 +87,7 @@ echo "Mounting S3"
 chmod +x "${FILES_DIR}/bin/mount_s3.sh"
 ln -s "${FILES_DIR}/bin/mount_s3.sh" "/usr/local/bin/mount_s3.sh"
 # Exit if no S3 mounts were specified
-[ -z "$S3_MOUNTS" -o "$S3_MOUNTS" = "[]" ] && exit 0
+[ -z "$S3_MOUNTS" ] || [ "$S3_MOUNTS" = "[]" ] && exit 0
 printf "%s" "$S3_MOUNTS" > "/usr/local/etc/s3-mounts.json"
 echo "Finish mounting S3"
 

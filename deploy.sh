@@ -304,7 +304,21 @@ if ! [ "$SKIP_S3_COPY" = "true" ]; then
 	rm -f dump.zip
 	
 else
-  echo "Skipping S3 copy as per user request"
+        required_objects=(
+          docker-compose.yml
+          nginx.conf
+          updatescripts.sh
+          config.tar.gz
+          scripts.tar.gz
+          dump.zip
+        )
+        for object in "${required_objects[@]}"; do
+          aws s3api head-object --bucket "$bucketname" --key "$object" >/dev/null 2>&1 || {
+            echo "Cannot skip S3 copy: s3://$bucketname/$object is missing."
+            exit 1
+          }
+        done
+        echo "Skipping S3 copy as per user request"	
 fi
 #=====================================================================================================
 function get_stack_status() {

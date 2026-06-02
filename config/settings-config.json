@@ -1069,7 +1069,7 @@
         "connect": [
           {
             "menu": "Remote Desktop",
-            "imageUrl": "./../assets/images/Screen-icon.png"
+            "imageUrl": "../../assets/images/Screen-icon.png"
           }
         ],
         "action": [

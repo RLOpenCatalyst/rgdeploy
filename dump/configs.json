@@ -595,19 +595,9 @@
   },
   {
     "_id": {
-      "$oid": "663b604476964689564dc998"
-    },
-    "key": "chatAssistantConfig",
-    "value": {
-      "chatAssistantURL": "https://chat.rlcatalyst.com/Documentation_Bot/",
-      "chatAssistantLogo": "../assets/images/chatAssistant.png"
-    }
-  },
-  {
-    "_id": {
       "$oid": "663b631f28fd863b08cb6a9d"
     },
     "key": "kmsKeys",
-    "Value": [ ]
+    "value": [ ]
   }
 ]
