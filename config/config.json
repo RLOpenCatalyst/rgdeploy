@@ -182,7 +182,7 @@
     "endTime": "21:10:00"
   },
   "sessionConfig":{
-    "secret":"27eW5VXITnR8qlEH",
+    "secret":"REPLACE_WITH_SESSION_SECRET",
     "httpOnly": true,
     "secure": false,
     "sameSite": "Lax"
