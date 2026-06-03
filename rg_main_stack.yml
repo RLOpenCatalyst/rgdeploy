@@ -128,6 +128,8 @@ Resources:
               - elasticloadbalancing:RegisterTargets
               - sts:AssumeRole
               - kms:Decrypt
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
             Resource: "*"
           - Sid: "RoleRelatedPermissions"
             Effect: Allow
@@ -136,7 +138,7 @@ Resources:
               - iam:CreateRole
               - iam:DetachRolePolicy
             Resource: 
-              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${BaseAccountPolicyName}"
+              - !GetAtt RGPortalRole.Arn
           - Sid: "PolicyRelatedPermissions"
             Effect: Allow
             Action:

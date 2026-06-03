@@ -266,7 +266,7 @@
     },
     "key": "projectStorage",
     "value": {
-      "productList": ["ec2", "rstudio", "nextflow", "cromwell", "ec2-dcv", "sagemaker", "ec2-igv", "ec2-secure-desktop", "ec2-jupyterlab", "ec2-vscode"],
+      "productList": ["ec2", "rstudio", "nextflow", "cromwell", "ec2-dcv", "sagemaker", "ec2-igv", "ec2-secure-desktop", "ec2-jupyterlab", "ec2-vscode","ec2-remote-desktop","aws-pcs"],
       "s3Mounts": {
         "ProjectStorage": {
           "id": "ProjectStorage",
@@ -389,7 +389,7 @@
         "projectStorage" : "https://researchgateway.readthedocs.io/en/latest/GettingStarted.html#project-storage",
         "addProjectLink" : "https://researchgateway.readthedocs.io/en/latest/Features.html#how-to-add-a-new-project"
     },
-    "studySelectionCount" : 2
+    "studySelectionCount" : 5
   },
   {
     "_id" : { 
@@ -397,7 +397,7 @@
     },
     "key" : "usersConfig",
     "value" : {
-        "maxBulkUserCount" : 20,
+        "maxBulkUserCount" : 100,
         "csvHeaderValues" : [ 
           "email", 
           "first_name", 
@@ -453,7 +453,8 @@
                         "ec2-secure-desktop",
                         "ec2-dcv",
                         "ec2-vscode",
-                        "ec2-jupyterlab"
+                        "ec2-jupyterlab",
+                        "ec2-remote-desktop"
 
                 ]
         },
@@ -470,9 +471,133 @@
                   "cromwell",
                   "rstudio",
                   "ec2-dcv",
-                  "nextflow"
+                  "nextflow",
+                  "ec2-remote-desktop",
+                  "ec2-secure-desktop"
 
           ]
   }
-}
+},
+  {
+    "_id": {
+      "$oid": "664c7d14fc619e0ba56fb9cc"
+    },
+    "key": "settingCreateSkipUpdateBucketPolicy",
+    "value": false
+  },
+  {
+    "_id": {
+      "$oid": "66cd91a8c5a38d1b21e03775"
+    },
+    "key": "retryConfig",
+    "value": {
+      "intervalInSeconds": 6,
+      "maxTimes": 10
+    }
+  },
+  {
+    "_id": {
+      "$oid": "67da8c474f09ce27c0236c81"
+    },
+    "key": "s3ThrottleConfig",
+    "value": {
+      "limit": 2,
+      "interval": 3000
+    }
+  },
+  {
+    "_id": {
+      "$oid": "68664ed41c455cba2ec75a02"
+    },
+    "key": "EVENT_WRITER",
+    "value": true
+  },
+  {
+    "_id": {
+      "$oid": "67b991428574fbf9260f6772"
+    },
+    "key": "numDaysForCostSync",
+    "value": 10
+  },
+  {
+    "_id": {
+      "$oid": "680f5d794266d6c035d7518d"
+    },
+    "key": "egressReviewersList",
+    "value": [],
+    "helpText": [
+      "List of reviewers for egress process"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "66963856fe7568c459062c0c"
+    },
+    "key": "reviewWorkspace",
+    "value": {
+      "preferedReviewWorkspace": "Windows Desktop For Secure Research",
+      "defaultReviewWorkspace": "Secure Research Linux Desktop"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "66ab770d7fbb9d06900fb937"
+    },
+    "key": "egressRequestMails",
+    "value": [
+      {
+        "key": "data admin",
+        "value": {
+          "initiated": "request initiated",
+          "pending": "Hi,A new egress request, <request-Id>, has been submitted by <submitter-email> on <date-of-submission> in the project, <project-name>, and needs your approval.Please sign in to the Research Portal and click on the project card. Click on the Egress Requests tab. Find the egress request with the id mentioned above. You can Approve or Reject the request from the context menu (3-dots icon) of the request.To review the files, click on “Review” in the context menu. This action will launch a new workspace in the project. Once the workspaceis active, please connect to it via Remote Desktop. The files submitted in the request will be visible under /home/ec2-user/studies/<request-Id>.Note that all current pending requests are mounted to the same workspace under different folders labelled with the request-Id.You can then review the files using the tool of your choice which will be preinstalled on the machine.  Once you review the files, log in to the Research Gateway and approve the request from the Egress Requests tab.The Research Gateway team.",
+          "approved": "approved by data admin",
+          "rejected": "rejected by data admin"
+        }
+      },
+      {
+        "key": "researcher",
+        "value": {
+          "initiated": "requested initiated for researcher",
+          "pending": "pending for researcher",
+          "approved": "Hi,The Data Administrator for project <project-name> has approved your egress request, <request-Id>. You can now download the files from the Egress Store tab of the workspace you submitted the request from. Please note that the Download option will be disabled if you submit a new request.The Research Gateway team.",
+          "rejected": "rejected for researcher"
+        }
+      },
+      {
+        "key": "signature",
+        "value": "The Research Gateway Team."
+      }
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "663b604476964689564dc998"
+    },
+    "key": "chatAssistantConfig",
+    "value": {
+      "chatAssistantURL": "https://chat.rlcatalyst.com/Documentation_Bot/",
+      "chatAssistantLogo": "../assets/images/chatAssistant.png"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "67b01bd7dbf6eb46f07fe035"
+    },
+    "key": "deleteLocalProvisionedProductIfNotInSC",
+    "value": false
+  },
+  {
+    "_id": {
+      "$oid": "666a849290cd656dc7d23193"
+    },
+    "key": "s3BucketLimit",
+    "value": 150
+  },
+  {
+    "_id": {
+      "$oid": "663b631f28fd863b08cb6a9d"
+    },
+    "key": "kmsKeys",
+    "value": [ ]
+  }
 ]

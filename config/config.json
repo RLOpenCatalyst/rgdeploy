@@ -2,9 +2,7 @@
   "id": "config",
   "express": {
     "port": 3002,
-    "host": "localhost",
-    "express_sid_key": "express.sid",
-    "sessionSecret": "sessionSekret"
+    "host": "localhost"
   },
   "AWSCognito": {
     "userPoolId": "REPLACE_WITH_COGNITO_POOL_ID",
@@ -42,30 +40,9 @@
   "baseAccountInstanceRoleName": "REPLACE_WITH_BASE_ACCOUNT_ROLE_NAME",
   "IpOfInstanceCredentials": "169.254.169.254",
   "baseAccountNumber": "REPLACE_WITH_BASE_ACOUNT_NUMBER",
-  "sensu": {
-    "username": "sensu",
-    "password": "secret"
-  },
   "apm": {
     "isEnabled": false,
-    "serviceName": "CC",
-    "secretToken": "ONCEUPONATIME",
-    "serverUrl": "http://localhost:8200"
-  },
-  "ELKindex": {
-    "RL-Marketplace": {
-      "port": 9200,
-      "host": ""
-    }
-  },
-  "DecisionEngine": {
-    "metrics": [
-      "cpu_usages_check",
-      "memory_usage_check"
-    ],
-    "RL-Marketplace": {
-      "host": ""
-    }
+    "serviceName": "CC"
   },
   "LoginStrategy": "cognito",
   "samlConfig": {
@@ -73,6 +50,7 @@
     "path": "/samllogin",
     "entryPoint": "https://dev-64629994.okta.com/app/dev-64629994_researchgateway_1/exkaoo9k27Z5n8YCc5d7/sso/saml",
     "issuer": "http://www.okta.com/exkaoo9k27Z5n8YCc5d7",
+    "privateSPCert": "/rlc/cc/server/app/config/key.pem",
     "cert": "/rlc/cc/server/app/config/okta.cert",
     "logoutUrl": "https://enterprise-test1.rlcatalyst.com/logout",
     "groupToRoleMapping": {
@@ -109,6 +87,8 @@
   "credentialManagementURL": "http://sp2_cc-3102:3002/authentication",
   "projectSyncURL": "http://sp2_cc-3102:3002/sync-product",
   "researchGatewayAPIToken": "REPLACE_WITH_API_TOKEN",
+  "snsRetryEventTriggerURL": "http://sp2_cc-3102:3002/retrySNSEvent",
+  "projectEventTriggerURL": "http://sp2_cc-3102:3002/project",
   "nsUseSecretsManager": true,
   "thresholdPercentage": 80,
   "PrincipalArn": "RG-Service-Catalog-Role",
@@ -160,8 +140,6 @@
         "domainName": "REPLACE_WITH_DOMAIN_NAME",
         "hostedZoneId": "REPLACE_WITH_HOSTED_ZONE_ID"
   },
-  "tempDashboardHome": "/rlc/cc/server/dashboard/temp/",
-  "dashboardHome": "/rlc/cc/server/dashboard/config/",
   "scheduler_express": {
     "port": 3004,
     "host": "localhost"
@@ -177,20 +155,9 @@
       "businessService": "created_on",
       "groups": "createdAt"
     },
-    "business_service_pageSize": "20",
     "skip_Records": 1,
     "max_record_limit": 200,
-    "record_limit": 10,
-    "incidents": {
-      "p1ResponseTime": 300,
-      "p1ResolutionTime": 3600,
-      "p2ResponseTime": 1200,
-      "p2ResolutionTime": 25200,
-      "p3ResponseTime": 1200,
-      "p3ResolutionTime": 86400,
-      "p5ResponseTime": 900,
-      "p5ResolutionTime": 14400
-    }
+    "record_limit": 10
   },
   "db": {
     "dbName": "cc",
@@ -214,9 +181,15 @@
     "startTime": "20:00:00",
     "endTime": "21:10:00"
   },
-  "cronJobForEodSync" : "*/60 * * * *",
-  "cronJobForSync" : "00 08 * * *",
-  "cronJobForEodPIReport": "00 10 * * *",
+  "sessionConfig":{
+    "secret":"REPLACE_WITH_SESSION_SECRET",
+    "httpOnly": true,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  "cronJobForEodSync": "*/60 * * * *",
+  "cronJobForSync": "0 40 6 * * *",
+  "cronJobForEodPIReport": "0 40 6 * * *",
   "sampleCSVForUser": "users.csv",
   "sampleCSVBucketRegion": "REPLACE_WITH_REGION",
   "sessionMaxAge" : 900000,

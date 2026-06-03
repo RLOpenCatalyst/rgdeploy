@@ -9,8 +9,6 @@
 S3_MOUNTS="$1"
 RSTUDIO_USER="$2"
 
-# Exit if no S3 mounts were specified
-[ -z "$S3_MOUNTS" -o "$S3_MOUNTS" = "[]" ] && exit 0
 
 # Get directory in which this script is stored and define URL from which to download goofys
 FILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -88,6 +86,8 @@ sudo yum install ec2-instance-connect-1.1
 echo "Mounting S3"
 chmod +x "${FILES_DIR}/bin/mount_s3.sh"
 ln -s "${FILES_DIR}/bin/mount_s3.sh" "/usr/local/bin/mount_s3.sh"
+# Exit if no S3 mounts were specified
+[ -z "$S3_MOUNTS" ] || [ "$S3_MOUNTS" = "[]" ] && exit 0
 printf "%s" "$S3_MOUNTS" > "/usr/local/etc/s3-mounts.json"
 echo "Finish mounting S3"
 
@@ -96,15 +96,18 @@ OS_VERSION=`cat /etc/os-release | grep VERSION= | sed 's/VERSION="//' | sed 's/"
 # Apply updates to environments based on environment type
 case "$(env_type)" in
     "ec2-linux") # Add mount script to bash profile
-        yum install -y fuse-2.9.2
+        yum install -y fuse fuse-common
+        modprobe fuse
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/ec2-user/.bash_profile"
         ;;
     "rstudio") # Add mount script to bash profile
-        yum install -y fuse-2.9.2
+        yum install -y fuse fuse-common
+        modprobe fuse
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/${RSTUDIO_USER}/.bash_profile"
         ;;
     "nextflow") # Add mount script to bash profile
-        yum install -y fuse-2.9.2
+        yum install -y fuse fuse-common
+        modprobe fuse
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/ec2-user/.bash_profile"
         ;;
     "sagemaker") # Update config and restart Jupyter

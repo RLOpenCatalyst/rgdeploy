@@ -106,6 +106,7 @@
                 "ec2:DeleteVolume",
                 "ec2:DescribeInstanceTypes",
                 "ec2:AssociateIamInstanceProfile",
+                "ec2:DescribeVpcs",
                 "elasticloadbalancing:CreateLoadBalancer",
                 "elasticloadbalancing:DeleteLoadBalancer",
                 "elasticloadbalancing:ModifyLoadBalancerAttributes",

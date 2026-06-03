@@ -90,6 +90,7 @@
         "ec2:CopyImage",
         "ec2:CreateDefaultVpc",
         "ec2:AttachVolume",
+        "ec2:DescribeVpcs",
         "elasticloadbalancing:CreateLoadBalancer",
         "elasticloadbalancing:DeleteLoadBalancer",
         "elasticloadbalancing:ModifyLoadBalancerAttributes",

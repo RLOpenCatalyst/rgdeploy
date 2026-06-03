@@ -55,66 +55,6 @@
   },
   {
     "_id": {
-      "$oid": "60504955135663522b880ade"
-    },
-    "name": "Docker on Amazon EC2 Linux",
-    "description": "Use Docker, a popular container orchestration software, on Amazon Elastic Compute Cloud (Amazon EC2).",
-    "fileName": "ec2-linux-docker.yml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/DockerEC2linux.html"
-      },
-      {
-        "Key": "Service",
-        "Value": "EC2"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "EnvironmentInstanceFiles",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "IamPolicyDocument",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "S3Mounts",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-    }
-  },
-  {
-    "_id": {
       "$oid": "60504955135663522b880edb"
     },
     "name": "MySQL",
@@ -238,7 +178,7 @@
     "_id": {
       "$oid": "60504955135663522b880cff"
     },
-    "name": "Amazon Sagemaker",
+    "name": "Amazon Sagemaker Notebook",
     "description": "Amazon SageMaker is a fully managed service that provides the ability to build, train, and deploy ML models",
     "fileName": "sagemaker-template-with-url.yml",
     "tags": [
@@ -390,318 +330,7 @@
       "permission_required": {},
       "cost_resource": true
     }
-  },
-  {
-    "_id": {
-      "$oid": "6076865ad0881f46a105da23"
-    },
-    "name": "Amazon EC2 Windows",
-    "description": "Amazon Elastic Compute Cloud (Amazon EC2) is a web service that provides secure, resizable compute capacity in the cloud.",
-    "fileName": "windows-ec2.yaml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/windows.html"
-      },
-      {
-        "Key": "Service",
-        "Value": "EC2"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true
-    }
-  },
-  {  
-    "_id": {
-      "$oid": "610166d6bbe50a00122a5139"
-    },
-        "name" : "Ubuntu 20 04 on Amazon EC2",
-        "description" : "Use Ubuntu 20.04, on Amazon Elastic Compute Cloud (Amazon EC2).",
-        "fileName" : "ec2-ubuntu.yml",
-        "tags" : [
-                {
-                        "Key" : "EstimatedTimeToProvision",
-                        "Value" : "10 Minutes"
-                },
-                {
-                        "Key" : "DetailsLink",
-                        "Value" : "https://researchgateway.readthedocs.io/en/latest/ubuntu.html"
-                },
-                {
-                        "Key" : "Service",
-                        "Value" : "EC2"
-                },
-                {
-                        "Key" : "TypeOfProduct",
-                        "Value" : "Research"
-                }
-        ],
-        "owner" : "RL",
-        "portfolio" : "RGPortfolio",
-        "availableRegions" : [ ],
-        "assignedOU" : [ ],
-        "metaData" : {
-                "pre_provisioning" : [
-                        {
-                                "code" : "CFT_PARAMS",
-                                "params" : [
-                                        {
-                                                "name" : "EnvironmentInstanceFiles",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "IamPolicyDocument",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "S3Mounts",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        },
-                                        {
-                                                "name" : "Namespace",
-                                                "type" : "RL::SC::PARAM::HD"
-                                        }
-                                ]
-                        }
-                ],
-                "post_provisioning" : [ ],
-                "checks_before_assigning_product" : [ ],
-                "checks_after_assigning_product" : [ ],
-                "permission_required" : {
-
-                },
-                "cost_resource": true
-        }
   }, 
-  {
-    "_id": {
-      "$oid": "611b96eb4548787205d67866"
-    },
-    "name": "Nextflow Advanced",
-    "description": "Use the scalability of AWS Batch to run Nextflow workflows. This is ideal for large workloads and larger data-sets.",
-    "fileName": "nextflow-advanced.yaml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/nextflow.html"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      },
-      {
-        "Key": "ALB",
-        "Value": "true"
-      },
-      {
-        "Key": "ApplicationPort",
-        "Value": "443"
-      },
-      {
-        "Key": "Service",
-        "Value": "Nextflow"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "PipelineName",
-              "type": "RL::SC::PIPELINE"
-            },
-            {
-              "name": "PipelineContainer",
-              "type": "RL::SC::PIPELINE_CONTAINER"
-            },
-            {
-              "name": "InputDataLocation",
-              "type": "RL::SC::S3",
-              "productName": "Amazon S3"
-            },
-            {
-              "name": "OutputDataLocation",
-              "type": "RL::SC::S3",
-              "productName": "Amazon S3"
-            },
-            {
-              "name": "ResearcherName",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "ProjectId",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "EnvironmentInstanceFiles",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "IamPolicyDocument",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "S3Mounts",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [
-        {
-          "code": "AMI_ID_REQUIRED",
-          "is_ami_required": true,
-          "ami_id_list": [
-            {
-              "us-east-1": "ami-02161943742b2f0e1"
-            },
-            {
-              "us-east-2": "ami-06a28664a50da1083"
-            },
-            {
-              "us-west-1": "ami-083064b2ce8cff688"
-            },
-            {
-              "us-west-2": "ami-02a57220b3320a450"
-            },
-            {
-              "ap-south-1": "ami-0922d7f6b2b855794"
-            },
-            {
-              "ap-southeast-1": "ami-0ee126c404d54fc5b"
-            },
-            {
-              "ap-southeast-2": "ami-0cdcce7966c66cd6b"
-            }
-          ],
-          "ami_path": "/RL/RG/StandardCatalog/nextflow-latest"
-        }
-      ],
-      "checks_after_assigning_product": [],
-      "permission_required": {
-    },
-    "cost_resource" : true,
-    "aws_batch" : true
-  }
-  },
-  {
-    "_id": {
-      "$oid": "62010969011b8d521ccce386"
-    },
-    "name": "Cromwell Advanced",
-    "description": "Use the scalability of AWS Batch to run Cromwell workflows. This is ideal for large workloads and larger data-sets.",
-    "fileName": "cromwell-advanced.yaml",
-    "tags": [
-      {
-        "Key": "EstimatedTimeToProvision",
-        "Value": "10 Minutes"
-      },
-      {
-        "Key": "DetailsLink",
-        "Value": "https://researchgateway.readthedocs.io/en/latest/cromwell.html"
-      },
-      {
-        "Key": "TypeOfProduct",
-        "Value": "Research"
-      },
-      {
-        "Key": "ALB",
-        "Value": "true"
-      },
-      {
-        "Key": "ApplicationPort",
-        "Value": "443"
-      },
-      {
-        "Key": "Service",
-        "Value": "Cromwell"
-      }
-    ],
-    "owner": "RL",
-    "portfolio": "RGPortfolio",
-    "availableRegions": [],
-    "assignedOU": [],
-    "metaData": {
-      "pre_provisioning": [
-        {
-          "code": "CFT_PARAMS",
-          "params": [
-            {
-              "name": "PipelineName",
-              "type": "RL::SC::PIPELINE"
-            },
-            {
-              "name": "InputDataLocation",
-              "type": "RL::SC::S3",
-              "productName": "Amazon S3"
-            },
-            {
-              "name": "OutputDataLocation",
-              "type": "RL::SC::S3",
-              "productName": "Amazon S3"
-            },
-            {
-              "name": "ResearcherName",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "ProjectId",
-              "type": "RL::SC::PARAM::HD"
-            },
-            {
-              "name": "Namespace",
-              "type": "RL::SC::PARAM::HD"
-            }
-          ]
-        }
-      ],
-      "post_provisioning": [],
-      "checks_before_assigning_product": [
-        {
-          "code": "AMI_ID_REQUIRED",
-          "is_ami_required": true,
-          "ami_id_list": [],
-          "ami_path": "/RL/RG/StandardCatalog/cromwell-latest"
-        }
-      ],
-      "checks_after_assigning_product": [],
-      "permission_required": {},
-      "cost_resource": true,
-      "aws_batch": true
-    }
-  },
   {
     "_id" : {
       "$oid":"62839f80e82248514eba03b6"
@@ -1638,7 +1267,616 @@
       "permission_required" : {},
       "cost_resource" : true
   }
+},
+{
+  "_id": {
+    "$oid": "67924553c5811175921b08ec"
+  },
+  "name": "Windows Remote Desktop",
+  "description": "Amazon Elastic Compute Cloud (Amazon EC2) is a web service that provides secure, resizable compute capacity in the cloud.",
+  "fileName": "windows-remotedesktop.yml",
+  "tags": [
+    {
+      "Key": "EstimatedTimeToProvision",
+      "Value": "10 Minutes"
+    },
+    {
+      "Key": "DetailsLink",
+      "Value": "https://researchgateway.readthedocs.io/en/latest/windows.html"
+    },
+    {
+      "Key": "Service",
+      "Value": "EC2-REMOTE-DESKTOP"
+    },
+    {
+      "Key": "TypeOfProduct",
+      "Value": "Research"
+    },
+    {
+      "Key": "ALB",
+      "Value": "true"
+    },
+    {
+      "Key": "ApplicationPort",
+      "Value": "8443"
+    },
+    {
+      "Key": "ApplicationProtocol",
+      "Value": "HTTPS"
+    }
+  ],
+  "owner": "RL",
+  "portfolio": "RGPortfolio",
+  "availableRegions": [],
+  "assignedOU": [],
+  "metaData": {
+    "pre_provisioning": [
+      {
+        "code": "CFT_PARAMS",
+        "params": [
+          {
+            "name": "Namespace",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "EnvironmentInstanceFiles",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "IamPolicyDocument",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "S3Mounts",
+            "type": "RL::SC::PARAM::HD"
+          }
+        ]
+      }
+    ],
+    "checks_before_assigning_product": [
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      },
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      }
+    ],
+    "isUpdateAvailable": false
+  }
+},
+{
+  "_id": {
+    "$oid": "686e89d00f2e074ec82a7be7"
+  },
+  "name": "AWS PCS Quick Start",
+  "description": "Launch a basic AWS PCS cluster with  4 nodes (8 vCPUs, 32GB per node). Useful for exploration and test jobs.",
+  "fileName": "pcs_quick_lt.yaml",
+  "tags": [
+    {
+      "Key": "EstimatedTimeToProvision",
+      "Value": "20 Minutes"
+    },
+    {
+      "Key": "DetailsLink",
+      "Value": "https://docs.aws.amazon.com/pcs/latest/userguide/what-is-service.html"
+    },
+    {
+      "Key": "Service",
+      "Value": "aws-pcs"
+    },
+    {
+      "Key": "TypeOfProduct",
+      "Value": "Research"
+    }
+  ],
+  "owner": "RL",
+  "portfolio": "RGPortfolio",
+  "availableRegions": [],
+  "assignedOU": [],
+  "metaData": {
+    "pre_provisioning": [
+      {
+        "code": "CFT_PARAMS",
+        "params": [
+          {
+            "name": "EnvironmentInstanceFiles",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "IamPolicyDocument",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "S3Mounts",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "Namespace",
+            "type": "RL::SC::PARAM::HD"
+          }
+        ]
+      }
+    ],
+    "post_provisioning": [],
+    "checks_before_assigning_product": [
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      }
+    ],
+    "checks_after_assigning_product": [],
+    "permission_required": {},
+    "cost_resource": true
+  }
+},
+{
+  "_id": {
+    "$oid": "679b643e1d6d39b5195b063f"
+  },
+  "name": "Rocky 8 with NICE DCV",
+  "description": "NICE DCV is a high-performance remote display protocol using which the customers can run graphics-intensive applicationsremotely on EC2 instances, and stream their user interface to simpler client machines, eliminating the need for expensive dedicated workstations.The user can connect to the DCV server by using the RG Connect URL button. The user name is ec2-user and password is the Instance ID.",
+  "fileName": "ec2-rockyLinux.yml",
+  "tags": [
+    {
+      "Key": "EstimatedTimeToProvision",
+      "Value": "15 Minutes"
+    },
+    {
+      "Key": "DetailsLink",
+      "Value": "https://researchgateway.readthedocs.io/en/latest/NiceDCV.html"
+    },
+    {
+      "Key": "Service",
+      "Value": "EC2-DCV"
+    },
+    {
+      "Key": "TypeOfProduct",
+      "Value": "Research"
+    },
+    {
+      "Key": "ALB",
+      "Value": "true"
+    },
+    {
+      "Key": "ApplicationPort",
+      "Value": "8443"
+    },
+    {
+      "Key": "ApplicationProtocol",
+      "Value": "HTTPS"
+    }
+  ],
+  "owner": "RL",
+  "portfolio": "RGPortfolio",
+  "availableRegions": [],
+  "assignedOU": [],
+  "metaData": {
+    "cost_resource": true,
+    "pre_provisioning": [
+      {
+        "code": "CFT_PARAMS",
+        "params": [
+          {
+            "name": "EnvironmentInstanceFiles",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "IamPolicyDocument",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "S3Mounts",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "Namespace",
+            "type": "RL::SC::PARAM::HD"
+          }
+        ]
+      }
+    ],
+    "post_provisioning": [],
+    "checks_before_assigning_product": [
+      {
+        "code": "AMI_ID_REQUIRED",
+        "is_ami_required": true,
+        "ami_id_list": [
+          {
+            "us-west-1": "ami-0ff9ab0ce03edb1d8"
+          },
+          {
+            "us-east-1": "ami-022718011b0e759ce"
+          }
+        ],
+        "ami_path": "/RL/RG/StandardCatalog/rocky-nice-dcv-ami"
+      },
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      },
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      }
+    ],
+    "checks_after_assigning_product": [],
+    "permission_required": {},
+    "isUpdateAvailable": true
+  }
+},
+{
+  "_id": {
+    "$oid": "67ad891d56595357b3b12aaf"
+  },
+  "name": "Nginx Web Server",
+  "description": "Amazon Elastic Compute Cloud (Amazon EC2) is a web service that provides resizable compute capacity in the cloud.",
+  "fileName": "ec2-nginxWebServer.yml",
+  "tags": [
+    {
+      "Key": "EstimatedTimeToProvision",
+      "Value": "15 Minutes"
+    },
+    {
+      "Key": "DetailsLink",
+      "Value": "https://researchgateway.readthedocs.io/en/latest/rstudio.html"
+    },
+    {
+      "Key": "Service",
+      "Value": "EC2"
+    },
+    {
+      "Key": "TypeOfProduct",
+      "Value": "Research"
+    },
+    {
+      "Key": "ALB",
+      "Value": "true"
+    },
+    {
+      "Key": "ApplicationPort",
+      "Value": "443"
+    },
+    {
+      "Key": "ApplicationProtocol",
+      "Value": "HTTPS"
+    }
+  ],
+  "owner": "RL",
+  "portfolio": "RGPortfolio",
+  "availableRegions": [],
+  "assignedOU": [],
+  "metaData": {
+    "pre_provisioning": [
+      {
+        "code": "CFT_PARAMS",
+        "params": [
+          {
+            "name": "EnvironmentInstanceFiles",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "IamPolicyDocument",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "S3Mounts",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "Namespace",
+            "type": "RL::SC::PARAM::HD"
+          }
+        ]
+      }
+    ],
+    "post_provisioning": [],
+    "checks_before_assigning_product": [
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      },
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      }
+    ],
+    "checks_after_assigning_product": [],
+    "permission_required": {},
+    "cost_resource": true,
+    "isUpdateAvailable": false
+  }
+},
+{
+  "_id": {
+    "$oid": "68e50cf5913c5717a6389b8f"
+  },
+  "name": "SageMaker AI",
+  "description": "Amazon SageMaker AI provides a fully managed JupyterLab environment within its Unified Studio, designed to facilitate machine learning (ML) workflows. This integration allows users to leverage the interactive development environment (IDE) of JupyterLab for various tasks, including data integration, analytics, and ML model development.",
+  "fileName": "sagemakerUserProfile.yaml",
+  "tags": [
+    {
+      "Key": "EstimatedTimeToProvision",
+      "Value": "5 Minutes"
+    },
+    {
+      "Key": "DetailsLink",
+      "Value": "https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html"
+    },
+    {
+      "Key": "Service",
+      "Value": "sagemaker-studio"
+    },
+    {
+      "Key": "TypeOfProduct",
+      "Value": "Research"
+    }
+  ],
+  "owner": "RL",
+  "portfolio": "RGPortfolio",
+  "availableRegions": [],
+  "assignedOU": [],
+  "metaData": {
+    "pre_provisioning": [
+      {
+        "code": "CFT_PARAMS",
+        "params": [
+          {
+            "name": "DomainId",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "UserProfileName",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "ResearcherName",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "SpaceName",
+            "type": "RL::SC::PARAM::HD"
+          }
+        ]
+      }
+    ],
+    "post_provisioning": [],
+    "checks_before_assigning_product": [
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      }
+    ],
+    "checks_after_assigning_product": [],
+    "permission_required": {},
+    "cost_resource": true
+  }
+},
+{
+  "_id": {
+    "$oid": "68c06e1ddc3e48f47032b445"
+  },
+  "name": "Sagemaker AI Domain",
+  "description": "Create a fully managed Amazon SageMaker Domain for this project to enable secure and scalable machine learning environments using JupyterLab. It provides seamless access to SageMaker Studio for building, training, and deploying ML models efficiently.",
+  "fileName": "awsSagemakerDomainAI.yaml",
+  "tags": [
+    {
+      "Key": "EstimatedTimeToProvision",
+      "Value": "2 Minutes"
+    },
+    {
+      "Key": "DetailsLink",
+      "Value": "https://docs.aws.amazon.com/sagemaker/latest/dg/gs-studio-onboard.html"
+    },
+    {
+      "Key": "Service",
+      "Value": "sagemaker-ai"
+    },
+    {
+      "Key": "TypeOfProduct",
+      "Value": "Research"
+    },
+    {
+      "Key": "rolespecific",
+      "Value": "0"
+    },
+    {
+      "Key": "Singleton",
+      "Value": true
+    }
+  ],
+  "owner": "RL",
+  "portfolio": "RGPortfolio",
+  "availableRegions": [],
+  "assignedOU": [],
+  "metaData": {
+    "pre_provisioning": [
+      {
+        "code": "CFT_PARAMS",
+        "params": [
+          {
+            "name": "EnvironmentInstanceFiles",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "IamPolicyDocument",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "S3Mounts",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "Namespace",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "ProjectId",
+            "type": "RL::SC::PARAM::HD"
+          }
+        ]
+      }
+    ],
+    "post_provisioning": [],
+    "checks_before_assigning_product": [
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      }
+    ],
+    "checks_after_assigning_product": [],
+    "permission_required": {},
+    "cost_resource": true
+  }
+},
+{
+  "_id": {
+    "$oid": "684bdf8915403b3590625b2a"
+  },
+  "name": "AWS PCS Advanced",
+  "description": "Create an AWS managed HPC cluster to run and scale your high performance workloads and build scientific and engineering models on AWS using Slurm.",
+  "fileName": "pcs.yaml",
+  "tags": [
+    {
+      "Key": "EstimatedTimeToProvision",
+      "Value": "20 Minutes"
+    },
+    {
+      "Key": "DetailsLink",
+      "Value": "https://docs.aws.amazon.com/pcs/latest/userguide/what-is-service.html"
+    },
+    {
+      "Key": "Service",
+      "Value": "aws-pcs"
+    },
+    {
+      "Key": "TypeOfProduct",
+      "Value": "Research"
+    }
+  ],
+  "owner": "RL",
+  "portfolio": "RGPortfolio",
+  "availableRegions": [],
+  "assignedOU": [],
+  "metaData": {
+    "pre_provisioning": [
+      {
+        "code": "CFT_PARAMS",
+        "params": [
+          {
+            "name": "EnvironmentInstanceFiles",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "IamPolicyDocument",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "S3Mounts",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "Namespace",
+            "type": "RL::SC::PARAM::HD"
+          }
+        ]
+      }
+    ],
+    "post_provisioning": [],
+    "checks_before_assigning_product": [
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      }
+    ],
+    "checks_after_assigning_product": [],
+    "permission_required": {},
+    "cost_resource": true
+  }
+},
+{
+  "_id": {
+    "$oid": "68f9f9e7fc40a41a1ed58a05"
+  },
+  "name": "Amazon Bedrock",
+  "description": "Amazon Bedrock is a comprehensive, secure, and flexible platform for building generative AI applications and agents.",
+  "fileName": "bedrock.yaml",
+  "tags": [
+    {
+      "Key": "EstimatedTimeToProvision",
+      "Value": "5 Minutes"
+    },
+    {
+      "Key": "DetailsLink",
+      "Value": "https://aws.amazon.com/bedrock/"
+    },
+    {
+      "Key": "Service",
+      "Value": "bedrock"
+    },
+    {
+      "Key": "TypeOfProduct",
+      "Value": "Research"
+    }
+  ],
+  "owner": "RL",
+  "portfolio": "RGPortfolio",
+  "availableRegions": [],
+  "assignedOU": [],
+  "metaData": {
+    "pre_provisioning": [
+      {
+        "code": "CFT_PARAMS",
+        "params": [
+          {
+            "name": "UserProfileName",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "S3Mounts",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "SpaceName",
+            "type": "RL::SC::PARAM::HD"
+          }
+        ]
+      }
+    ],
+    "post_provisioning": [],
+    "checks_before_assigning_product": [
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      }
+    ],
+    "checks_after_assigning_product": [],
+    "permission_required": {},
+    "cost_resource": true
+  }
 }
-
 
 ]
