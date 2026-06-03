@@ -107,7 +107,7 @@ rm -f ec2-winsecure-image.zip
 
 # Upload dump data
 cd "$localhome" || exit
-zip dump.zip dump/*
+zip -r dump.zip dump/*
 unzip -l dump.zip
 aws s3 cp dump.zip s3://"$bucketname/"
 rm -f dump.zip
