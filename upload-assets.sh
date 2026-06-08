@@ -1,5 +1,8 @@
 #!/bin/bash
+<<<<<<< HEAD
 set -euo pipefail
+=======
+>>>>>>> topic-tre
 
 # Verifying required utilities
 echo "Verifying utilities are installed"
@@ -7,7 +10,11 @@ apps=(jq aws)
 for program in "${apps[@]}"; do
 	if ! command -v "$program" >/dev/null 2>&1; then
 		echo "$program not found. This Script needs jq and aws cli. Please install the application/s and restart deployment, Exiting."
+<<<<<<< HEAD
 		exit 1
+=======
+		exit
+>>>>>>> topic-tre
 	else
 		echo "$program found"
 	fi
@@ -63,7 +70,11 @@ echo "Uploading required files to s3://$bucketname..."
 aws s3 cp "$localhome"/docker-compose.yml s3://"$bucketname"
 aws s3 cp "$localhome"/nginx.conf s3://"$bucketname"
 aws s3 cp "$localhome"/updatescripts.sh s3://"$bucketname"
+<<<<<<< HEAD
 aws s3 cp "$localhome"/makeconfigs.sh s3://"$bucketname"
+=======
+aws s3 cp "$localhome"/makeconfigs-inplace.sh s3://"$bucketname"
+>>>>>>> topic-tre
 aws s3 cp "$localhome"/mainonly.sh s3://"$bucketname"
 aws s3 cp "$localhome"/makestudies.sh s3://"$bucketname"
 
@@ -107,7 +118,11 @@ rm -f ec2-winsecure-image.zip
 
 # Upload dump data
 cd "$localhome" || exit
+<<<<<<< HEAD
 zip -r dump.zip dump/*
+=======
+zip dump.zip dump/*
+>>>>>>> topic-tre
 unzip -l dump.zip
 aws s3 cp dump.zip s3://"$bucketname/"
 rm -f dump.zip
@@ -115,4 +130,8 @@ echo "✅ All files uploaded successfully to s3://$bucketname"
 exit 0
 
 
+<<<<<<< HEAD
 # ./upload-assets.sh ami-0f78b782bj5ef10a6 single-cft-test-s3
+=======
+# ./upload-assets.sh ami-0f78b782bj5ef10a6 single-cft-test-s3
+>>>>>>> topic-tre
