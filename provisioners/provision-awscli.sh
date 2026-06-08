@@ -18,4 +18,3 @@ sudo ./aws/install
 # Clean up installer files
 rm -rf awscliv2.zip aws
 
-
