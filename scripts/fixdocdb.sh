@@ -1,6 +1,7 @@
 #!/bin/bash
-version="0.1.7"
+version="0.1.8"
 echo "Fixing DocumentDB....(fixdocdb.sh v$version)"
+STACK_NAME="${STACK_NAME:-sp2}"
 
 if [ "$1" == "-h" ] || [ $# -lt 5 ]; then
 	echo "Usage: $(basename $0) db_name admin_password user_name user_password"
@@ -28,7 +29,7 @@ mydbname=$2
 mydbuser=$3
 mydbuserpwd=$4
 myurl=$5
-[ -z "$RG_HOME" ] && RG_HOME='/opt/deploy/sp2'
+[ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 echo "RG_HOME=$RG_HOME"
 [ -z "$RG_SRC" ] && RG_SRC='/home/ubuntu'
 echo "RG_SRC=$RG_SRC"

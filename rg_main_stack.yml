@@ -65,6 +65,10 @@ Parameters:
   BaseAccountPolicyName:
     Description: Name for RG Portal Base Account Policy
     Type: String
+  RGStackName:
+    Description: Logical stack directory name used under /opt/deploy
+    Type: String
+    Default: sp2
 Conditions:
   DocumentDBSelected:
     Fn::Equals:
@@ -83,10 +87,45 @@ Conditions:
     Fn::Not:
       - Condition: UseDocumentDB
 Resources:
+  RGPortalPermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AWS::StackName}-RGPortalPermissionsBoundary"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowGeneralActions
+            Effect: Allow
+            Action: "*"
+            Resource: "*"
+          - Sid: DenyBoundaryTampering
+            Effect: Deny
+            Action:
+              - iam:DeleteRolePermissionsBoundary
+              - iam:PutRolePermissionsBoundary
+            Resource: "*"
+          - Sid: DenyUnapprovedPolicyAttachment
+            Effect: Deny
+            Action:
+              - iam:AttachRolePolicy
+            Resource: "*"
+            Condition:
+              StringNotLike:
+                iam:PolicyARN:
+                  - arn:aws:iam::aws:policy/AmazonS3FullAccess
+                  - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+                  - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+                  - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
+                  - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+                  - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
+                  - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:policy/${BaseAccountPolicyName}"
+
   RGPortalRole:
     Type: AWS::IAM::Role
     Properties:
       Description: The role used by the EC2 Instance running the portal
+      PermissionsBoundary: !Ref RGPortalPermissionsBoundary
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -133,20 +172,10 @@ Resources:
             Effect: Allow
             Action:
               - iam:AttachRolePolicy
-              - iam:CreateRole
               - iam:DetachRolePolicy
-            Resource: 
-              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${BaseAccountPolicyName}"
-          - Sid: "PolicyRelatedPermissions"
-            Effect: Allow
-            Action:
-              - iam:CreatePolicy
-              - iam:CreatePolicyVersion
-              - iam:DeletePolicy
-              - iam:DeletePolicyVersion
               - iam:UpdateAssumeRolePolicy
             Resource: 
-              - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
+              - !GetAtt RGPortalRole.Arn
   RGPortalSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -209,7 +238,8 @@ Resources:
             - !Sub |
               #!/bin/bash
               exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-              export RG_HOME=/opt/deploy/sp2
+              export STACK_NAME=${RGStackName}
+              export RG_HOME=/opt/deploy/${RGStackName}
               export RG_ENV=${Environment}
               export RG_SRC=/home/ubuntu
               export S3_SOURCE="${CFTBucketName}"
@@ -224,7 +254,8 @@ Resources:
             - !Sub |
               #!/bin/bash
               exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-              export RG_HOME=/opt/deploy/sp2
+              export STACK_NAME=${RGStackName}
+              export RG_HOME=/opt/deploy/${RGStackName}
               export RG_ENV=${Environment}
               export RG_SRC=/home/ubuntu
               export S3_SOURCE="${CFTBucketName}"

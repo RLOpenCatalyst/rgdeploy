@@ -60,6 +60,10 @@ Parameters:
   AdminEmail:
     Description: Email address for the first admin user
     Type: String
+  RGStackName:
+    Description: Logical stack directory name used under /opt/deploy
+    Type: String
+    Default: sp2
 
 Conditions:
   UseSSL:
@@ -74,10 +78,10 @@ Conditions:
 
 Resources:
 
-  RGInstanceSecurityGroup:
+  RGALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow http/https/ssh to client host
+      GroupDescription: Allow HTTP/HTTPS from anywhere to Application Load Balancer
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -88,14 +92,23 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
       SecurityGroupEgress:
         - IpProtocol: "-1"
-          CidrIp: 0.0.0.0/0  
-          
+          CidrIp: 0.0.0.0/0
+
+  RGInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow traffic from ALB to client host
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !GetAtt RGALBSecurityGroup.GroupId
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
 
   RGApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -108,7 +121,7 @@ Resources:
         - !Ref PublicSubnet2
         - !Ref PublicSubnet3
       SecurityGroups:
-        - !Ref RGInstanceSecurityGroup
+        - !Ref RGALBSecurityGroup
       IpAddressType: ipv4
 
   RGTargetGroup:
@@ -170,10 +183,45 @@ Resources:
           TargetGroupArn: !Ref RGTargetGroup
 
   # Portal IAM Role
+  RGPortalPermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AWS::StackName}-RGPortalPermissionsBoundary"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowGeneralActions
+            Effect: Allow
+            Action: "*"
+            Resource: "*"
+          - Sid: DenyBoundaryTampering
+            Effect: Deny
+            Action:
+              - iam:DeleteRolePermissionsBoundary
+              - iam:PutRolePermissionsBoundary
+            Resource: "*"
+          - Sid: DenyUnapprovedPolicyAttachment
+            Effect: Deny
+            Action:
+              - iam:AttachRolePolicy
+            Resource: "*"
+            Condition:
+              StringNotLike:
+                iam:PolicyARN:
+                  - arn:aws:iam::aws:policy/AmazonS3FullAccess
+                  - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+                  - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+                  - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
+                  - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+                  - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
+                  - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:policy/${BaseAccountPolicyName}"
+
   RGPortalRole:
     Type: AWS::IAM::Role
     Properties:
       Description: The role used by the EC2 Instance running the portal
+      PermissionsBoundary: !Ref RGPortalPermissionsBoundary
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -190,7 +238,6 @@ Resources:
         - arn:aws:iam::aws:policy/IAMReadOnlyAccess
         - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
         - arn:aws:iam::aws:policy/SecretsManagerReadWrite
-        - Ref: ResearchGatewayRolePolicy
       Path: /
   ResearchGatewayInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -222,20 +269,10 @@ Resources:
             Effect: Allow
             Action:
               - iam:AttachRolePolicy
-              - iam:CreateRole
               - iam:DetachRolePolicy
-            Resource: 
-              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${BaseAccountPolicyName}"
-          - Sid: "PolicyRelatedPermissions"
-            Effect: Allow
-            Action:
-              - iam:CreatePolicy
-              - iam:CreatePolicyVersion
-              - iam:DeletePolicy
-              - iam:DeletePolicyVersion
               - iam:UpdateAssumeRolePolicy
             Resource: 
-              - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
+              - !GetAtt RGPortalRole.Arn
   DnsRecord:
       Type: AWS::Route53::RecordSet
       Properties:
@@ -260,7 +297,7 @@ Resources:
         BlockDeviceMappings:
           - DeviceName: /dev/sda1
             Ebs:
-              VolumeType: gp2
+              VolumeType: gp3
               VolumeSize: 80
               DeleteOnTermination: true
               Encrypted: true
@@ -268,33 +305,114 @@ Resources:
         SecurityGroupIds:
           - !Ref RGInstanceSecurityGroup
         UserData:
-          Fn::Base64: !Sub
+          Fn::Base64: !Sub 
             - |
-              #!/bin/bash
-              exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+              #!/usr/bin/env bash
+              set -euxo pipefail
 
-              export RG_HOME=/opt/deploy/sp2
+              exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
+
+                            export RG_HOME=${RgHome}
               export RG_ENV=${Environment}
               export RG_SRC=${RgSRC}
               export S3_SOURCE="${CFTBucketName}"
               export REGION=${AWS::Region}
 
               mkdir -p ${RgSRC}
-              apt-get update
-              apt-get install -y jq curl gnupg
+              mkdir -p "${RgHome}"/{catalog,topologies,integrations,logs,slogs,notification_sink_logs}
 
-              wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | tee /etc/apt/trusted.gpg.d/server-8.0.asc
-              echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
-              apt-get update
-              apt-get install -y mongodb-mongosh
+              echo "==== Starting EC2 bootstrap ===="
+
+              # --------------------------------------------------------------------
+              # Detect OS
+              # --------------------------------------------------------------------
+              source /etc/os-release
+              echo "Detected OS: $NAME ($ID $VERSION_ID)"
+
+              # --------------------------------------------------------------------
+              # Common variables
+              # --------------------------------------------------------------------
+              MONGOSH_VERSION="2.2.6"
+
+              # --------------------------------------------------------------------
+              # OS-specific package install + Docker setup
+              # --------------------------------------------------------------------
+              if [[ "$ID" == "ubuntu" ]]; then
+                echo "Configuring Ubuntu system"
+
+                apt-get update -y
+                apt-get install -y \
+                  jq curl wget gnupg ca-certificates lsb-release unzip tar
+
+                # Docker (official Ubuntu repo)
+                install -m 0755 -d /etc/apt/keyrings
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+                  | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                chmod a+r /etc/apt/keyrings/docker.gpg
+
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+                  https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+                  | tee /etc/apt/sources.list.d/docker.list
+
+                apt-get update -y
+                apt-get install -y \
+                  docker-ce docker-ce-cli containerd.io \
+                  docker-buildx-plugin docker-compose-plugin
+
+                systemctl enable docker
+                systemctl start docker
+
+                usermod -aG docker ubuntu
+
+              elif [[ "$ID" == "amzn" ]]; then
+                echo "Configuring Amazon Linux system"
+
+                dnf update -y
+                dnf install -y --allowerasing\
+                  curl docker
+
+                systemctl enable docker
+                systemctl start docker
+
+                usermod -aG docker ec2-user
+
+              else
+                echo "Unsupported OS: $ID"
+                exit 1
+              fi
+
+              # --------------------------------------------------------------------
+              # Install mongosh (OS-agnostic tarball)
+              # --------------------------------------------------------------------
+              echo "Installing mongosh $MONGOSH_VERSION"
+
+              curl -LO https://downloads.mongodb.com/compass/mongosh-$MONGOSH_VERSION-linux-x64.tgz
+              tar -xzf mongosh-$MONGOSH_VERSION-linux-x64.tgz
+              mv mongosh-$MONGOSH_VERSION-linux-x64/bin/mongosh /usr/local/bin/
+              chmod +x /usr/local/bin/mongosh
 
               mongosh --version
+
+              # --------------------------------------------------------------------
+              # Install AWS CLI v2 (safe on both OSes)
+              # --------------------------------------------------------------------
+              if ! command -v aws >/dev/null 2>&1; then
+                echo "Installing AWS CLI v2"
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+                unzip awscliv2.zip
+                ./aws/install
+              fi
+
+              aws --version
+
 
               aws s3 cp s3://${CFTBucketName}/updatescripts.sh ${RgSRC}
               aws s3 cp s3://${CFTBucketName}/makeconfigs-inplace.sh ${RgSRC}
               chmod +x ${RgSRC}/updatescripts.sh
               chmod +x ${RgSRC}/makeconfigs-inplace.sh
+              export STACK_NAME=${RGStackName}
 
+              aws s3 cp s3://${CFTBucketName}/nginx.conf ${RgHome}/
               aws s3 cp s3://${CFTBucketName}/config.tar.gz ${RgSRC}
               tar -xzvf ${RgSRC}/config.tar.gz -C ${RgSRC}
 
@@ -314,12 +432,32 @@ Resources:
                 ${RGUrl} \
                 ${AWS::Region} \
                 ${HostedZoneId} \
-                ${DocDBClusterRotationSecret}
+                ${DocDBClusterRotationSecret} \
+                ${CognitoUserPoolClient.ClientSecret}
 
               aws s3 cp config.tar.gz s3://${CFTBucketName}/
 
-              rm -rf $RG_HOME/config
+              rm -rf ${RgHome}/config
               ${RgSRC}/updatescripts.sh
+
+              MONGO_TOOLS_VERSION="100.14.1"
+
+              if [[ "$ID" == "ubuntu" ]]; then
+                MONGO_TOOLS_OS="ubuntu2404"
+              elif [[ "$ID" == "amzn" ]]; then
+                MONGO_TOOLS_OS="amazon2023"
+              else
+                echo "Unsupported OS for MongoDB Database Tools: $ID"
+                exit 1
+              fi
+
+              curl -LO "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-$MONGO_TOOLS_OS-x86_64-$MONGO_TOOLS_VERSION.tgz"
+              tar -xvzf "mongodb-database-tools-$MONGO_TOOLS_OS-x86_64-$MONGO_TOOLS_VERSION.tgz"
+              cd "mongodb-database-tools-$MONGO_TOOLS_OS-x86_64-$MONGO_TOOLS_VERSION/bin"
+              mv * /usr/local/bin/
+
+              mongoimport --version
+
 
               fixconfigs.sh
               fixdocdb.sh ${DBClusterEndpoint} ${Environment}-cc rguser $(aws secretsmanager get-secret-value --secret-id ${DocDBClusterRotationSecret} --region ${AWS::Region} --query SecretString --output text | jq -r .password) ${RGUrl}
@@ -327,9 +465,8 @@ Resources:
               chmod +x /usr/local/sbin/swarm_init.sh
               start_server.sh ${RGUrl} ${RGTargetGroupArn}
 
-              RG_HOME=/opt/deploy/sp2
-              baseurl=$(cat "$RG_HOME/config/config.json" | jq -r '.baseURL' | sed -e 's#/$##')
-              token=$(cat "$RG_HOME/config/notification-config.json" | jq -r '.tokenID[0]')
+              baseurl=$(cat "/opt/deploy/${STACK_NAME}/config/config.json" | jq -r '.baseURL' | sed -e 's#/$##')
+              token=$(cat "/opt/deploy/${STACK_NAME}/config/notification-config.json" | jq -r '.tokenID[0]')
 
               if [ -z "$baseurl" ]; then
                 echo "Base URL is not configured in config.json. Exiting"
@@ -345,7 +482,6 @@ Resources:
 
               message=$(curl -b cookies.txt --location --request POST -H "X-CSRF-Token:$ctoken" --header "token:$token" --header "Content-Type: application/json" --data-raw "$data" "$baseurl/user/signup" | jq -r '.message')
 
-              /opt/aws/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource RGEC2Instance --region ${AWS::Region}
             - RGTargetGroupArn: !GetAtt RGTargetGroup.TargetGroupArn
               Environment: !Ref Environment
               RgSRC: !Ref RgSRC
@@ -357,11 +493,7 @@ Resources:
               DocDBClusterRotationSecret: !Ref DocDBClusterRotationSecret
               DBClusterEndpoint: !GetAtt DBCluster.Endpoint
               AdminEmail: !Ref AdminEmail
-
-              
-      CreationPolicy:
-        ResourceSignal:
-          Timeout: PT9M
+              RgHome: !Sub /opt/deploy/${RGStackName}
 
   DocumentDBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -410,7 +542,6 @@ Resources:
       VpcEndpointType: Interface
       ServiceName:
         Fn::Sub: com.amazonaws.${AWS::Region}.secretsmanager
-      PrivateDnsEnabled: true
       VpcId: !Ref VPC
 
   # DocumentDB Secret
@@ -486,7 +617,7 @@ Resources:
         ScheduleExpression: "rate(30 days)"
       HostedRotationLambda:
         RotationType: MongoDBSingleUser
-        RotationLambdaName: MongoDBSingleUser
+        RotationLambdaName: !Sub "MongoDBSingleUser-${AWS::StackName}"
         # These should be lists of IDs/references
         VpcSecurityGroupIds:
            !Join [",", [!GetAtt DocumentDBSecurityGroup.GroupId]]
@@ -779,6 +910,7 @@ Resources:
     Properties:
       UserPoolId: !Ref CognitoUserPool
       ClientName: !Sub "RGUserPoolClient-${AWS::StackName}"
+      GenerateSecret: true
       RefreshTokenValidity: 30
       ReadAttributes:
         - "address"
@@ -854,7 +986,10 @@ Outputs:
     Value: !Ref RGApplicationLoadBalancer
   LoadBalancerSecurityGroup:
     Description: The security group for the ALB
-    Value: !Ref RGInstanceSecurityGroup
+    Value: !Ref RGALBSecurityGroup
   ResearchGatewayTargetGroupArn:
     Description: The ARN of the Target Group used by the stack
     Value: !Ref RGTargetGroup
+  CognitoUserPoolClientSecret:
+    Description: Secret for the Cognito User Pool client
+    Value: !GetAtt CognitoUserPoolClient.ClientSecret

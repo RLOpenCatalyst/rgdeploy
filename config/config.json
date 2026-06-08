@@ -6,6 +6,12 @@
     "express_sid_key": "express.sid",
     "sessionSecret": "sessionSekret"
   },
+  "sessionConfig":{
+    "secret":"REPLACE_WITH_SESSION_SECRET",
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  },
   "AWSCognito": {
     "userPoolId": "REPLACE_WITH_COGNITO_POOL_ID",
     "clientId": "REPLACE_WITH_COGNITO_CLIENT_ID",
@@ -104,14 +110,14 @@
     "groupMatchValue": "RG"
   },
   "baseURL": "REPLACE_WITH_BASE_URL",
-  "stateChangeEventTriggerURL": "http://sp2_cc-3102:3002/provisionProductEvent",
-  "accountCleanupEventTriggerURL": "http://sp2_cc-3102:3002/accountCleanupEvent",
-  "paramChangeUpdateURL": "http://sp2_cc-3102:3002/researchProducts/productParams",
-  "credentialManagementURL": "http://sp2_cc-3102:3002/authentication",
-  "projectSyncURL": "http://sp2_cc-3102:3002/sync-product",
+  "stateChangeEventTriggerURL": "http://REPLACE_WITH_STACK_NAME_cc-3102:3002/provisionProductEvent",
+  "accountCleanupEventTriggerURL": "http://REPLACE_WITH_STACK_NAME_cc-3102:3002/accountCleanupEvent",
+  "paramChangeUpdateURL": "http://REPLACE_WITH_STACK_NAME_cc-3102:3002/researchProducts/productParams",
+  "credentialManagementURL": "http://REPLACE_WITH_STACK_NAME_cc-3102:3002/authentication",
+  "projectSyncURL": "http://REPLACE_WITH_STACK_NAME_cc-3102:3002/sync-product",
   "researchGatewayAPIToken": "REPLACE_WITH_API_TOKEN",
-  "snsRetryEventTriggerURL": "http://sp2_cc-3102:3002/retrySNSEvent",
-  "projectEventTriggerURL": "http://sp2_cc-3102:3002/project",
+  "snsRetryEventTriggerURL": "http://REPLACE_WITH_STACK_NAME_cc-3102:3002/retrySNSEvent",
+  "projectEventTriggerURL": "http://REPLACE_WITH_STACK_NAME_cc-3102:3002/project",
   "nsUseSecretsManager": true,
   "thresholdPercentage": 80,
   "PrincipalArn": "RG-Service-Catalog-Role",
@@ -209,8 +215,7 @@
         "termsAndConditions": "REPLACE_WITH_TERMS_CONDITIONS_DOC_URL"
     },
     "environmentInstanceFilesMap":{
-
-      "eu-west-2":"rg-entenvironment-instancefiles-london"
+      "ENV_FILE_MAP_REGION":"ENV_FILE_MAP_BUCKET_NAME"
     },  
   "s3BucketLimit" : 100,
   "eodReportTime":{

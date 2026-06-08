@@ -55,33 +55,33 @@ Resources:
             LogFilePrefix: !Ref Namespace
           - !Ref "AWS::NoValue"
 
-BucketPolicy:
-  Type: "AWS::S3::BucketPolicy"
-  Properties:
-    Bucket: !Ref SampleBucket      
-    PolicyDocument:
-      Version: "2012-10-17"
-      Statement:
-        - Sid: EnforceTLS12
-          Effect: Deny
-          Principal: "*"
-          Action: "s3:*"
-          Resource:
-            - !Sub "${SampleBucket.Arn}"
-            - !Sub "${SampleBucket.Arn}/*"
-          Condition:
-            Bool:
-              "aws:SecureTransport": "false"
-        - Sid: EnforceTLS12OrHigher
-          Effect: Deny
-          Principal: "*"
-          Action: "s3:*"
-          Resource:
-            - !Sub "${SampleBucket.Arn}"
-            - !Sub "${SampleBucket.Arn}/*"
-          Condition:
-            NumericLessThan:
-              "s3:TLSVersion": "1.2"
+  BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref SampleBucket      
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: EnforceTLS12
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !Sub "${SampleBucket.Arn}"
+              - !Sub "${SampleBucket.Arn}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": "false"
+          - Sid: EnforceTLS12OrHigher
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !Sub "${SampleBucket.Arn}"
+              - !Sub "${SampleBucket.Arn}/*"
+            Condition:
+              NumericLessThan:
+                "s3:TLSVersion": "1.2"
 
 Outputs:
   BucketArn:

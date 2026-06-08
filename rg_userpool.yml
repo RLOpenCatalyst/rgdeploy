@@ -400,3 +400,6 @@ Outputs:
     Value: !Ref CognitoUserPoolClient
 #    Export:
 #      Name: "CognitoUserPoolClient::Id"
+  CognitoUserPoolClientSecret:
+    Description: Secret for the Cognito User Pool client
+    Value: !GetAtt CognitoUserPoolClient.ClientSecret

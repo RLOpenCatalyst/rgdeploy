@@ -1,6 +1,6 @@
 #!/bin/bash
-version="0.1.0"
-echo "Making configs locally...(makeconfigs.sh v$version)"
+version="0.1.1"
+echo "Making configs locally...(makeconfigs-inplace.sh v$version)"
 # Ensure right number of params
 if [ $# -lt 8 ]; then
 	echo 'At least 8 parameters are required!'
@@ -15,6 +15,7 @@ if [ $# -lt 8 ]; then
 	echo '  Param 7: Hosted Zone Id in Route53 to be used for enabling SSL'
     echo '            in projects'
 	echo '  Param 8: AWS secret ARN'
+	echo '  Param 9: Cognito User Pool Client Secret'
 	exit 1
 fi
 
@@ -39,12 +40,15 @@ ac_name=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
 
 region=$6
 secret_arn=${8}
+myclientsecret=$9
 RG_HOME=$(mktemp -d -t "config.$myrunid.XXX")
 echo "RG_HOME=$RG_HOME"
 [ -z "$RG_SRC" ] && RG_SRC='/home/ubuntu/rgdeploy'
 echo "RG_SRC=$RG_SRC"
 [ -z "$RG_ENV" ] && RG_ENV='PROD'
 echo "RG_ENV=$RG_ENV"
+[ -z "$STACK_NAME" ] && STACK_NAME='sp2'
+echo "STACK_NAME=$STACK_NAME"
 echo "Region : $region"
 echo "Role name : $role_name"
 if [ -z "$ac_name" ]; then
@@ -85,6 +89,7 @@ echo "Modifying config.json"
 if [ -z "$baseurl" ]; then
 	echo "WARNING: Base URL is not passed. config.json file may not be configured correctly"
 fi
+session_secret=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 24
 jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
 	jq -r ".googleOAuthCredentials.callbackURL=\"$baseurl\"" |
 	jq -r ".baseAccountInstanceRoleName=\"$role_name\"" |
@@ -95,11 +100,14 @@ jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
 	jq -r ".cftTemplateURL=\"$s3url\"" |
 	jq -r ".AWSCognito.userPoolId=\"$myuserpoolid\"" |
 	jq -r ".AWSCognito.clientId=\"$myclientid\"" |
+	jq -r ".AWSCognito.clientsecret=\"$myclientsecret\"" |
     jq -r ".route53.domainName=\"${r53_domain_name}\"" |
     jq -r ".route53.hostedZoneId=\"${r53_hosted_zone}\"" |
 	jq -r ".AWSCognito.region=\"$region\"" |
 	jq -r ".sampleCSVBucketRegion=\"$region\"" |
-	jq -r ".enableB2CMode=false" >"${RG_HOME}/config/config.json"
+	jq -r ".enableB2CMode=false" |
+	jq -r ".sessionConfig.secret=\"$session_secret\"" |
+	sed -e "s/ENV_FILE_MAP_REGION/$region/" -e "s/ENV_FILE_MAP_BUCKET_NAME/$mys3bucket/" -e "s/REPLACE_WITH_STACK_NAME/$STACK_NAME/g" >"${RG_HOME}/config/config.json"
 echo "Modifying snsConfig.json"
 if [ -z "$snsprotocol" ]; then
 	echo "WARNING: SNS protocol could not be determined. Did you pass in the correct RG URL?"

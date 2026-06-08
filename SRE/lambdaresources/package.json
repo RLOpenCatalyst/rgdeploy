@@ -1,6 +1,7 @@
 {
   "name": "egress_store_lambda",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.mjs.mjs",
   "scripts": {

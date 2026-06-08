@@ -1,13 +1,14 @@
 #!/bin/bash
-version="0.2.0"
+version="0.2.1"
 echo "Connecting to DB....(connect-db.sh v$version)"
+STACK_NAME="${STACK_NAME:-sp2}"
 
 if [ "$1" == "-h" ]; then
 	echo "Usage: $(basename $0)"
 	exit 0
 fi
 
-[ -z "$RG_HOME" ] && RG_HOME='/opt/deploy/sp2'
+[ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 echo "RG_HOME=$RG_HOME"
 myinput=$(cat "$RG_HOME/config/mongo-config.json")
 if [ -z "$myinput" ]; then

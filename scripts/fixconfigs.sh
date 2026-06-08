@@ -1,8 +1,9 @@
 #!/bin/bash
-version="0.1.12"
+version="0.1.13"
 echo "Fixing configs...(fixconfig.sh v$version)"
+STACK_NAME="${STACK_NAME:-sp2}"
 
-[ -z "$RG_HOME" ] && RG_HOME='/opt/deploy/sp2'
+[ -z "$RG_HOME" ] && RG_HOME="/opt/deploy/${STACK_NAME}"
 echo "RG_HOME=$RG_HOME"
 [ -z "$RG_SRC" ] && RG_SRC='/home/ubuntu'
 echo "RG_SRC=$RG_SRC"
@@ -48,6 +49,7 @@ cp "${RG_HOME}/config/trustPolicy.json" "$mytemp"
 
 echo "Modifying config.json"
 jq -r ".baseAccountInstanceRoleName=\"$role_name\"" "$mytemp/config.json" >"${RG_HOME}/config/config.json"
+sed -i "s/REPLACE_WITH_STACK_NAME/$STACK_NAME/g" "${RG_HOME}/config/config.json"
 
 echo "Modifying notification-config.json"
 jq -r ".tokenID=[\"$instanceid\"]" "$mytemp/notification-config.json" >"${RG_HOME}/config/notification-config.json"
@@ -64,7 +66,7 @@ echo "Copying docker-compose.yml from $RG_SRC to $RG_HOME"
 # trunk-ignore(shellcheck/SC2016)
 repcmd='s#\${PWD}#'$RG_HOME'#'
 echo "Modifying docker-compose.yml"
-sed -e "$repcmd" -e "s#APP_ENV=.*#APP_ENV=$RG_ENV#" "$RG_SRC/docker-compose.yml" >"$RG_HOME/docker-compose.yml"
+sed -e "$repcmd" -e "s#APP_ENV=.*#APP_ENV=$RG_ENV#" -e "s/REPLACE_WITH_STACK_NAME/$STACK_NAME/g" "$RG_SRC/docker-compose.yml" >"$RG_HOME/docker-compose.yml"
 grep -i "APP_ENV" "$RG_HOME/docker-compose.yml"
 echo "Modified docker-compose.yml"
 

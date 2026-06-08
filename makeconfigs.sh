@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.1.0"
+version="0.1.1"
 echo "Making configs locally...(makeconfigs.sh v$version)"
 # Ensure right number of params
 if [ $# -lt 12 ]; then
@@ -20,6 +20,7 @@ if [ $# -lt 12 ]; then
 	echo '  Param 11: Hosted Zone Id in Route53 to be used for enabling SSL'
     echo '            in projects'
 	echo '  Param 12: AWS secret ARN'
+	echo '  Param 13: Cognito User Pool Client Secret'
 	exit 1
 fi
 
@@ -33,12 +34,15 @@ myurl=$7
 region=$8
 role_name=$9
 secret_arn=${12}
+myclientsecret=${13}
 RG_HOME=$(mktemp -d -t "config.$myrunid.XXX")
 echo "RG_HOME=$RG_HOME"
 RG_SRC=$(pwd)
 echo "RG_SRC=$RG_SRC"
 [ -z "$RG_ENV" ] && RG_ENV='PROD'
 echo "RG_ENV=$RG_ENV"
+[ -z "$STACK_NAME" ] && STACK_NAME='sp2'
+echo "STACK_NAME=$STACK_NAME"
 echo "Region : $region"
 echo "Role name : $role_name"
 ac_name=${10}
@@ -81,6 +85,7 @@ echo "Modifying config.json"
 if [ -z "$baseurl" ]; then
 	echo "WARNING: Base URL is not passed. config.json file may not be configured correctly"
 fi
+session_secret=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 24
 jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
 	jq -r ".googleOAuthCredentials.callbackURL=\"$baseurl\"" |
 	jq -r ".baseAccountInstanceRoleName=\"$role_name\"" |
@@ -91,11 +96,14 @@ jq -r ".baseURL=\"$baseurl\"" "$mytemp/config.json" |
 	jq -r ".cftTemplateURL=\"$s3url\"" |
 	jq -r ".AWSCognito.userPoolId=\"$myuserpoolid\"" |
 	jq -r ".AWSCognito.clientId=\"$myclientid\"" |
+	jq -r ".AWSCognito.clientsecret=\"$myclientsecret\"" |
     jq -r ".route53.domainName=\"${r53_domain_name}\"" |
     jq -r ".route53.hostedZoneId=\"${r53_hosted_zone}\"" |
 	jq -r ".AWSCognito.region=\"$region\"" |
 	jq -r ".sampleCSVBucketRegion=\"$region\"" |
-	jq -r ".enableB2CMode=false" >"${RG_HOME}/config/config.json"
+	jq -r ".enableB2CMode=false" |
+	jq -r ".sessionConfig.secret=\"$session_secret\"" |
+	sed -e "s/REPLACE_WITH_STACK_NAME/$STACK_NAME/g" >"${RG_HOME}/config/config.json"
 echo "Modifying snsConfig.json"
 if [ -z "$snsprotocol" ]; then
 	echo "WARNING: SNS protocol could not be determined. Did you pass in the correct RG URL?"

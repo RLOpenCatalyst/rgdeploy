@@ -92,6 +92,13 @@ aws s3 cp pre_verification_custom_message.zip s3://"$bucketname"
 aws s3 cp post_verification_send_message.zip s3://"$bucketname"
 rm -f pre_verification_custom_message.zip post_verification_send_message.zip
 
+# Upload Egress Lambda zip file
+cd "$localhome"/SRE/lambdaresources || exit
+npm install
+zip -r ../egress-copy.zip ./*
+echo "Created egress-copy.zip file with " $(unzip -l ../egress-copy.zip | wc -l)  " files"
+aws s3 cp ../egress-copy.zip s3://"$bucketname/"
+rm -f egress-copy.zip
 # Upload Image Builder products
 cd "$localhome"/products || exit
 

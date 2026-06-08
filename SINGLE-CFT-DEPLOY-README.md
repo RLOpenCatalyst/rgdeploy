@@ -15,36 +15,43 @@ This guide describes how to deploy the Research Gateway application using the ne
 ## Prerequisites
 
 1. **AWS Account** with sufficient permissions to create VPC, EC2, IAM, Cognito, DocumentDB, S3, and related resources.
-2. **VPC and Subnets**: You must have an existing VPC with at least 3 public and 3 private subnets.
-3. **ACM Certificate** (optional): For SSL, create or import a certificate in AWS Certificate Manager.
-4. **AWS CLI**: Installed and configured (`aws configure`).
-5. **jq**: Installed on your local machine and available in the EC2 AMI.
-6. **S3 Bucket**: A bucket to store deployment scripts and configuration files.
-7. **Scripts**: Ensure the following files are uploaded to your S3 bucket:
+2. **VPC and Subnets**: You must have an existing VPC with at least 3 public and 3 private subnets. The 3 public subnets are associated with the Application Load Balancer that sits in front of the application and terminates traffic from the client browser. The 3 private subnets are associated with the DocumentDB cluster that holds the portal data. End user workspaces are created in one private subnet. That private subnet must have a route to the internet via a NAT Gateway or NAT instance to download and install requisite software. We also recommend that the following VPC endpoints be created:
+    - S3 Gateway Endpoint. This is used by the workspaces to download bootstrap scripts from the template bucket in the main orchestration account.
+    - SSM, SSM-Messages, EC2-Messages. These interface endpoints are used by the workspaces to communicate with the Systems Manager service.
+    - Cloudformation endpoint. This interface endpoint is used by the workspaces to signal completion of the post-provisioning tasks.
+    - Secrets Manager endpoint. This interface endpoint is used by the workspaes to fetch and set tokens that are used to connect to the secure URLs.
+3. **Subdomain for Research Gateway**: This will be the URL at which you access Research Gateway (rg.example.com) and the workspaces (workspace1.rg.example.com). You will have to work with your domain hosting provider to delegate the subdomain to Route 53.
+4. **ACM Certificate** (optional): For SSL, create or import a certificate in AWS Certificate Manager. This certificate must be issued to the subdomain you plan to use for the Research Gateway application.
+5. **Route 53 HostedZoneId**: For the subdomain you choose for your Research Gateway
+6. **AWS CLI**: Installed and configured (`aws configure`). CloudShell should already be configured for this but run the command and set the region.
+7. **jq**: Installed on your local machine. CloudShell is recommended for this setup task.
+8. **Deployment source files** Clone this repository to a local folder on your machine or in CloudShell. 
+9. **S3 Bucket**: A bucket to store deployment scripts and configuration files. Choose a name for the bucket and create it in your deployment account.
+10. **Scripts**: Ensure the following files are uploaded to your S3 bucket:
     - `makeconfigs-inplace.sh`
     - `updatescripts.sh`
     - `post_verification_send_message.zip`
     - `pre_verification_custom_message.zip`
     - Any other scripts referenced in UserData or by the application
-8. **CloudFormation Template**: `rgdeploy-cft.yml` must be present in your working directory.
+
+    To upload files use the following script:
+    ```bash
+        ./upload-assets.sh
+    ```
+11. **CloudFormation Template**: `rgdeploy-cft.yml` must be present in your working directory.
+12. **EC2 AMI**: Use the AMI-Id of the latest Amazon Linux or Ubuntu 24.04 release available in the region you are deploying in. The deployment code attempts to deploy jq curl wget aws (CLI) and docker. If you need to deploy frequently, create an AMI with the above tools pre-installed and use that AMI-Id as a parameter. Note that the code only handles Amazon Linux 2023 and Ubuntu 24.04. If you want to use a different base OS, you may need to modify the UserData section in rgdeploy-cft.yml appropriately.
 
 ---
 
-## Parameters Required
+## Parameters For the deployment script
 
-1. **Upload Scripts to S3**
-
-   ```bash
-      ./upload-assets.sh
-   ```
-
-2. **Prepare Parameters**
+1. **Prepare Parameters**
 
 Gather the following information
  ------------------------------------------------------------------------------------------------------
 | **Parameter**               | **Description**                                                        |
 | --------------------------- | ---------------------------------------------------------------------- |
-| `RgSRC`                     | Directory path for deployment files (Default: `/home/ubuntu/rgdeploy`) |
+| `RgSRC`                     | Folder path for deployment files  (Default: `/home/ec2-user/rgdeploy`) |
 | `AMIId`                     | Amazon Machine Image ID used to launch the EC2 instance                |
 | `CFTBucketName`             | Name of the S3 bucket storing CloudFormation templates                 |
 | `VPC`                       | ID of the VPC where the infrastructure will be deployed                |
@@ -57,9 +64,10 @@ Gather the following information
 | `KeyPairName`               | Name of the EC2 Key Pair used for SSH access                           |
 | `Environment`               | Deployment environment (`DEV`, `QA`, `STAGE`, `PROD`)                  |
 | `RGUrl`                     | Research Gateway URL (e.g., `https://myrg.example.com`)                |
+| `RGStackName`               | Optional application stack directory name under `/opt/deploy` (Default: `sp2`) |
 | `CertificateArn`            | ARN of the ACM Certificate (optional; used for enabling SSL/TLS)       |
 | `HostedZoneId`              | Route 53 Hosted Zone ID for domain name configuration                  |
-| `BaseAccountPolicyName`     | Name of the base IAM policy for RG Portal accounts                     |
+| `BaseAccountPolicyName`     | Name you want to give to the base IAM policy for RG Portal accounts                     |
 | `AdminEmail`                | Email address of the initial administrator user                        |
 | `region`                    | AWS region where the stack will be deployed                            |
  ------------------------------------------------------------------------------------------------------
@@ -87,6 +95,7 @@ Replace all values in angle brackets (`<...>`) with your actual configuration.
   --keypair <KEYPAIR_NAME> \
   --env <ENV> \
   --rg-url <RG_URL> \
+  --rg-stack-name <RG_STACK_NAME> \
   --certificate-arn <CERT_ARN> \
   --region <AWS_REGION> \
   --hostedzoneid <ROUTE53_HOSTED_ZONE_ID> \
@@ -116,6 +125,7 @@ Below is a sample deployment command with example values.
   --keypair my-ec2-keypair \
   --env DEV \
   --rg-url https://myrg.example.com \
+  --rg-stack-name sp2 \
   --certificate-arn arn:aws:acm:us-east-1:123456789012:certificate/abcd-1234 \
   --region us-east-1 \
   --hostedzoneid Z3P5QSUBK4POTI \
@@ -124,9 +134,10 @@ Below is a sample deployment command with example values.
 ```
 
 **Notes:**
-- All parameters are required except `--certificate-arn` (omit for non-SSL).
-- Ensure the ALB and Target Group ARNs are correct and exist in your AWS account.
-- The script will deploy the unified stack using `rgdeploy-cft.yml`.
+- `--rg-stack-name` is optional and defaults to `sp2` when omitted.
+- `--rg-stack-name` maps to CloudFormation parameter `RGStackName` and controls the deployment path `/opt/deploy/<name>` on the EC2 instance.
+- `--certificate-arn` can be omitted for non-SSL deployments.
+- The script deploys the unified stack using `rgdeploy-cft.yml`.
 
 2. **What Happens During Deployment**
 

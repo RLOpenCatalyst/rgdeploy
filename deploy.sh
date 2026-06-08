@@ -35,6 +35,7 @@ if [ "$1" = "-f" ]; then
 	env=$(jq -r '.params.environment' <<<"${myinput}")
 	rgurl=$(jq -r '.params.rgurl' <<<"${myinput}")
 	tgarn=$(jq -r '.params.tgarn' <<<"${myinput}")
+	STACK_NAME=$(jq -r '.params.stack_name // .params.stackName // .params.RGStackName // "sp2"' <<<"${myinput}")
 
 	runid=$(jq -r '.runid' <<<"${myinput}")
 	appuser=$(jq -r '.appuser' <<<"${myinput}")
@@ -55,9 +56,10 @@ if [ "$1" = "-f" ]; then
 	echo "RGURL: $rgurl"
 	echo "TGARN: $tgarn"
 	echo "S3_SOURCE: $S3_SOURCE"
+	echo "STACK_NAME: $STACK_NAME"
 
-elif [ $# -lt 7 ]; then
-	echo 'Usage: deploy.sh <amiid> <bucketname> <rgurl> '
+elif [ $# -lt 10 ]; then
+	echo 'Usage: deploy.sh <amiid> <bucketname> <vpcid> <subnet1id> <subnet2id> <subnet3id> <keypairname> <env> <rgurl> <tgarn> [stack_name]'
 	echo '       Param 1:  The AMI from which the EC2 for Research Gateway should be created'
 	echo '       Param 2:  The S3 bucket to create for holding the CFT templates'
 	echo '                 A random suffix will be added to uniquify the name'
@@ -69,7 +71,7 @@ elif [ $# -lt 7 ]; then
 	echo '       Param 8:  The Environment DEV / QA / STAGE / PROD to deploy DB instance.'
 	echo '       Param 9:  The URL at which Research Gateway will be accessed'
 	echo '       Param 10: The Target Group to which the Portal EC2 instance should be added'
-	echo '       Param 11: The hosted-zone ID for URL in param 9.'
+	echo '       Param 11: (optional) RG stack name used under /opt/deploy (default: sp2)'
 	exit 1
 else
 	echo "New run"
@@ -83,6 +85,7 @@ else
 	env=$8
 	rgurl=$9
 	tgarn=${10}
+	STACK_NAME=${11:-sp2}
 
 	runid=$(
 		date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 4
@@ -99,6 +102,7 @@ else
 	)
 	[ -z "$S3_SOURCE" ] && S3_SOURCE=rg-deployment-docs
 	echo "S3 Source bucket is $S3_SOURCE"
+	echo "STACK_NAME: $STACK_NAME"
 
 	cat <<EOT >>"$runid.json"
   {
@@ -117,11 +121,13 @@ else
       "keypairname":  "$keypairname",
       "environment": "$env",
       "rgurl":  "$rgurl",
-      "tgarn":  "$tgarn"
+      "tgarn":  "$tgarn",
+      "stack_name": "$STACK_NAME"
     }
   }
 EOT
 fi
+[ -z "$STACK_NAME" ] && STACK_NAME=sp2
 aws ec2 describe-images --image-id "$amiid" >/dev/null 2>&1
 # trunk-ignore(shellcheck/SC2181)
 if [ $? -gt 0 ]; then
@@ -397,7 +403,7 @@ function create_main_stack() {
 		--parameter-overrides CFTBucketName="$bucketname" RGUrl="$rgurl"\
 		UserPassword="$secpassword" AdminPassword="$adminpassword" \
 		VPC="$vpcid" Subnet1="$subnet1id" KeyName1="$keypairname" TGARN="$tgarn" \
-		DocumentDBInstanceURL="$docdburl" Environment="$env" BaseAccountPolicyName="RG-Portal-Base-Account-Policy-$env-$runid" \
+		DocumentDBInstanceURL="$docdburl" Environment="$env" BaseAccountPolicyName="RG-Portal-Base-Account-Policy-$env-$runid" RGStackName="$STACK_NAME" \
 		--capabilities CAPABILITY_NAMED_IAM
 	echo "Waiting for stack $1 to finish deploying..."
 	aws cloudformation wait stack-create-complete --stack-name "$mainstackname"
@@ -434,8 +440,9 @@ if [ $stack_status -eq 0 ]; then
 	fi	
 fi
 
-#Capture User Pool Client ID
+#Capture User Pool Client ID and Client Secret
 userpoolclient_id=$(aws cloudformation describe-stack-resources --stack-name "$userpoolstackname" --logical-resource-id CognitoUserPoolClient | jq -r '.StackResources [] | .PhysicalResourceId')
+userpoolclient_secret=$(aws cloudformation describe-stack-resources --stack-name "$userpoolstackname" --logical-resource-id CognitoUserPoolClientSecret | jq -r '.StackResources [] | .PhysicalResourceId')
 #Capture User Pool ID
 userpool_id=$(aws cloudformation describe-stack-resources --stack-name "$userpoolstackname" --logical-resource-id CognitoUserPool | jq -r '.StackResources [] | .PhysicalResourceId')
 if [ -z "$userpoolclient_id" ] || [ -z "$userpool_id" ]; then
@@ -523,7 +530,7 @@ secretdb_arn=$(aws secretsmanager get-secret-value --secret-id RL-RG-$runid-$env
 echo "Creating configs locally"
 export RG_ENV="$env"
 ./makeconfigs.sh "$userpool_id" "$userpoolclient_id"  "$bucketname" "$appuser" "$appuserpassword" \
-            "$runid" "$rgurl" "$region" "ROLE_NAME" "$ac_name" "$hosted_zone" "$secretdb_arn"
+            "$runid" "$rgurl" "$region" "ROLE_NAME" "$ac_name" "$hosted_zone" "$secretdb_arn" "$userpoolclient_secret"
 echo "Uploading configs to $bucketname"
 aws s3 cp "$localhome"/config.tar.gz s3://"$bucketname"
 secpassword=$(aws secretsmanager get-secret-value --secret-id RL-RG-$runid-$env  --version-stage AWSCURRENT | jq --raw-output .SecretString| jq -r ."password")
