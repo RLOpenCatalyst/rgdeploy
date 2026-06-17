@@ -29,9 +29,6 @@ Parameters:
     Type: String
     Description: User Name for RStudio. Do not use 'root' and 'ec2-user'
     Default: rstudio
-  KeyPair:
-    Type: "AWS::EC2::KeyPair::KeyName"
-    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance. If no key pairs exist, please create one from the button next to the dropdown. Please contact your Administrator if you are unable to create one.
   
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
@@ -178,7 +175,6 @@ Resources:
       ImageId : '{{resolve:ssm:/RL/RG/StandardCatalog/RStudio}}'
       InstanceType: !Ref 'InstanceType'
       SecurityGroups: [!Ref 'RstudioEC2SecurityGroup']
-      KeyName: !Ref 'KeyPair'
       IamInstanceProfile: !Ref InstanceProfile
       PropagateTagsToVolumeOnCreation: true
       BlockDeviceMappings:
