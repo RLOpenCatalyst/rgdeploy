@@ -17,19 +17,14 @@ Parameters:
     Description: >-
       An S3 URI (starting with "s3://") that specifies the location of files to be copied to
       the environment instance, including any bootstrap scripts
+  InstanceType:
+    Type: String
+    Description: Instance type for RStudio.
+    ConstraintDescription: Valid instance type in the t3 families
   EBSVolumeSize:
     Description: The initial size of the volume (in GBs)  EBS will use for storage.
     Type: Number
-    Default: 8
-  InstanceType:
-    Type: String
-    Description: Choose the instance type e.g t3.medium (2vCPU , 2GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge(4vCPU, 16GiB RAM)
-    AllowedValues:
-      - t3.medium
-      - t3.large
-      - t3.xlarge
-    ConstraintDescription: Valid instance type in the t3 families
-    Default: t3.medium
+    Default: 32     
   InitialUser:
     Type: String
     Description: User Name for RStudio. Do not use 'root' and 'ec2-user'
@@ -37,10 +32,7 @@ Parameters:
   KeyPair:
     Type: "AWS::EC2::KeyPair::KeyName"
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance. If no key pairs exist, please create one from the button next to the dropdown. Please contact your Administrator if you are unable to create one.
-  AvailabilityZone:
-    Description: Select the availability zone in which to create the instance. If you plan to attach a secondary volume to the instance, create this instance in the same AvailabilityZone as the volume you created.
-    Type: AWS::EC2::AvailabilityZone::Name
-
+  
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
 
@@ -61,12 +53,31 @@ Resources:
               - 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonS3FilesClientFullAccess
       Policies:
         - !If
           - IamPolicyEmpty
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
+        - PolicyName: !Join ['-', [Ref: Namespace, 'Product-policy']]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:*'
+                  - 'sts:*'
+                  - 'kms:*'
+                  - 'ssm:*'
+                  - 'cloudwatch:*'
+                  - 'ec2:*'
+                  - 'logs:*'
+                  - 'xray:*'
+                  - 'ssmmessages:*'
+                  - 'ec2messages:*'
+                  - 's3files:*'
+                Resource: "*"
         - PolicyName: param-store-access
           PolicyDocument:
             Version: '2012-10-17'
@@ -75,7 +86,11 @@ Resources:
                 Action:
                   - 'ssm:GetParameter'
                   - 'ssm:PutParameter'
-                Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
+                Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'  
+              - Effect: 'Allow'
+                Action:
+                  - 'kms:Decrypt'
+                Resource: '*'
 
   InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
@@ -103,7 +118,7 @@ Resources:
     Type: AWS::EC2::Instance
     CreationPolicy:
       ResourceSignal:
-        Timeout: PT10M
+        Timeout: PT15M
     Metadata:
       AWS::CloudFormation::Init:
         configSets:
@@ -125,16 +140,13 @@ Resources:
               group: 'root'
               content: !Sub |
                 #!/usr/bin/env bash
-                # Get the session token
-                TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+                set -euo pipefail 
+                # Get IMDSv2 token
+                TOKEN=$(curl -s --fail \
+                  -X PUT "http://169.254.169.254/latest/api/token" \
+                  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 
-                # Get the region to build the parameter name
-                instance_region=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
-                echo "Retrieved region ${instance_region} from metadata service"
-
-                # Get the instance id to build the parameter name
-                instance_id=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
-
+                instance_id=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/instance-id")
                 secret=`uuidgen`
                 echo "setting ${InitialUser} password and starting rstudio"
                 password=$(echo -n "$instance_id$secret" | sha256sum | awk '{print $1}')
@@ -143,8 +155,9 @@ Resources:
 
                 sleep 10
                 public_key=$(curl http://localhost:8787/auth-public-key)
-
-                aws ssm put-parameter --name "/RL/RG/rstudio/public-key/$instance_id" --value '{"secret":"'$secret'","public_key":"'$public_key'"}' --region $instance_region --type SecureString --overwrite
+                # instance_region=$(curl -s "http://169.254.169.254/latest/meta-data/placement/region
+                instance_region=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
+                aws ssm put-parameter --name "/RL/RG/rstudio/public-key/$instance_id" --value '{"secret":"'$secret'","public_key":"'$public_key'"}' --region $instance_region --type SecureString --overwrite 
                 echo "Stored rstudio public key in SSM"
             '/var/log/rstudio.log':
               content: "\n"
@@ -164,7 +177,6 @@ Resources:
     Properties:
       ImageId : '{{resolve:ssm:/RL/RG/StandardCatalog/RStudio}}'
       InstanceType: !Ref 'InstanceType'
-      AvailabilityZone: !Ref AvailabilityZone
       SecurityGroups: [!Ref 'RstudioEC2SecurityGroup']
       KeyName: !Ref 'KeyPair'
       IamInstanceProfile: !Ref InstanceProfile
@@ -185,9 +197,14 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-          trap '/opt/aws/bin/cfn-signal --exit-code 1 --resource RstudioEC2Instance --region ${AWS::Region} --stack ${AWS::StackName}' ERR
-          sudo yum update -y --security
-
+          #trap '/opt/aws/bin/cfn-signal --exit-code 1 --resource RstudioEC2Instance --region ${AWS::Region} --stack ${AWS::StackName}' ERR
+          sudo dnf update -y --security
+          sudo dnf install -y amazon-efs-utils aws-cfn-bootstrap cronie
+          systemctl enable crond.service
+          systemctl start crond.service
+          sudo systemctl status amazon-ssm-agent
+          ls -l /opt/aws/bin/cfn-signal
+          
           #add user(s)
           sudo useradd -m -s /bin/bash ${InitialUser}
           #Add user to the sudo group
@@ -221,4 +238,4 @@ Outputs:
     Value: '443'
   AvailabilityZone:
     Description: AvailabilityZone of newly created Rstudio EC2Instance
-    Value: !Ref AvailabilityZone
+    Value: !GetAtt [RstudioEC2Instance, AvailabilityZone]  

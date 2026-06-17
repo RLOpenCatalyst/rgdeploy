@@ -168,7 +168,14 @@
         }
       ],
       "post_provisioning": [],
-      "checks_before_assigning_product": [],
+      "checks_before_assigning_product": [
+        {
+          "Key": "projectTypeCompatibility",
+          "Value": [
+            "Standard"
+          ]
+        }
+      ],
       "checks_after_assigning_product": [],
       "permission_required": {},
       "cost_resource": true
@@ -324,6 +331,12 @@
             }
           ],
           "ami_path": "/RL/RG/StandardCatalog/RStudio"
+        },
+        {
+          "Key": "projectTypeCompatibility",
+          "Value": [
+            "Standard"
+          ]
         }
       ],
       "checks_after_assigning_product": [],
@@ -536,7 +549,6 @@
         "availableRegions" : [ ],
         "assignedOU" : [ ],
         "metaData" : {
-                "cost_resource" : true,
                 "pre_provisioning" : [
                         {
                                 "code" : "CFT_PARAMS",
@@ -1334,12 +1346,6 @@
       }
     ],
     "checks_before_assigning_product": [
-      {
-        "Key": "projectTypeCompatibility",
-        "Value": [
-          "Standard"
-        ]
-      },
       {
         "Key": "projectTypeCompatibility",
         "Value": [
