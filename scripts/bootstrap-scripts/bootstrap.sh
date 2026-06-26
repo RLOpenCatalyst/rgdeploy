@@ -61,13 +61,14 @@ install_goofys() {
     sudo chmod +x /usr/local/bin/goofys
 }
 
-case "$(env_type)" in
-    "ec2-linux"|"rstudio")
-        install_jq
-        install_fuse
-        install_goofys
-        ;;
-esac
+# Create S3 mount script and config file
+echo "Mounting S3"
+chmod +x "${FILES_DIR}/bin/mount_s3.sh"
+ln -s "${FILES_DIR}/bin/mount_s3.sh" "/usr/local/bin/mount_s3.sh"
+# Exit if no S3 mounts were specified
+[ -z "$S3_MOUNTS" ] || [ "$S3_MOUNTS" = "[]" ] && exit 0
+printf "%s" "$S3_MOUNTS" > "/usr/local/etc/s3-mounts.json"
+echo "Finish mounting S3"
 
 sudo mkdir -p /usr/local/etc
 sudo chmod +x "${FILES_DIR}/bin/mount_s3.sh"

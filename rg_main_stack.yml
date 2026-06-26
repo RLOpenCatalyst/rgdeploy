@@ -127,10 +127,18 @@ Resources:
               - ec2:CreateNetworkInterface
               - elasticloadbalancing:RegisterTargets
               - sts:AssumeRole
+            Resource: "*"
+          - Sid: "KMSPermissionsForEncryptedAMIs"
+            Effect: Allow
+            Action:
               - kms:Decrypt
               - kms:GetKeyPolicy
               - kms:PutKeyPolicy
-            Resource: "*"
+            Resource:
+              - !Sub "arn:aws:kms:*:${AWS::AccountId}:key/*"
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref AWS::AccountId
           - Sid: "RoleRelatedPermissions"
             Effect: Allow
             Action:

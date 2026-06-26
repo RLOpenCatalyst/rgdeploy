@@ -5,13 +5,13 @@ import stream from 'stream';
 const s3 = new AWS.S3();
 
 export const handler = async (event) => {
-    const reqBody = JSON.parse(event.body);
-    const sourceBucket = reqBody.sourceBucket;
-    const sourcePrefix = reqBody.sourcePrefix;
-    const destinationBucket = reqBody.destinationBucket;
-    const destinationPrefix = reqBody.destinationPrefix;
 
     try {
+        const reqBody = JSON.parse(event.body);
+        const sourceBucket = reqBody.sourceBucket;
+        const sourcePrefix = reqBody.sourcePrefix;
+        const destinationBucket = reqBody.destinationBucket;
+        const destinationPrefix = reqBody.destinationPrefix;
         console.log(`Zipping and uploading files from ${sourcePrefix} to ${destinationPrefix}`);
 
         // List objects in the source S3 folder
@@ -19,7 +19,17 @@ export const handler = async (event) => {
             Bucket: sourceBucket,
             Prefix: sourcePrefix
         };
-        const listedObjects = await s3.listObjectsV2(listParams).promise();
+        const contents = [];
+        let continuationToken;
+
+        do {
+            const page = await s3.listObjectsV2({
+                ...listParams,
+                ContinuationToken: continuationToken
+            }).promise();
+            contents.push(...(page.Contents ?? []));
+            continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+        } while (continuationToken);	    
 
         if (listedObjects.Contents.length === 0) {
             console.log('No files found in the source folder');
@@ -46,7 +56,7 @@ export const handler = async (event) => {
         const uploadPromise = s3.upload(uploadParams).promise();
 
         // Add files to archive
-        for (const obj of listedObjects.Contents) {
+        for (const obj of contents) {
             const fileKey = obj.Key;
             const fileStream = s3.getObject({ Bucket: sourceBucket, Key: fileKey }).createReadStream();
             const filePath = fileKey.replace(sourcePrefix, '');

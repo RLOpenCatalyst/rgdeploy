@@ -40,8 +40,9 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - ssm:*
-            Resource: "*"
+              - ssm:GetParameter
+              - ssm:PutParameter
+            Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/RL/RG/nice-dcv/auth-token/*"
 
   IAMRole:
     Type: "AWS::IAM::Role"
@@ -70,6 +71,9 @@ Resources:
 
   EC2Instance:
     Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
     Properties:
       UserData:
         Fn::Base64: !Sub |
@@ -107,7 +111,7 @@ Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable SSH access
+      GroupDescription: Enable RDP and DCV access
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: "80"

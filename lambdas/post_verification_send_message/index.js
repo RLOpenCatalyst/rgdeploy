@@ -35,7 +35,7 @@ async function sendEmail(to, body) {
       },
     },
     // Replace source_email with your SES validated email address
-    Source: "mailto:rlc.support@relevancelab.com",
+    Source: "rlc.support@relevancelab.com",
   };
 
   try {
