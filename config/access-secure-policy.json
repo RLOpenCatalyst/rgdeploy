@@ -79,6 +79,7 @@
                 "iam:TagRole",
                 "iam:TagUser",
                 "iam:CreateServiceLinkedRole",
+                "iam:DeletePolicy",
                 "sts:AssumeRole",
                 "sts:GetFederationToken",
                 "sts:GetSessionToken",
@@ -149,10 +150,9 @@
                 "aws-portal:ViewBilling",
                 "route53:ChangeResourceRecordSets",
                 "route53:GetChange",
-                "route53:ListHostedZones",
+                "route53:List*",
                 "route53:GetHostedZone",
                 "route53:ChangeResourceRecordSets",
-                "route53:ListTagsForResource",
                 "route53:GetHealthCheck",
                 "route53:CreateHealthCheck",
                 "budgets:DeleteBudgetAction",
@@ -211,7 +211,9 @@
                 "elasticloadbalancing:CreateLoadBalancerListeners",
                 "elasticloadbalancing:SetWebAcl",
                 "elasticloadbalancing:SetRulePriorities",
-                "ec2:ModifyInstanceAttribute"
+                "ec2:ModifyInstanceAttribute",
+                "compute-optimizer:Get*",
+                "servicecatalog:DisassociatePrincipalFromPortfolio"
 
             ],
             "Resource": [

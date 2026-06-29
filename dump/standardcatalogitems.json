@@ -53,7 +53,7 @@
               ]
         }
   },
-
+  
   {
     "_id": {
       "$oid": "60504955135663522b880cfd"
@@ -1603,6 +1603,98 @@
     ],
     "post_provisioning": [],
     "checks_before_assigning_product": [
+      {
+        "Key": "projectTypeCompatibility",
+        "Value": [
+          "Standard"
+        ]
+      }
+    ],
+    "checks_after_assigning_product": [],
+    "permission_required": {},
+    "cost_resource": true
+  }
+},
+{
+  "_id": {
+    "$oid": "6a1faf880067971fdfc59f35"
+  },
+  "name": "AI Workspace",
+  "description": "A GPU-enabled workspace with browser-based remote desktop access, featuring pre-installed Ollama for running and managing localLLMs.",
+  "fileName": "ec2-dcv-ollama.yml",
+  "tags": [
+    {
+      "Key": "EstimatedTimeToProvision",
+      "Value": "30 Minutes"
+    },
+    {
+      "Key": "DetailsLink",
+      "Value": "https://docs.ollama.com/"
+    },
+    {
+      "Key": "Service",
+      "Value": "EC2-DCV"
+    },
+    {
+      "Key": "TypeOfProduct",
+      "Value": "Research"
+    },
+    {
+      "Key": "ALB",
+      "Value": "true"
+    },
+    {
+      "Key": "ApplicationPort",
+      "Value": "8443"
+    },
+    {
+      "Key": "ApplicationProtocol",
+      "Value": "HTTPS"
+    }
+  ],
+  "owner": "RL",
+  "portfolio": "RGPortfolio",
+  "availableRegions": [],
+  "assignedOU": [ ],
+  "metaData": {
+    "pre_provisioning": [
+      {
+        "code": "CFT_PARAMS",
+        "params": [
+          {
+            "name": "EnvironmentInstanceFiles",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "IamPolicyDocument",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "S3Mounts",
+            "type": "RL::SC::PARAM::HD"
+          },
+          {
+            "name": "Namespace",
+            "type": "RL::SC::PARAM::HD"
+          }
+        ]
+      }
+    ],
+    "post_provisioning": [],
+    "checks_before_assigning_product": [
+      {
+        "code": "AMI_ID_REQUIRED",
+        "is_ami_required": true,
+        "ami_id_list": [
+          {
+            "us-east-1": "ami-0b835583897ec93e3"
+          },
+          {
+            "us-east-2": "ami-0bda5589861be0d07"
+          }
+        ],
+        "ami_path": "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
+      },
       {
         "Key": "projectTypeCompatibility",
         "Value": [
