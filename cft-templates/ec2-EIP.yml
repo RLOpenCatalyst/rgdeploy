@@ -21,10 +21,10 @@ Parameters:
       An S3 URI (starting with "s3://") that specifies the location of files to be copied to
       the environment instance, including any bootstrap scripts
   InstanceType:
-    Description: Choose the instance type e.g t3.small (2vCPU , 2GiB RAM) t3.medium (2vCPU , 4GiB RAM), t3.large (2vCPU, 8GiB RAM).
+    Description: Choose the instance type # e.g t3.medium (2vCPU , 4GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge (4vCPU, 16GiB RAM).
     Type: String
-    Default: t3.small
-    AllowedValues: [t3.small, t3.medium, t3.large]
+    # Default: t3.medium
+    # AllowedValues: [t3.medium, t3.large,t3.xlarge]
     ConstraintDescription: must be a valid EC2 instance type.
   EBSVolumeSize:
     Description: The initial size of the volume (in GBs)  EBS will use for storage.
@@ -34,17 +34,17 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance. If no key pairs exist, please create one from the button next to the dropdown. Please contact your Administrator if you are unable to create one.
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-  AllowedSSHLocation:
-    Description: The IP address range that can be used to SSH to the EC2 instances
-    Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 0.0.0.0/0
-    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  # AllowedSSHLocation:
+  #   Description: The IP address range that can be used to SSH to the EC2 instances
+  #   Type: String
+  #   MinLength: '9'
+  #   MaxLength: '18'
+  #   Default: 0.0.0.0/0
+  #   AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+  #   ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   LatestAmiId:
     Type:  'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+    Default: '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
   AvailabilityZone:
     Description: Select the availability zone in which to create the instance. If you plan to attach a secondary volume to the instance, create this instance in the same AvailabilityZone as the volume you created.
     Type: AWS::EC2::AvailabilityZone::Name
@@ -52,6 +52,30 @@ Parameters:
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
 
+Resources:  
+  SSMPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Join ["-", [Ref: Namespace, "SSM-Policy"]]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowSSMParamActions
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:PutParameter
+              - ssm:DescribeParameters
+              - s3files:*
+            Resource: "*"
+          - Sid: AllowAccessToEncryptionKeys
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:Encrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+            Resource: "*"
 Resources:
   IAMRole:
     Type: 'AWS::IAM::Role'
@@ -67,14 +91,16 @@ Resources:
                 - 'ec2.amazonaws.com'
             Action:
               - 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Policies:
         - !If
           - IamPolicyEmpty
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
+      ManagedPolicyArns:
+        - Ref: SSMPolicy
+        - arn:aws:iam::aws:policy/amazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonS3FilesClientFullAccess
 
   InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
@@ -91,6 +117,7 @@ Resources:
         Fn::Base64: !Sub |
           #!/usr/bin/env bash
           exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          sudo dnf install -y amazon-efs-utils
           # Download and execute bootstrap script
           aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
           chmod 500 "/tmp/get_bootstrap.sh"
@@ -99,7 +126,6 @@ Resources:
           # Signal result to CloudFormation
           /opt/aws/bin/cfn-signal -e $? --stack "${AWS::StackName}" --resource "EC2Instance" --region "${AWS::Region}"
       InstanceType: !Ref 'InstanceType'
-      AvailabilityZone: !Ref AvailabilityZone
       SecurityGroups: [!Ref 'InstanceSecurityGroup']
       KeyName: !Ref 'KeyPair'
       ImageId: !Ref 'LatestAmiId'
@@ -126,7 +152,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: '22'
         ToPort: '22'
-        CidrIp: !Ref 'AllowedSSHLocation'
+        CidrIp: 0.0.0.0/0
 
 Outputs:
   InstanceId:

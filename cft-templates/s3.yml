@@ -16,17 +16,17 @@ Parameters:
     AllowedValues:
       - aws:kms
       - AES256
-  AccessLoggingBucketName:
+  EnableS3Files:
     Type: String
-    Description: "Pass the bucket name where Access Logs for this S3 bucket should be sent"
-    
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+    Description: "Enable Amazon S3 Files for this bucket"
+
 Conditions:
   AES256: !Equals [!Ref SSEAlgorithm, "AES256"]   
-  AccessLoggingEnabled:
-    Fn::Not:
-      - Fn::Equals:
-          - Ref: AccessLoggingBucketName
-          - ""
+  EnableS3FilesCondition: !Equals [!Ref EnableS3Files, "true"]
 Resources:
   SampleBucket:
     Type: AWS::S3::Bucket
@@ -42,46 +42,103 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: !Ref SSEAlgorithm
               KMSMasterKeyID: !Ref KMSKeyArn
-            BucketKeyEnabled: true    
+            BucketKeyEnabled: true
+      VersioningConfiguration: !If
+        - EnableS3FilesCondition
+        - Status: Enabled
+        - !Ref AWS::NoValue
       Tags:
         - Key: cost_resource
           Value: !Sub ${AWS::StackName}
         - Key: Name
-          Value: !Sub ${Namespace} 
-      LoggingConfiguration:
-        Fn::If:
-          - AccessLoggingEnabled
-          - DestinationBucketName: !Ref AccessLoggingBucketName
-            LogFilePrefix: !Ref Namespace
-          - !Ref "AWS::NoValue"
+          Value: !Sub ${Namespace}
 
-BucketPolicy:
-  Type: "AWS::S3::BucketPolicy"
-  Properties:
-    Bucket: !Ref SampleBucket      
-    PolicyDocument:
-      Version: "2012-10-17"
-      Statement:
-        - Sid: EnforceTLS12
-          Effect: Deny
-          Principal: "*"
-          Action: "s3:*"
-          Resource:
-            - !Sub "${SampleBucket.Arn}"
-            - !Sub "${SampleBucket.Arn}/*"
-          Condition:
-            Bool:
-              "aws:SecureTransport": "false"
-        - Sid: EnforceTLS12OrHigher
-          Effect: Deny
-          Principal: "*"
-          Action: "s3:*"
-          Resource:
-            - !Sub "${SampleBucket.Arn}"
-            - !Sub "${SampleBucket.Arn}/*"
-          Condition:
-            NumericLessThan:
-              "s3:TLSVersion": "1.2"
+  S3FilesAccessRole:
+    Type: AWS::IAM::Role
+    Condition: EnableS3FilesCondition
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: elasticfilesystem.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: S3FilesBucketAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: S3BucketAccess
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource: !GetAtt SampleBucket.Arn
+              - Sid: S3ObjectAccess
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub "${SampleBucket.Arn}/*"
+              - !If
+                - AES256
+                - !Ref AWS::NoValue
+                - Sid: KmsAccess
+                  Effect: Allow
+                  Action:
+                    - kms:Decrypt
+                    - kms:GenerateDataKey
+                  Resource: !Ref KMSKeyArn
+
+  S3FileSystem:
+    Type: AWS::S3Files::FileSystem
+    Condition: EnableS3FilesCondition
+    DependsOn:
+      - S3FilesAccessRole
+      - SampleBucket
+    Properties:
+      AcceptBucketWarning: true
+      Bucket: !GetAtt SampleBucket.Arn
+      RoleArn: !GetAtt S3FilesAccessRole.Arn
+      KmsKeyId: !If
+        - AES256
+        - !Ref AWS::NoValue
+        - !Ref KMSKeyArn
+      Tags:
+        - Key: cost_resource
+          Value: !Sub ${AWS::StackName}
+        - Key: Name
+          Value: !Sub ${Namespace}-s3files
+
+  BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref SampleBucket      
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: EnforceTLS12
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !Sub "${SampleBucket.Arn}"
+              - !Sub "${SampleBucket.Arn}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": "false"
+          - Sid: EnforceTLS12OrHigher
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !Sub "${SampleBucket.Arn}"
+              - !Sub "${SampleBucket.Arn}/*"
+            Condition:
+              NumericLessThan:
+                "s3:TLSVersion": "1.2"
 
 Outputs:
   BucketArn:
@@ -90,3 +147,7 @@ Outputs:
   BucketName:
     Value: !Ref SampleBucket
     Description: Name of S3 bucket
+  S3FileSystemId:
+    Condition: EnableS3FilesCondition
+    Value: !GetAtt S3FileSystem.FileSystemId
+    Description: Amazon S3 Files file system ID for bootstrap and mount scripts
