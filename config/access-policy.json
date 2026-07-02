@@ -144,6 +144,7 @@
         "servicecatalog:SearchProvisionedProducts",
         "servicecatalog:CreateProvisioningArtifact",
         "servicecatalog:DisassociateProductFromPortfolio",
+        "servicecatalog:UpdatePortfolio",
         "aws-portal:ViewBilling",
         "lambda:List*",
         "lambda:AddPermission",
