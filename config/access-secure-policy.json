@@ -213,8 +213,8 @@
                 "elasticloadbalancing:SetRulePriorities",
                 "ec2:ModifyInstanceAttribute",
                 "compute-optimizer:Get*",
-                "servicecatalog:DisassociatePrincipalFromPortfolio"
-
+                "servicecatalog:DisassociatePrincipalFromPortfolio",
+                "servicecatalog:UpdatePortfolio"
             ],
             "Resource": [
                 "*"
