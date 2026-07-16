@@ -24,10 +24,6 @@
     "privateKey": "",
     "publicKey": ""
   },
-  "securityStrategy": {
-    "enableSecretManager": false,
-    "enableRoleBasedAuthentication": true
-  },
   "freshChatDetails": {
     "showFreshChatWidget": false,
     "token": "REPLACE_WITH_FRESHCHAT_TOKEN",
