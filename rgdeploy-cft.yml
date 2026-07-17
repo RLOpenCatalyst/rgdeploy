@@ -230,7 +230,6 @@ Resources:
               - kms:DescribeKey
               - kms:CreateGrant
               - kms:GetKeyPolicy
-              - kms:PutKeyPolicy
             Resource:
               - !Sub "arn:aws:kms:*:${AWS::AccountId}:key/*"
             Condition:
