@@ -111,7 +111,7 @@ Resources:
             Action:
               - sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
         - Ref: ResearchGatewayRolePolicy
@@ -138,6 +138,14 @@ Resources:
               - ec2:CreateNetworkInterface
               - elasticloadbalancing:RegisterTargets
             Resource: "*"
+          - Sid: "PutObjectAndBucketPolicyOnCFTBucket"
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:PutBucketPolicy
+            Resource:
+              - !Sub "arn:aws:s3:::${CFTBucketName}"
+              - !Sub "arn:aws:s3:::${CFTBucketName}/*"
           - Sid: "AssumeProjectRole"
             Effect: Allow
             Action:
