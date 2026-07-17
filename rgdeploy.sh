@@ -6,6 +6,7 @@
 
 # Usage:
 #   ./rgdeploy.sh \
+#     --rg-src <RG_SRC> \
 #     --ami-id <AMI_ID> \
 #     --bucket-name <S3_BUCKET> \
 #     --vpc-id <VPC_ID> \
@@ -19,7 +20,11 @@
 #     --env <ENV> \
 #     --rg-url <RG_URL> \
 #     --certificate-arn <CERT_ARN> \
-#     --region <AWS_REGION>
+#     --region <AWS_REGION> \
+#     --hostedzoneid <HOSTED_ZONE_ID> \
+#     --base-account-policy-name <BASE_POLICY_NAME> \
+#     --admin-email <ADMIN_EMAIL> \
+#     [--run-id <RUN_ID>]
 
 set -e
 
@@ -45,6 +50,7 @@ while [[ $# -gt 0 ]]; do
     --hostedzoneid) HOSTED_ZONE_ID="$2"; shift; shift ;;
     --base-account-policy-name) BASE_POLICY_NAME="$2"; shift; shift ;;
     --admin-email) ADMIN_EMAIL="$2"; shift; shift ;;
+    --run-id) RUN_ID="$2"; shift; shift ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
@@ -63,10 +69,13 @@ for var in "${REQUIRED_VARS[@]}"; do
   fi
 done
 
-# Generate a unique stack name
-STACK_NAME="RG-PortalStack-ALL-$(date +%s | sha256sum | base64 | tr -dc 'a-z0-9' | head -c 8)"
+# Generate a unique run id if not provided, then use it for the stack name
+if [[ -z "$RUN_ID" ]]; then
+  RUN_ID=$(date +%s | sha256sum | base64 | tr -dc 'a-z0-9' | head -c 8)
+fi
+STACK_NAME="RG-PortalStack-ALL-$RUN_ID"
 
-echo "Deploying Research Gateway stack: $STACK_NAME in region: $REGION"
+echo "Deploying Research Gateway stack: $STACK_NAME in region: $REGION (RunId: $RUN_ID)"
 
 # Deploy using AWS CloudFormation
 aws cloudformation deploy \
@@ -91,6 +100,7 @@ aws cloudformation deploy \
     CertificateArn="$CERT_ARN" \
     HostedZoneId="$HOSTED_ZONE_ID" \
     BaseAccountPolicyName="$BASE_POLICY_NAME" \
-    AdminEmail="$ADMIN_EMAIL"
+    AdminEmail="$ADMIN_EMAIL" \
+    RunId="$RUN_ID"
 
 echo "Deployment initiated. Monitor the progress in AWS CloudFormation Console."

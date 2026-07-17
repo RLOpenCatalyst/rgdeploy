@@ -65,6 +65,13 @@ Parameters:
   BaseAccountPolicyName:
     Description: Name for RG Portal Base Account Policy
     Type: String
+  RunId:
+    Description: Unique run identifier used to name the cross-account project role (RG-Portal-ProjectRole-<Environment>-<RunId>)
+    Type: String
+    MinLength: 1
+    MaxLength: 32
+    AllowedPattern: "[_a-zA-Z0-9-]+"
+    ConstraintDescription: Must contain only alphanumeric characters, hyphens, and underscores (max 32 chars so the derived role name fits IAM limits)
 Conditions:
   DocumentDBSelected:
     Fn::Equals:
@@ -126,8 +133,12 @@ Resources:
               - ec2:ModifyImageAttribute
               - ec2:CreateNetworkInterface
               - elasticloadbalancing:RegisterTargets
-              - sts:AssumeRole
             Resource: "*"
+          - Sid: "AssumeProjectRole"
+            Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Resource: !Sub "arn:aws:iam::*:role/RG-Portal-ProjectRole-${Environment}-${RunId}"
           - Sid: "KMSPermissionsForDeploymentAndAMIs"
             Effect: Allow
             Action:

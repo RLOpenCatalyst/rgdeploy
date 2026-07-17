@@ -57,6 +57,13 @@ Parameters:
   BaseAccountPolicyName:
     Description: Name for RG Portal Base Account Policy
     Type: String
+  RunId:
+    Description: Unique run identifier used to name the cross-account project role (RG-Portal-ProjectRole-<Environment>-<RunId>)
+    Type: String
+    MinLength: 1
+    MaxLength: 32
+    AllowedPattern: "[_a-zA-Z0-9-]+"
+    ConstraintDescription: Must contain only alphanumeric characters, hyphens, and underscores (max 32 chars so the derived role name fits IAM limits)
   AdminEmail:
     Description: Email address for the first admin user
     Type: String
@@ -214,8 +221,12 @@ Resources:
               - ec2:CreateNetworkInterface
               - ec2:ModifyInstanceMetadataOptions
               - elasticloadbalancing:RegisterTargets
-              - sts:AssumeRole
             Resource: "*"
+          - Sid: "AssumeProjectRole"
+            Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Resource: !Sub "arn:aws:iam::*:role/RG-Portal-ProjectRole-${Environment}-${RunId}"
           - Sid: "KMSPermissionsForDeploymentAndAMIs"
             Effect: Allow
             Action:
@@ -312,7 +323,6 @@ Resources:
 
               APPUSER="rguser"
               APPUSERPWD=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 24)
-              RUNID=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 4)
 
               TOKEN=$(wget --method=PUT --header="X-aws-ec2-metadata-token-ttl-seconds: 21600" -qO- http://169.254.169.254/latest/api/token)
               ROLE_NAME="$(wget --header="X-aws-ec2-metadata-token: $TOKEN" -qO- http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
@@ -326,7 +336,8 @@ Resources:
                 ${RGUrl} \
                 ${AWS::Region} \
                 ${HostedZoneId} \
-                ${DocDBClusterRotationSecret}
+                ${DocDBClusterRotationSecret} \
+                ${RunId}
 
               aws s3 cp config.tar.gz s3://${CFTBucketName}/
 
@@ -369,6 +380,7 @@ Resources:
               DocDBClusterRotationSecret: !Ref DocDBClusterRotationSecret
               DBClusterEndpoint: !GetAtt DBCluster.Endpoint
               AdminEmail: !Ref AdminEmail
+              RunId: !Ref RunId
 
               
       CreationPolicy:

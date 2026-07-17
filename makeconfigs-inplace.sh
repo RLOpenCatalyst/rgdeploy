@@ -2,8 +2,8 @@
 version="0.1.0"
 echo "Making configs locally...(makeconfigs.sh v$version)"
 # Ensure right number of params
-if [ $# -lt 8 ]; then
-	echo 'At least 8 parameters are required!'
+if [ $# -lt 9 ]; then
+	echo 'At least 9 parameters are required!'
 	echo '  Param 1: AWS Cognito User Pool id'
 	echo '  Param 2: AWS Cognito client id'
 	echo '  Param 3: RG Bucket Name (The bucket where CFT templates are stored)'
@@ -15,6 +15,7 @@ if [ $# -lt 8 ]; then
 	echo '  Param 7: Hosted Zone Id in Route53 to be used for enabling SSL'
     echo '            in projects'
 	echo '  Param 8: AWS secret ARN'
+	echo '  Param 9: Run Id (used for RG-Portal-ProjectRole-<ENV>-<RunId>)'
 	exit 1
 fi
 
@@ -23,7 +24,7 @@ myclientid=$2
 mys3bucket=$3
 myappuser=$4
 myapppwd=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 24)
-myrunid=$(date +%s | sha256sum | base64 | tr -dc _a-z-0-9 | head -c 4)
+myrunid=$9
 myurl=$5
 # Get the IMDSv2 token
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
@@ -46,6 +47,7 @@ echo "RG_SRC=$RG_SRC"
 [ -z "$RG_ENV" ] && RG_ENV='PROD'
 echo "RG_ENV=$RG_ENV"
 echo "Region : $region"
+echo "Run Id : $myrunid"
 echo "Role name : $role_name"
 if [ -z "$ac_name" ]; then
 	ac_name=$(
