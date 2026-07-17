@@ -128,10 +128,13 @@ Resources:
               - elasticloadbalancing:RegisterTargets
               - sts:AssumeRole
             Resource: "*"
-          - Sid: "KMSPermissionsForEncryptedAMIs"
+          - Sid: "KMSPermissionsForDeploymentAndAMIs"
             Effect: Allow
             Action:
               - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:CreateGrant
               - kms:GetKeyPolicy
               - kms:PutKeyPolicy
             Resource:

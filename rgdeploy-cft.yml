@@ -215,9 +215,21 @@ Resources:
               - ec2:ModifyInstanceMetadataOptions
               - elasticloadbalancing:RegisterTargets
               - sts:AssumeRole
+            Resource: "*"
+          - Sid: "KMSPermissionsForDeploymentAndAMIs"
+            Effect: Allow
+            Action:
               - kms:Decrypt
               - kms:GenerateDataKey
-            Resource: "*"
+              - kms:DescribeKey
+              - kms:CreateGrant
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource:
+              - !Sub "arn:aws:kms:*:${AWS::AccountId}:key/*"
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref AWS::AccountId
           - Sid: "RoleRelatedPermissions"
             Effect: Allow
             Action:
