@@ -192,7 +192,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-        - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
         - Ref: ResearchGatewayRolePolicy
       Path: /
   ResearchGatewayInstanceProfile:
@@ -215,6 +214,14 @@ Resources:
               - ec2:CopyImage
               - ec2:ModifyImageAttribute
               - elasticloadbalancing:RegisterTargets
+            Resource: "*"
+          - Sid: "ECRPullAccess"
+            Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchCheckLayerAvailability
             Resource: "*"
           - Sid: "PutObjectAndBucketPolicyOnCFTBucket"
             Effect: Allow
