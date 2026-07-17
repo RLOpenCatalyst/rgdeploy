@@ -75,6 +75,11 @@ Parameters:
     MaxLength: 32
     AllowedPattern: "[_a-zA-Z0-9-]+"
     ConstraintDescription: Must contain only alphanumeric characters, hyphens, and underscores (max 32 chars so the derived role name fits IAM limits)
+  UserPoolId:
+    Description: Cognito User Pool ID used by Research Gateway (from config.json / user pool stack)
+    Type: String
+    MinLength: 1
+    ConstraintDescription: Cognito User Pool ID
 Conditions:
   DocumentDBSelected:
     Fn::Equals:
@@ -107,7 +112,6 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
         - Ref: ResearchGatewayRolePolicy
@@ -165,6 +169,17 @@ Resources:
               - route53:ChangeResourceRecordSets
             Resource:
               - !Sub "arn:aws:route53:::hostedzone/${HostedZoneId}"
+          - Sid: "CognitoUserPoolRuntime"
+            Effect: Allow
+            Action:
+              - cognito-idp:ListUsers
+              - cognito-idp:AdminSetUserPassword
+              - cognito-idp:AdminDisableUser
+              - cognito-idp:AdminEnableUser
+              - cognito-idp:AdminDeleteUser
+              - cognito-idp:AdminInitiateAuth
+              - cognito-idp:AdminRespondToAuthChallenge
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}"
   RGPortalSG:
     Type: AWS::EC2::SecurityGroup
     Properties:

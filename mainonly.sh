@@ -199,7 +199,7 @@ mainstack_start_time=$SECONDS
 mainstackname="RG-PortalStack-$runid"
 aws cloudformation deploy --template-file $localhome/rg_main_stack.yml \
                           --stack-name "$mainstackname" \
-                          --parameter-overrides ClientId="$userpoolclient_id" UserPoolId="$userpool_id" \
+                          --parameter-overrides UserPoolId="$userpool_id" \
                             CFTBucketName="$bucketname" RGUrl="$rgurl" UserPassword="$appuserpassword" AdminPassword="$adminpassword" \
                             VPC="$vpcid" Subnet1="$subnet1id" KeyName1="$keypairname" TGARN="$tgarn" \
                             DocumentDBInstanceURL="$docdburl" Environment="$env" \
