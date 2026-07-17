@@ -65,6 +65,9 @@ Parameters:
   BaseAccountPolicyName:
     Description: Name for RG Portal Base Account Policy
     Type: String
+  HostedZoneId:
+    Description: Route53 Hosted Zone ID for the RG domain
+    Type: String
   RunId:
     Description: Unique run identifier used to name the cross-account project role (RG-Portal-ProjectRole-<Environment>-<RunId>)
     Type: String
@@ -107,7 +110,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
-        - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
         - Ref: ResearchGatewayRolePolicy
       Path: /
   ResearchGatewayInstanceProfile:
@@ -157,6 +159,12 @@ Resources:
               - secretsmanager:GetSecretValue
               - secretsmanager:DescribeSecret
             Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:RG-DocDB-Secret-${Environment}-${RunId}-*"
+          - Sid: "Route53ChangeRecords"
+            Effect: Allow
+            Action:
+              - route53:ChangeResourceRecordSets
+            Resource:
+              - !Sub "arn:aws:route53:::hostedzone/${HostedZoneId}"
   RGPortalSG:
     Type: AWS::EC2::SecurityGroup
     Properties:

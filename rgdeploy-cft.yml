@@ -194,7 +194,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
-        - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
         - Ref: ResearchGatewayRolePolicy
       Path: /
   ResearchGatewayInstanceProfile:
@@ -244,6 +243,12 @@ Resources:
               - secretsmanager:GetSecretValue
               - secretsmanager:DescribeSecret
             Resource: !Ref DocDBClusterRotationSecret
+          - Sid: "Route53ChangeRecords"
+            Effect: Allow
+            Action:
+              - route53:ChangeResourceRecordSets
+            Resource:
+              - !Sub "arn:aws:route53:::hostedzone/${HostedZoneId}"
   DnsRecord:
       Type: AWS::Route53::RecordSet
       Properties:

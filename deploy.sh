@@ -438,7 +438,7 @@ function create_main_stack() {
 		UserPassword="$secpassword" AdminPassword="$adminpassword" \
 		VPC="$vpcid" Subnet1="$subnet1id" KeyName1="$keypairname" TGARN="$tgarn" \
 		DocumentDBInstanceURL="$docdburl" Environment="$env" BaseAccountPolicyName="RG-Portal-Base-Account-Policy-$env-$runid" \
-		RunId="$runid" \
+		HostedZoneId="$hosted_zone" RunId="$runid" \
 		--capabilities CAPABILITY_NAMED_IAM
 	echo "Waiting for stack $1 to finish deploying..."
 	aws cloudformation wait stack-create-complete --stack-name "$mainstackname"
