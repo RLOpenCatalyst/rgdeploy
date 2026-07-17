@@ -214,7 +214,6 @@ Resources:
               - ec2:DescribeImages
               - ec2:CopyImage
               - ec2:ModifyImageAttribute
-              - ec2:CreateNetworkInterface
               - elasticloadbalancing:RegisterTargets
             Resource: "*"
           - Sid: "PutObjectAndBucketPolicyOnCFTBucket"
