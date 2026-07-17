@@ -196,7 +196,6 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
         - arn:aws:iam::aws:policy/IAMReadOnlyAccess
         - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
-        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
         - Ref: ResearchGatewayRolePolicy
       Path: /
   ResearchGatewayInstanceProfile:
@@ -258,6 +257,12 @@ Resources:
               - iam:UpdateAssumeRolePolicy
             Resource: 
               - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
+          - Sid: "ReadDocDBSecret"
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Resource: !Ref DocDBClusterRotationSecret
   DnsRecord:
       Type: AWS::Route53::RecordSet
       Properties:
@@ -444,7 +449,7 @@ Resources:
   DocDBClusterRotationSecret:
     Type: "AWS::SecretsManager::Secret"
     Properties:
-      Name: !Sub "RG-DocDB-Secret-${AWS::StackName}"
+      Name: !Sub "RG-DocDB-Secret-${Environment}-${RunId}"
       Description: secrets for DocumentDB
       GenerateSecretString:
         SecretStringTemplate: '{"username": "rguser"}'
@@ -453,7 +458,7 @@ Resources:
         ExcludeCharacters: '"@/\'
       Tags:
         - Key: Name
-          Value: !Sub "RG-DocDB-Secret-${AWS::StackName}"
+          Value: !Sub "RG-DocDB-Secret-${Environment}-${RunId}"
 
   # DocumentDB Subnet Group
   DocumentDBSubnetGroup:
