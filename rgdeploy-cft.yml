@@ -219,7 +219,6 @@ Resources:
               - ec2:CopyImage
               - ec2:ModifyImageAttribute
               - ec2:CreateNetworkInterface
-              - ec2:ModifyInstanceMetadataOptions
               - elasticloadbalancing:RegisterTargets
             Resource: "*"
           - Sid: "AssumeProjectRole"
@@ -290,6 +289,10 @@ Resources:
         SubnetId: !Ref PrivateSubnet1
         SecurityGroupIds:
           - !Ref RGInstanceSecurityGroup
+        MetadataOptions:
+          HttpTokens: required
+          HttpPutResponseHopLimit: 2
+          HttpEndpoint: enabled
         UserData:
           Fn::Base64: !Sub
             - |

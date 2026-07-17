@@ -195,15 +195,6 @@ Resources:
         - Key: Name
           Value:
             Fn::Sub: ${AWS::StackName}-SecurityGroup
-  IMDSv2LaunchTemplate:
-    Type: AWS::EC2::LaunchTemplate
-    Properties:
-        LaunchTemplateName: IMDSV2
-        LaunchTemplateData:
-          DisableApiTermination: true
-          MetadataOptions: 
-            HttpTokens: required
-            HttpPutResponseHopLimit: 2
   RGEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
@@ -226,6 +217,10 @@ Resources:
         Ref: Subnet1
       SecurityGroupIds:
         - Ref: RGPortalSG
+      MetadataOptions:
+        HttpTokens: required
+        HttpPutResponseHopLimit: 2
+        HttpEndpoint: enabled
       UserData:
         Fn::Base64:
           Fn::If:
