@@ -194,7 +194,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
-        - arn:aws:iam::aws:policy/IAMReadOnlyAccess
         - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
         - Ref: ResearchGatewayRolePolicy
       Path: /
@@ -239,24 +238,6 @@ Resources:
             Condition:
               StringEquals:
                 kms:CallerAccount: !Ref AWS::AccountId
-          - Sid: "RoleRelatedPermissions"
-            Effect: Allow
-            Action:
-              - iam:AttachRolePolicy
-              - iam:CreateRole
-              - iam:DetachRolePolicy
-            Resource: 
-              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${BaseAccountPolicyName}"
-          - Sid: "PolicyRelatedPermissions"
-            Effect: Allow
-            Action:
-              - iam:CreatePolicy
-              - iam:CreatePolicyVersion
-              - iam:DeletePolicy
-              - iam:DeletePolicyVersion
-              - iam:UpdateAssumeRolePolicy
-            Resource: 
-              - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
           - Sid: "ReadDocDBSecret"
             Effect: Allow
             Action:
