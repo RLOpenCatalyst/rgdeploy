@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.1.10"
+version="0.1.11"
 echo "Starting server....(start_server.sh v$version)"
 if [ "$1" == "-h" ]; then
 	echo "Usage: $(basename $0) <application_url> <target_group_arn>"
@@ -47,6 +47,14 @@ echo "Calling swarm init will respond with error if this node is already part of
 /usr/local/sbin/swarm_init.sh
 
 echo "Creating secrets"
+mkdir -p "$RG_HOME"/{logs,slogs,notification_sink_logs}
+if [ ! -f "$RG_HOME/nginx.conf" ]; then
+	if [ -f "${RG_SRC:-/home/ec2-user/rgdeploy}/nginx.conf" ]; then
+		cp "${RG_SRC:-/home/ec2-user/rgdeploy}/nginx.conf" "$RG_HOME/nginx.conf"
+	elif [ -n "${S3_SOURCE:-}" ]; then
+		aws s3 cp "s3://${S3_SOURCE}/nginx.conf" "$RG_HOME/nginx.conf" || true
+	fi
+fi
 fixsecrets.sh
 
 echo "Starting stack..."
