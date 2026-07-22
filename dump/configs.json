@@ -514,6 +514,22 @@
     ]
   },
   {
+    "key": "cryptLegacyMapping",
+    "value": {
+      "legacyAlgorithmMap": {
+        "aes192": "aes-192-cbc",
+        "aes256": "aes-256-cbc",
+        "aes128": "aes-128-cbc"
+      },
+      "legacyKeyLength": {
+        "aes192": 24,
+        "aes256": 32,
+        "aes128": 16
+      },
+      "legacyIvLength": 16
+    }
+  },
+  {
     "key": "deleteLocalProvisionedProductIfNotInSC",
     "value": false
   },

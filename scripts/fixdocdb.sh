@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.1.7"
+version="0.1.10"
 echo "Fixing DocumentDB....(fixdocdb.sh v$version)"
 
 if [ "$1" == "-h" ] || [ $# -lt 5 ]; then
@@ -30,7 +30,7 @@ mydbuserpwd=$4
 myurl=$5
 [ -z "$RG_HOME" ] && RG_HOME='/opt/deploy/sp2'
 echo "RG_HOME=$RG_HOME"
-[ -z "$RG_SRC" ] && RG_SRC='/home/ubuntu'
+[ -z "$RG_SRC" ] && RG_SRC='/home/ec2-user/rgdeploy'
 echo "RG_SRC=$RG_SRC"
 [ -z "$S3_SOURCE" ] && S3_SOURCE=rg-deployment-docs
 echo "S3_SOURCE=$S3_SOURCE"
@@ -59,16 +59,40 @@ else
 fi
 echo "snsUrl will be set to $baseurl"
 echo "Modifying database $1 to create defaults"
-if command -v mongosh >/dev/null 2>&1; then
+# DocumentDB 4.0 (wire v7) needs legacy mongo shell; mongosh 2.x requires MongoDB 4.2+
+if command -v mongo >/dev/null 2>&1; then
+  mongo_cmd="mongo"
+  echo "Using mongo (legacy shell) to connect..."
+elif command -v mongosh >/dev/null 2>&1; then
   mongo_cmd="mongosh"
   echo "Using mongosh to connect..."
-elif command -v mongo >/dev/null 2>&1; then
-  mongo_cmd="mongo"
-  echo "Using mongo to connect..."
 else
   echo "Error: Neither mongosh nor mongo is installed. Please install one of them to proceed."
   exit 1
 fi
+
+run_mongo_script() {
+  if [ "$mongo_cmd" = "mongo" ]; then
+    "$mongo_cmd" --tls --host "$mydocdburl:27017" \
+      --tlsCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" \
+      --username "$mydbuser" --password "$mydbuserpwd" \
+      --authenticationDatabase admin "$mydbname"
+  else
+    "$mongo_cmd" "mongodb://$mydbuser:$encoded_pwd@$mydocdburl:27017/$mydbname?retryWrites=false&tls=true&authMechanism=SCRAM-SHA-1" \
+      --tlsCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem"
+  fi
+}
+
+mongoimport_docdb() {
+  local collection=$1
+  local file=$2
+  mongoimport --host "$mydocdburl:27017" --tls \
+    --tlsCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" \
+    --username "$mydbuser" --password "$mydbuserpwd" \
+    --authenticationDatabase admin \
+    --db "${mydbname}" --collection="$collection" --jsonArray \
+    "$file"
+}
 
 if [ ! -f "$RG_SRC/dump.tar.gz" ]; then
 	echo "No seed DB in $RG_SRC."
@@ -83,26 +107,14 @@ unzip -o "$RG_SRC/dump.zip" -d "$RG_SRC"
 if [ ! "$(ls -A $RG_SRC/dump)" ]; then
 	echo "Error: No files found in dump folder. Your database cannot be seeded."
 else
-  	mongoimport --host "$mydocdburl:27017" --ssl \
-		--sslCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" \
-                --username "$mydbuser" --password "$mydbuserpwd" \
-		--db "${mydbname}" --collection=standardcatalogitems --jsonArray\
-		"$RG_SRC/dump/standardcatalogitems.json"
-	mongoimport --host "$mydocdburl:27017" --ssl \
-		--sslCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" \
-		--username "$mydbuser" --password "$mydbuserpwd" \
-		--db "${mydbname}" --collection=configs --jsonArray\
-		"$RG_SRC/dump/configs.json"
-	mongoimport --host "$mydocdburl:27017" --ssl \
-		--sslCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" \
-		--username "$mydbuser" --password "$mydbuserpwd" \
-		--db "${mydbname}" --collection=studies --jsonArray\
-		"$RG_SRC/dump/studies.json"
+	mongoimport_docdb standardcatalogitems "$RG_SRC/dump/standardcatalogitems.json"
+	mongoimport_docdb configs "$RG_SRC/dump/configs.json"
+	mongoimport_docdb studies "$RG_SRC/dump/studies.json"
 fi
 
 # Insert snsUrl into DB if URL was provided
 if [ -n "$baseurl" ]; then
-  $mongo_cmd "mongodb://$mydbuser:$encoded_pwd@$mydocdburl:27017/$mydbname?retryWrites=false&tls=true&authMechanism=SCRAM-SHA-1" --tlsCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" <<EOF
+  run_mongo_script <<EOF
 use $mydbname
 db.configs.deleteMany({"key":"snsUrl"});
 db.configs.insertOne({"key":"snsUrl","value":"$baseurl"});
@@ -112,7 +124,7 @@ fi
 install_time=$(date -Is | base64 | tr -d '\n')
 install_uid=$(uuidgen)
 echo "Adding simplified InstallationDetails to DB..."
-$mongo_cmd "mongodb://$mydbuser:$encoded_pwd@$mydocdburl:27017/$mydbname?retryWrites=false&tls=true&authMechanism=SCRAM-SHA-1" --tlsCAFile "$RG_HOME/config/rds-combined-ca-bundle.pem" <<EOF
+run_mongo_script <<EOF
 use $mydbname
 db.configs.deleteMany({"key": "InstallationDetails"});
 db.configs.insertOne({
