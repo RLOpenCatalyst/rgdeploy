@@ -34,19 +34,20 @@ Parameters:
   InstanceType:
     Description: Choose the instance type e.g t3.medium (2vCPU , 2GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge(4vCPU, 16GiB RAM)
     Type: String
-    Default: t3.medium
+    Default: t3.large
     AllowedValues:
       [
         t3.medium,
         t3.large,
         t3.xlarge,
+        m6.xlarge
         
       ]
     ConstraintDescription: must be a valid EC2 instance type.
   EBSVolumeSize:
     Description: The initial size of the volume (in GBs)  EBS will use for storage.
     Type: Number
-    Default: 32
+    Default: 70
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, "{}"]
@@ -55,7 +56,7 @@ Resources:
   SSMPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Join ["-", [Ref: Namespace, "SSM-Policy"]]
+      ManagedPolicyName: !Join ["-", [!Ref Namespace, "SSM-Policy"]]
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -64,6 +65,8 @@ Resources:
             Action:
               - ssm:GetParameter
               - ssm:PutParameter
+              - ssm:GetParameter
+              - ssm:GetParameters
               - ssm:DescribeParameters
             Resource: "*"
           - Sid: AllowAccessToEncryptionKeys
@@ -73,6 +76,7 @@ Resources:
               - kms:Encrypt
               - kms:GenerateDataKey
               - kms:DescribeKey
+              - s3:*
             Resource: "*"
   InstanceRolePermissionBoundary:
     Type: AWS::IAM::ManagedPolicy
@@ -85,6 +89,7 @@ Resources:
           - Effect: Allow
             Action:
               - 's3:*'
+              - 's3files:*'
             Resource: '*'
           - Effect: Allow
             Action:
@@ -109,17 +114,9 @@ Resources:
           - Effect: Allow
             Action:
               - 'sns:Publish'     
-            Resource: '*'                   
-          - Effect: Deny
-            NotAction:
-              - 's3:*'
-              - 'ssm:*'
-              - 'kms:*'
-              - 'sts:*'
-            NotResource: '*'   
+            Resource: '*'                    
           
   IAMRole:
-  
     Type: 'AWS::IAM::Role'
     Properties:
       RoleName: !Join ['-', [Ref: Namespace, 'ec2-role']]
@@ -141,7 +138,8 @@ Resources:
             PolicyDocument: !Ref IamPolicyDocument
       ManagedPolicyArns:
         - Ref: SSMPolicy
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore        
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonS3FilesClientFullAccess
       PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
 
@@ -152,7 +150,7 @@ Resources:
       InstanceProfileName: !Join ["-", [Ref: Namespace, "ec2-profile"]]
       Path: "/"
       Roles:
-        - Ref: IAMRole         
+        - Ref: IAMRole
 
   EC2Instance:
     Type: AWS::EC2::Instance
@@ -164,7 +162,6 @@ Resources:
         configSets:
           default:
             - config1
-            - config2
         config1:
           files:
             "/home/ec2-user/.config/autostart/studymount.desktop":
@@ -181,193 +178,123 @@ Resources:
                 Terminal=true
                 Name=Study-Mounting
                 Comment=Study Mounting
-            "/home/ec2-user/.config/autostart/jupyter.desktop":
+            "/home/ec2-user/.config/autostart/disable-lock.desktop":
               mode: "000644"
               owner: "ec2-user"
               group: "ec2-user"
               content: |
                 [Desktop Entry]
                 Type=Application
-                Exec="/home/ec2-user/jupyter.sh"
+                Exec="/home/ec2-user/disable_lock.sh"
                 Hidden=false
-                NoDisplay=false
+                NoDisplay=true
                 X-GNOME-Autostart-enabled=true
-                Terminal=true
-                Name=JupyterLab
-                Comment=Icon for Jupyter
-            "/home/ec2-user/.config/autostart/rstudio.desktop":
-              mode: "000644"
-              owner: "ec2-user"
-              group: "ec2-user"
-              content: |
-                [Desktop Entry]
-                Type=Application
-                Exec="/home/ec2-user/rstudio.sh"
-                Hidden=false
-                NoDisplay=false
-                X-GNOME-Autostart-enabled=true
-                Terminal=true
-                Name=rstudio-server
-                Comment=Icon for rstudio              
-            
-              
+                Name=Disable-Lock-Screen
             "/home/ec2-user/rstudio.sh":
               mode: "000755"
               owner: "ec2-user"
               group: "ec2-user"
               content: !Sub |
                 #!/bin/bash
-                url="http://localhost:8787/"
-                link_name="RStudio"
-                custom_icon="/home/ec2-user/logos/black.png"
-                mkdir -p $HOME/Desktop
-                desktop_file="$HOME/Desktop/rstudio.desktop"
-                cat > "$desktop_file" <<EOL
-                [Desktop Entry]
-                Name=$link_name
-                Type=Link
-                URL=$url
-                Icon=$custom_icon
-                EOL
-                chmod +x "$desktop_file"   
+                set -euo pipefail
+                # Ensure 8787 is free before starting rstudio container.
+                # This handles both stale containers and non-docker listeners.
+                docker rm -f rstudio >/dev/null 2>&1 || true
+                pids=$(ss -ltnp 'sport = :8787' 2>/dev/null | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' | sort -u)
+                if [ -n "$pids" ]; then
+                  echo "$pids" | xargs -r kill -9 || true
+                fi
+                if [ -z "$(docker ps -f "name=rstudio" -f "status=running" -q)" ]; then
+                  docker rm -f rstudio >/dev/null 2>&1 || true
+                  docker run --rm -d --name rstudio -e DISABLE_AUTH=true -v /home/ec2-user:/home/ec2-user -p 8787:8787 relevancelab/rstudio_4.2.1:1.0.3
+                  sleep 3
+                fi
+                xdg-open "http://localhost:8787/" >/dev/null 2>&1 || true
             "/home/ec2-user/jupyter.sh":
               mode: "000755"
               owner: "ec2-user"
               group: "ec2-user"
               content: !Sub |
                 #!/bin/bash
-                
-                sleep 2
-                jtoken=$(docker exec jupyterlab /bin/bash -c "jupyter server list" 2>&1 | grep token | awk '{print $2}' | sed 's/.*=//')
-
-                if [ -n "$jtoken" ]; then
- 
-                    echo "Token value: $jtoken"
-                else
-                    echo "Error: Unable to retrieve the Jupyter token."
+                set -euo pipefail
+                if [ -z "$(docker ps -f "name=jupyterlab" -f "status=running" -q)" ]; then
+                  docker rm -f jupyterlab >/dev/null 2>&1 || true
+                  docker run --rm -d --name jupyterlab -p 8888:8888 -v /home/ec2-user:/home/ec2-user relevancelab/jupiterlab_3.5.0:1.0.3
+                  sleep 3
                 fi
-                url="http://127.0.0.1:8888/?token=$jtoken"
-                link_name="JupyterLab"
-                custom_icon="/home/ec2-user/logos/main-logo.svg"
-                mkdir -p $HOME/Desktop
-                desktop_file="$HOME/Desktop/jupyter.desktop"
-                cat > "$desktop_file" <<EOL
-                [Desktop Entry]
-                Name=$link_name
-                Type=Link
-                URL=$url
-                Icon=$custom_icon
-                EOL
-                chmod +x "$desktop_file"    
+                jtoken=$(docker exec jupyterlab /bin/bash -lc "jupyter server list" 2>/dev/null | sed -n 's/.*token=\([^& ]*\).*/\1/p' | head -n1)
+                if [ -z "$jtoken" ]; then
+                  jtoken=$(docker logs jupyterlab 2>&1 | sed -n 's/.*token=\([^& ]*\).*/\1/p' | head -n1)
+                fi
+                if [ -n "$jtoken" ]; then
+                  xdg-open "http://127.0.0.1:8888/?token=$jtoken" >/dev/null 2>&1 || true
+                else
+                  xdg-open "http://127.0.0.1:8888/" >/dev/null 2>&1 || true
+                fi
             "/home/ec2-user/mount_study.sh":
-             mode: "000755"
-             owner: "ec2-user"
-             group: "ec2-user"
-             content: !Sub |
-               #!/bin/sh
-               set -x
-               # Adding sleep to avoid mounting failure
-               sleep 30
-               mount_s3.sh 2>&1 >> /home/ec2-user/mount_s3.log
-            "/home/ec2-user/start_jupyter.sh":
               mode: "000755"
               owner: "ec2-user"
               group: "ec2-user"
               content: !Sub |
-                #!/bin/bash
-                service_name="jupyterlab"
-                timeout=20
-                elapsed_time=0
-
-                echo "Waiting for $service_name to become active..."
-                sleep 30
-                while true; do
-                  if [ -n "$(docker ps -f "name=$service_name" -f "status=running" -q )" ]; then
-                    echo "the $service_name container is running!"
-                    sudo -u ec2-user /home/ec2-user/jupyter.sh
-                    break
-                  fi
-
-                  if [[ $elapsed_time -ge $timeout ]]; then
-                    echo "Timeout: $service_name did not become active within $timeout seconds."
-                    break
-                  fi
-                    sudo -u ec2-user docker run --rm -d --name jupyterlab -p 8888:8888 -v /home/ec2-user:/home/ec2-user relevancelab/jupiterlab_3.5.0:1.0.3
-                  sleep 1
-                  elapsed_time=$((elapsed_time+1))
-                done
-            "/home/ec2-user/start_rstudio.sh":
-              mode: "000755"
-              owner: "ec2-user"
-              group: "ec2-user"
-              content: !Sub |
-                #!/bin/bash
+                #!/bin/sh
                 set -x
+                # Adding sleep to avoid mounting failure
                 sleep 30
-                sudo -u ec2-user docker run --rm -d --name rstudio -e DISABLE_AUTH=true -v /home/ec2-user:/home/ec2-user -p 8787:8787 relevancelab/rstudio_4.2.1:1.0.3
+                mount_s3.sh 2>&1 >> /home/ec2-user/mount_s3.log
             "/home/ec2-user/set_user_token.sh":
               mode: "000755"
               owner: "ec2-user"
               group: "ec2-user"
               content: !Sub |
                 #!/bin/bash
-                trap "Error setting user token. You may not be able to access your instance URL"  ERR
+                trap '/opt/aws/bin/cfn-signal --exit-code 1 --resource EC2Instance --region ${AWS::Region} --stack ${AWS::StackName}' ERR
+
                 # Get the session token
-                TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
-                
-                # Get the region to build the parameter name
-                region=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
-                echo "Retrieved region ${region} from metadata service"
-                
-                # Get the instance id to build the parameter name
-                instance_id=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+                TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+                # Use instance metadata for region/instance so token is always written to the running instance region.
+                instance_id=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+                region=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
                 echo "Retrieved instance_id $instance_id from metadata service"
-                
                 session_id="rg-session"
                 auth_token=`uuidgen`
                 parameter_name="/RL/RG/secure-desktop/auth-token/$instance_id"
-                aws ssm put-parameter --name "$parameter_name" --type "String" --value '{"auth_token":"'$auth_token'","session_id":"'$session_id'"}' --region $region --overwrite
+                aws ssm put-parameter --name "$parameter_name" --type "String" --value '{"auth_token":"'$auth_token'","session_id":"'$session_id'"}' --region ${AWS::Region} --overwrite
                 echo "User token set successfully"
-            "/home/ec2-user/supervisor/supervisord.conf":
+            "/etc/systemd/system/dcv-auth.service":
               mode: "000644"
-              owner: "ec2-user"
-              group: "ec2-user"
-              content: |
-                [unix_http_server]
-                file=/home/ec2-user/supervisor/supervisor.sock   ; the path to the socket file
+              owner: "root"
+              group: "root"
+              content: !Sub |
+                [Unit]
+                Description=NICE DCV Auth Service
+                After=network-online.target docker.service
+                Wants=network-online.target
+                Requires=docker.service
 
-                [supervisord]
-                logfile=/home/ec2-user/supervisor/supervisord.log ; main log file; default $CWD/supervisord.log
-                logfile_maxbytes=50MB                  ; max main logfile bytes b4 rotation; default 50MB
-                logfile_backups=10                     ; # of main logfile backups; 0 means none, default 10
-                loglevel=info                          ; log level; default info; others: debug,warn,trace
-                pidfile=/home/ec2-user/supervisor/supervisord.pid ; supervisord pidfile; default supervisord.pid
-                nodaemon=false                         ; start in foreground if true; default false
-                minfds=1024                            ; min. avail startup file descriptors; default 1024
-                minprocs=200                           ; min. avail process descriptors;default 200
+                [Service]
+                TimeoutStartSec=0
+                Restart=always
+                RestartSec=5
+                Environment=AWS_REGION=${AWS::Region}
+                Environment=AWS_DEFAULT_REGION=${AWS::Region}
 
-                [rpcinterface:supervisor]
-                supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+                ExecStartPre=/bin/sleep 10
+                ExecStartPre=-/usr/bin/docker stop dcv-auth
+                ExecStartPre=-/usr/bin/docker rm dcv-auth
 
-                [supervisorctl]
-                serverurl=unix:///home/ec2-user/supervisor/supervisor.sock ; use a unix:// URL  for a unix socket
+                ExecStart=/usr/bin/docker run \
+                  --name dcv-auth \
+                  --restart unless-stopped \
+                  -p 8445:8445 \
+                  -e PORT=8445 \
+                  -e PARAMNAMEPREFIX=/RL/RG/secure-desktop/auth-token/ \
+                  relevancelab/nice-dcv-auth-svc:1.0.2
 
-                [program:dcv-custom-auth]
-                command=docker run --rm -p 8445:8445 -e PORT=8445 -e PARAMNAMEPREFIX=/RL/RG/secure-desktop/auth-token/ relevancelab/nice-dcv-auth-svc:1.0.0  ; the program (relative uses PATH, can take args)
-                directory=/home/ec2-user                                                                                                            ; directory to cwd to before exec (def no cwd)
-                user=ec2-user                                                                                                                       ; setuid to this UNIX account to run the program
-                redirect_stderr=true                                                                                                                ; redirect proc stderr to stdout (default false)
-                stdout_logfile=/home/ec2-user/supervisor/cust_auth.log
-            "/home/ec2-user/supervisor/supervisord.log":
-              content: "\n"
-              mode: "000664"
-              owner: "ec2-user"
-              group: "ec2-user"
-            "/home/ec2-user/supervisor/cust_auth.log":
-              content: "\n"
-              mode: "000664"
-              owner: "ec2-user"
-              group: "ec2-user"
+                ExecStop=/usr/bin/docker stop dcv-auth
+
+                [Install]
+                WantedBy=multi-user.target
             "/home/ec2-user/disable_lock.sh":
               content: !Sub |
                 #!/bin/bash
@@ -376,31 +303,6 @@ Resources:
               mode: "000755"
               owner: "ec2-user"
               group: "ec2-user"
-            "/home/ec2-user/themes.sh":
-              mode: "000755"
-              owner: "ec2-user"
-              group: "ec2-user"
-              content: !Sub |
-                #!/bin/sh
-                set -x
-                sleep 25
-                export DBUS_SESSION_BUS_ADDRESS=$(grep -z DBUS_SESSION_BUS_ADDRESS /proc/$(pgrep mate-session)/environ|cut -d= -f2- | tr -d '\0')
-                gsettings set org.mate.interface gtk-theme "Graphite-Light"
-                gsettings set org.mate.background picture-filename "/home/ec2-user/Graphite-gtk-theme-main/wallpaper/Graphite/wave-color.png"  
-        config2:
-          commands:
-            01_start_ext_auth:
-              cwd: "/home/ec2-user/supervisor"
-              command: "/usr/local/bin/supervisord"
-            02_set_user_token:
-              cwd: "/home/ec2-user"
-              command: "/home/ec2-user/set_user_token.sh"
-            03_start_rstudio:
-              cwd: "/home/ec2-user"
-              command: "/home/ec2-user/start_rstudio.sh"
-            04_start_jupyter:
-              cwd: "/home/ec2-user" 
-              command: "/home/ec2-user/start_jupyter.sh" 
     Properties:
       LaunchTemplate:
         LaunchTemplateName: "RG-IMDSv2"
@@ -410,64 +312,145 @@ Resources:
           #!/usr/bin/env bash
           exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
           # trap '/opt/aws/bin/cfn-signal --exit-code 1 --resource EC2Instance --region ${AWS::Region} --stack ${AWS::StackName}' ERR
-          
+          sudo dnf install -y amazon-efs-utils
           # Copy environment instance files needed for the workspace
           aws s3 cp --region "${AWS::Region}" "${EnvironmentInstanceFiles}/secure_desktop/secure_desktop.perm" "/etc/dcv/"
           aws s3 cp --region "${AWS::Region}" "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
           chmod 500 "/tmp/get_bootstrap.sh"
           /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}' "" "${AWS::Region}"
 
-          # Install supervisor and start on boot
-          # pip3 install supervisor crudini
+          cat << 'EOF' > /usr/local/bin/start-dcv-session
+          #!/bin/bash
+          systemctl stop gdm 2>/dev/null || true
+          systemctl disable gdm 2>/dev/null || true
+          dcv close-session lock-session 2>/dev/null || true
 
-          # Route auth request to external authenticator and restart dcv
-          /usr/local/bin/crudini --set /etc/dcv/dcv.conf security auth-token-verifier \"http://127.0.0.1:8445\"
-          
-          systemctl restart dcvserver
+          service_name="dcvserver"
+          timeout=60
+          elapsed_time=0
 
-          # Create dcv session start script
-          cat << EOF > /usr/local/bin/start-dcv-session
-          dcv create-session rg-session --name rg-session --user ec2-user --owner ec2-user --permissions-file /etc/dcv/secure_desktop.perm
+          echo "Waiting for $service_name to become active..."
+          while true; do
+            status=$(systemctl is-active $service_name)
+            if [[ $status == "active" ]]; then
+              echo "$service_name is now active."
+              break
+            fi
+            if [[ $elapsed_time -ge $timeout ]]; then
+              echo "Timeout: $service_name did not become active within $timeout seconds."
+              exit 1
+            fi
+            sleep 1
+            elapsed_time=$((elapsed_time+1))
+          done
+
+          dcv close-session rg-session 2>/dev/null || true
+          dcv create-session rg-session --name rg-session --type=virtual --user ec2-user --owner ec2-user --permissions-file /etc/dcv/secure_desktop.perm
+
+          for i in {1..10}; do
+            if dcv list-sessions 2>/dev/null | grep -q rg-session; then
+              echo "rg-session is running."
+              break
+            fi
+            if [[ $i -eq 10 ]]; then
+              echo "rg-session failed to stay running."
+              exit 1
+            fi
+            sleep 2
+            dcv close-session rg-session 2>/dev/null || true
+            dcv create-session rg-session --name rg-session --type=virtual --user ec2-user --owner ec2-user --permissions-file /etc/dcv/secure_desktop.perm
+          done
+
+          dcv list-sessions
+          date
           EOF
 
-          # Create dcv session on reboot
-          chown root: "/usr/local/bin/start-dcv-session"
-          chmod 775 "/usr/local/bin/start-dcv-session"
-          sh "/usr/local/bin/start-dcv-session"
+          chown root:root /usr/local/bin/start-dcv-session
+          chmod 755 /usr/local/bin/start-dcv-session
 
           sleep 5
-          # sudo -u ec2-user docker run -d --restart always -e DISABLE_AUTH=true -v /home/ec2-user:/home/ec2-user -p 8787:8787 relevancelab/rstudio_4.2.1:1.0.3
-          # sudo -u ec2-user docker run -d --restart always --name jupyterlab -p 8888:8888 -v /home/ec2-user:/home/ec2-user relevancelab/jupiterlab_3.5.0:1.0.3
+          # Clean existing containers/ports so this block is safe on reruns
+          docker stop rstudio jupyterlab 2>/dev/null || true
+          docker rm -f rstudio jupyterlab 2>/dev/null || true
 
-          # Run init script to create files
+          # Run init script to create files (including dcv-auth.service) before touching dcvserver
           /opt/aws/bin/cfn-init --verbose --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
 
+          # -----------------------------
+          # CREATE TOKEN BEFORE AUTH START
+          # -----------------------------
+
+          echo "Creating DCV auth token..."
+          sudo -u ec2-user /home/ec2-user/set_user_token.sh
+
+          echo "Waiting for token propagation..."
+
+          IMDS_TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
+          -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+          INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" \
+          http://169.254.169.254/latest/meta-data/instance-id)
+
+          REGION=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" \
+          http://169.254.169.254/latest/meta-data/placement/region)
+
+          for i in {1..15}
+          do
+            TOKEN_VALUE=$(aws ssm get-parameter \
+              --name "/RL/RG/secure-desktop/auth-token/$INSTANCE_ID" \
+              --region "$REGION" \
+              --query Parameter.Value \
+              --output text 2>/dev/null)
+
+            if [ ! -z "$TOKEN_VALUE" ]; then
+              echo "Token confirmed in SSM"
+              break
+            fi
+
+            echo "Waiting..."
+            sleep 2
+          done
+
+          # -----------------------------
+          # NOW START AUTH SERVICE
+          # -----------------------------
+
+          systemctl daemon-reload
+          systemctl enable dcv-auth
+          systemctl start dcv-auth
+
+          echo "Restarting dcvserver..."
+          systemctl restart dcvserver
+
+          sleep 10
+
+          echo "Preparing DCV virtual session environment..."
+          loginctl enable-linger ec2-user
+          chown -R ec2-user:ec2-user /home/ec2-user
+          systemctl stop gdm 2>/dev/null || true
+          systemctl disable gdm 2>/dev/null || true
+
+          /usr/local/bin/start-dcv-session
+
           # Add command to start on reboot
-          crontab -l 2>/dev/null > "/tmp/crontab"
-          sh "/usr/local/bin/start-dcv-session"
-          echo '@reboot cd /home/ec2-user/supervisor && /usr/local/bin/supervisord 2>&1 >> /home/ec2-user/supervisor/cust_auth.log' >> "/tmp/crontab"
+          crontab -l 2>/dev/null > /tmp/crontab
+          echo '@reboot systemctl stop gdm' >> "/tmp/crontab"
+          echo '@reboot systemctl start dcvserver' >> "/tmp/crontab"
           echo '@reboot /usr/local/bin/start-dcv-session 2>&1 >> /var/log/start-dcv-session.log' >> "/tmp/crontab"
           echo '@reboot /home/ec2-user/set_user_token.sh 2>&1 >> /var/log/set_user_token.log' >> "/tmp/crontab"
-          echo '@reboot /home/ec2-user/start_rstudio.sh' >> "/tmp/crontab"
-          echo '@reboot /home/ec2-user/start_jupyter.sh' >> "/tmp/crontab"
+          echo '@reboot systemctl start dcv-auth' >> "/tmp/crontab"
+
           crontab "/tmp/crontab"
 
-
-          # Restart DCV session to start dcv-session
-          dcv close-session rg-session
-          sh "/usr/local/bin/start-dcv-session"
-
-          # Remove password and lock for ec2-user
+          # Remove password for ec2-user; lock screen is disabled via GNOME autostart
           passwd -l ec2-user
-          dcv create-session lock-session --name lock-session --user ec2-user --owner ec2-user --init /home/ec2-user/disable_lock.sh
-          sudo -u ec2-user /home/ec2-user/themes.sh
+
 
           sudo -u ec2-user /home/ec2-user/rstudio.sh
-          # sudo -u ec2-user /home/ec2-user/jupyter.sh
-          
+          sudo -u ec2-user /home/ec2-user/jupyter.sh
+          dcv list-sessions
 
-          
-          
+          echo "Session ready. Sending signal."
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
 
       InstanceType: !Ref "InstanceType"
@@ -480,7 +463,7 @@ Resources:
         - DeviceName: /dev/sda1
           Ebs:
             VolumeSize: !Ref EBSVolumeSize
-            Encrypted: true    
+            Encrypted: true
                  
       NetworkInterfaces:
         - AssociatePublicIpAddress: 'false'
@@ -516,8 +499,7 @@ Resources:
           ToPort: 8443      
           SourceSecurityGroupId: !Ref ALBSecurityGroup         
       VpcId: !Ref VPC
-          
-          
+         
 Outputs:
   InstanceId:
     Description: InstanceId of the newly created EC2 instance
@@ -528,4 +510,4 @@ Outputs:
     Value: "8443"
   AvailabilityZone: 
     Description: AvailabilityZone of newly created EC2 instance
-    Value: !GetAtt [EC2Instance, AvailabilityZone]    
+    Value: !GetAtt [EC2Instance, AvailabilityZone]

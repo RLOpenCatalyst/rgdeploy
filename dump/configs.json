@@ -735,8 +735,8 @@
   {
     "key": "retryConfig",
     "value": {
-      "intervalInSeconds": 6,
-      "maxTimes": 10
+      "intervalInSeconds": 10,
+      "maxTimes": 60
     }
   },
   {
@@ -875,8 +875,8 @@
   {
     "key": "retryConfig",
     "value": {
-      "intervalInSeconds": 6,
-      "maxTimes": 10
+      "intervalInSeconds": 10,
+      "maxTimes": 60
     }
   },
   {
@@ -972,6 +972,13 @@
         "role",
         "userTags"
       ]
+    }
+  },
+  {
+    "key": "s3FilesMountTarget",
+    "value": {
+      "pollIntervalMs": 5000,
+      "pollMaxAttempts": 60
     }
   }
 ]
