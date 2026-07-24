@@ -32,17 +32,8 @@ Parameters:
       the environment instance, including any bootstrap scripts
      
   InstanceType:
-    Description: Choose the instance type e.g t3.medium (2vCPU , 2GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge(4vCPU, 16GiB RAM)
+    Description: Choose the instance type
     Type: String
-    Default: t3.large
-    AllowedValues:
-      [
-        t3.medium,
-        t3.large,
-        t3.xlarge,
-        m6.xlarge
-        
-      ]
     ConstraintDescription: must be a valid EC2 instance type.
   EBSVolumeSize:
     Description: The initial size of the volume (in GBs)  EBS will use for storage.
