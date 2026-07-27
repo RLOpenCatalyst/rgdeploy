@@ -209,7 +209,16 @@
         "dynamodb:DescribeTable",
         "compute-optimizer:Get*",
         "servicecatalog:DisassociatePrincipalFromPortfolio",
-        "budgets:ModifyBudget"
+        "ec2:CreateNetworkInterface",
+        "budgets:ModifyBudget",
+        "s3files:List*",
+        "s3files:Get*",
+        "s3files:CreateFileSystem",
+        "s3files:CreateMountTarget",
+        "s3files:DeleteFileSystem",
+        "s3files:DeleteMountTarget",
+        "pricing:Get*",
+        "events:List*"
       ],
       "Resource": [
         "*"

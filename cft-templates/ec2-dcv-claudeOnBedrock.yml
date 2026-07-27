@@ -1,8 +1,7 @@
-Metadata:
+Metadata: 
   License: Apache-2.0
-AWSTemplateFormatVersion: "2010-09-09"
-Description: "AWS CloudFormation Template to create an GPU based EC2 instance with NICE-DCV pre installed."
-
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS CloudFormation Template to create an GPU based EC2 instance with NICE DCV pre installed.'
 Parameters:
   Namespace:
     Type: String
@@ -13,37 +12,33 @@ Parameters:
   IamPolicyDocument:
     Type: String
     Description: The IAM policy to be associated with the launched workstation
-  VPC:
-    Description: The VPC in which the EC2 instance will reside
-    Type: AWS::EC2::VPC::Id
-  Subnet:
-    Description: The VPC subnet in which the EC2 instance will reside
-    Type: AWS::EC2::Subnet::Id
-  ALBSecurityGroup:
-    Description: Security Group Id of the ALB to which the EC2 instance traffic will be allowed from
-    Type: AWS::EC2::SecurityGroup::Id    
-  WorkSpaceSecurityGroup:  
-    Description: Security Group Id of the workspace to which the EC2 instance traffic will be allowed from
-    Type: AWS::EC2::SecurityGroup::Id 
   EnvironmentInstanceFiles:
     Type: String
     Description: >-
       An S3 URI (starting with "s3://") that specifies the location of files to be copied to
       the environment instance, including any bootstrap scripts
-     
   InstanceType:
-    Description: Choose the instance type
+    Description: Choose the instance type e.g t3.medium (2vCPU , 2GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge(4vCPU, 16GiB RAM)
     Type: String
     ConstraintDescription: must be a valid EC2 instance type.
   EBSVolumeSize:
     Description: The initial size of the volume (in GBs)  EBS will use for storage.
     Type: Number
-    Default: 70
+    Default: 70  
+  # AvailabilityZone:
+  #   Description: Select the availability zone in which to create the instance. If you plan to attach a secondary volume to the instance, create this instance in the same AvailabilityZone as the volume you created.
+  #   Type: AWS::EC2::AvailabilityZone::Name    
+  # Password:
+  #   Type: String
+  #   NoEcho: True
+  #   Description: Password for the default ec2-user account. Must be at least 8 characters long.
+  #   MinLength: 8
+  #   ConstraintDescription: Password must be at least 8 characters long.
 
 Conditions:
-  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, "{}"]
+  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
 
-Resources:
+Resources:  
   SSMPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -51,23 +46,21 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Sid: AllowSSMParamActions
+          - Sid: AllowSSMParameterAccess
             Effect: Allow
             Action:
-              - ssm:GetParameter
               - ssm:PutParameter
               - ssm:GetParameter
               - ssm:GetParameters
               - ssm:DescribeParameters
             Resource: "*"
-          - Sid: AllowAccessToEncryptionKeys
+          - Sid: AllowKMSDecrypt
             Effect: Allow
             Action:
               - kms:Decrypt
               - kms:Encrypt
               - kms:GenerateDataKey
               - kms:DescribeKey
-              - s3:*
             Resource: "*"
   InstanceRolePermissionBoundary:
     Type: AWS::IAM::ManagedPolicy
@@ -80,6 +73,9 @@ Resources:
           - Effect: Allow
             Action:
               - 's3:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
               - 's3files:*'
             Resource: '*'
           - Effect: Allow
@@ -105,8 +101,29 @@ Resources:
           - Effect: Allow
             Action:
               - 'sns:Publish'     
-            Resource: '*'                    
-          
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - bedrock:ListInferenceProfiles
+              - bedrock:GetInferenceProfile
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: '*'
+  BedrockPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Join ["-", [!Ref Namespace, "Bedrock-Policy"]]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowBedrockInvoke
+            Effect: Allow
+            Action:
+              - bedrock:ListInferenceProfiles
+              - bedrock:GetInferenceProfile
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: "*"
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -129,17 +146,17 @@ Resources:
             PolicyDocument: !Ref IamPolicyDocument
       ManagedPolicyArns:
         - Ref: SSMPolicy
+        - Ref: BedrockPolicy
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-        - arn:aws:iam::aws:policy/AmazonS3FilesClientFullAccess
       PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
 
 
   InstanceProfile:
-    Type: "AWS::IAM::InstanceProfile"
+    Type: 'AWS::IAM::InstanceProfile'
     Properties:
-      InstanceProfileName: !Join ["-", [Ref: Namespace, "ec2-profile"]]
-      Path: "/"
+      InstanceProfileName: !Join ['-', [Ref: Namespace, 'ec2-profile']]
+      Path: '/'
       Roles:
         - Ref: IAMRole
 
@@ -169,18 +186,6 @@ Resources:
                 Terminal=true
                 Name=Study-Mounting
                 Comment=Study Mounting
-            "/home/ec2-user/.config/autostart/disable-lock.desktop":
-              mode: "000644"
-              owner: "ec2-user"
-              group: "ec2-user"
-              content: |
-                [Desktop Entry]
-                Type=Application
-                Exec="/home/ec2-user/disable_lock.sh"
-                Hidden=false
-                NoDisplay=true
-                X-GNOME-Autostart-enabled=true
-                Name=Disable-Lock-Screen
             "/home/ec2-user/rstudio.sh":
               mode: "000755"
               owner: "ec2-user"
@@ -210,18 +215,30 @@ Resources:
                 set -euo pipefail
                 if [ -z "$(docker ps -f "name=jupyterlab" -f "status=running" -q)" ]; then
                   docker rm -f jupyterlab >/dev/null 2>&1 || true
-                  docker run --rm -d --name jupyterlab -p 8888:8888 -v /home/ec2-user:/home/ec2-user relevancelab/jupiterlab_3.5.0:1.0.3
+                  docker run --rm -d --name jupyterlab -p 8888:8888 -v /home/ec2-user:/home/ec2-user relevancelab/jupiterlab_3.5.0:1.0.3 \
+                    jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --ServerApp.token='' --ServerApp.password=''
                   sleep 3
                 fi
-                jtoken=$(docker exec jupyterlab /bin/bash -lc "jupyter server list" 2>/dev/null | sed -n 's/.*token=\([^& ]*\).*/\1/p' | head -n1)
-                if [ -z "$jtoken" ]; then
-                  jtoken=$(docker logs jupyterlab 2>&1 | sed -n 's/.*token=\([^& ]*\).*/\1/p' | head -n1)
-                fi
-                if [ -n "$jtoken" ]; then
-                  xdg-open "http://127.0.0.1:8888/?token=$jtoken" >/dev/null 2>&1 || true
-                else
-                  xdg-open "http://127.0.0.1:8888/" >/dev/null 2>&1 || true
-                fi
+                xdg-open "http://127.0.0.1:8888/lab" >/dev/null 2>&1 || true
+            "/etc/firefox/policies/policies.json":
+              mode: "000644"
+              owner: "root"
+              group: "root"
+              content: |
+                {
+                  "policies": {
+                    "Preferences": {
+                      "browser.topsites.useRemoteSetting": {
+                        "Value": false,
+                        "Status": "default"
+                      },
+                      "browser.newtabpage.pinned": {
+                        "Value": "[{\"url\":\"http://127.0.0.1:8787/\",\"label\":\"RStudio\",\"searchTopSite\":false},{\"url\":\"http://127.0.0.1:8888/lab\",\"label\":\"JupyterLab\",\"searchTopSite\":false}]",
+                        "Status": "default"
+                      }
+                    }
+                  }
+                }
             "/home/ec2-user/mount_study.sh":
               mode: "000755"
               owner: "ec2-user"
@@ -248,9 +265,9 @@ Resources:
                 region=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
                 echo "Retrieved instance_id $instance_id from metadata service"
                 session_id="rg-session"
-                auth_token=`uuidgen`
-                parameter_name="/RL/RG/secure-desktop/auth-token/$instance_id"
-                aws ssm put-parameter --name "$parameter_name" --type "String" --value '{"auth_token":"'$auth_token'","session_id":"'$session_id'"}' --region ${AWS::Region} --overwrite
+                auth_token=$(uuidgen)
+                parameter_name="/RL/RG/nice-dcv/auth-token/$instance_id"
+                aws ssm put-parameter --name "$parameter_name" --type "String" --value '{"auth_token":"'$auth_token'","session_id":"'$session_id'"}' --region "$region" --overwrite
                 echo "User token set successfully"
             "/etc/systemd/system/dcv-auth.service":
               mode: "000644"
@@ -279,7 +296,9 @@ Resources:
                   --restart unless-stopped \
                   -p 8445:8445 \
                   -e PORT=8445 \
-                  -e PARAMNAMEPREFIX=/RL/RG/secure-desktop/auth-token/ \
+                  -e PARAMNAMEPREFIX=/RL/RG/nice-dcv/auth-token/ \
+                  -e AWS_REGION=${AWS::Region} \
+                  -e AWS_DEFAULT_REGION=${AWS::Region} \
                   relevancelab/nice-dcv-auth-svc:1.0.2
 
                 ExecStop=/usr/bin/docker stop dcv-auth
@@ -295,21 +314,34 @@ Resources:
               owner: "ec2-user"
               group: "ec2-user"
     Properties:
-      LaunchTemplate:
-        LaunchTemplateName: "RG-IMDSv2"
-        Version: 1    
       UserData:
         Fn::Base64: !Sub |
           #!/usr/bin/env bash
           exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
           # trap '/opt/aws/bin/cfn-signal --exit-code 1 --resource EC2Instance --region ${AWS::Region} --stack ${AWS::StackName}' ERR
-          sudo dnf install -y amazon-efs-utils
-          # Copy environment instance files needed for the workspace
-          aws s3 cp --region "${AWS::Region}" "${EnvironmentInstanceFiles}/secure_desktop/secure_desktop.perm" "/etc/dcv/"
+          # Download and execute bootstrap script
           aws s3 cp --region "${AWS::Region}" "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
           chmod 500 "/tmp/get_bootstrap.sh"
-          /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}' "" "${AWS::Region}"
+          /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}' "" "${AWS::Region}"  
 
+          # Install Claude early (before DCV/Docker start)
+          sudo -u ec2-user bash -lc 'curl -fsSL https://claude.ai/install.sh | bash'
+          [ -x /home/ec2-user/.local/bin/claude ] && ln -sf /home/ec2-user/.local/bin/claude /usr/local/bin/claude && (grep -q '.local/bin' /home/ec2-user/.bashrc || echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/ec2-user/.bashrc)
+
+          # Configure Claude Code to use Bedrock
+          sudo -u ec2-user mkdir -p /home/ec2-user/.claude
+          cat >/home/ec2-user/.claude/settings.json <<EOF
+          {
+            "theme": "dark",
+            "env": {
+              "CLAUDE_CODE_USE_BEDROCK": "1",
+              "AWS_REGION": "${AWS::Region}"
+            }
+          }
+          EOF
+          chown -R ec2-user:ec2-user /home/ec2-user/.claude
+
+          # Create dcv session start script (GDM must stay off; it conflicts with DCV virtual sessions)
           cat << 'EOF' > /usr/local/bin/start-dcv-session
           #!/bin/bash
           systemctl stop gdm 2>/dev/null || true
@@ -329,43 +361,32 @@ Resources:
             fi
             if [[ $elapsed_time -ge $timeout ]]; then
               echo "Timeout: $service_name did not become active within $timeout seconds."
-              exit 1
+              break
             fi
             sleep 1
             elapsed_time=$((elapsed_time+1))
           done
 
           dcv close-session rg-session 2>/dev/null || true
-          dcv create-session rg-session --name rg-session --type=virtual --user ec2-user --owner ec2-user --permissions-file /etc/dcv/secure_desktop.perm
-
-          for i in {1..10}; do
-            if dcv list-sessions 2>/dev/null | grep -q rg-session; then
-              echo "rg-session is running."
-              break
-            fi
-            if [[ $i -eq 10 ]]; then
-              echo "rg-session failed to stay running."
-              exit 1
-            fi
-            sleep 2
-            dcv close-session rg-session 2>/dev/null || true
-            dcv create-session rg-session --name rg-session --type=virtual --user ec2-user --owner ec2-user --permissions-file /etc/dcv/secure_desktop.perm
-          done
-
+          dcv create-session rg-session --name rg-session --type=virtual --user ec2-user --owner ec2-user
           dcv list-sessions
           date
           EOF
 
-          chown root:root /usr/local/bin/start-dcv-session
-          chmod 755 /usr/local/bin/start-dcv-session
-
+          # Create dcv session on reboot
+          # chown root: "/usr/local/bin/start-dcv-session"
+          # chmod 775 "/usr/local/bin/start-dcv-session"
           sleep 5
           # Clean existing containers/ports so this block is safe on reruns
           docker stop rstudio jupyterlab 2>/dev/null || true
           docker rm -f rstudio jupyterlab 2>/dev/null || true
 
-          # Run init script to create files (including dcv-auth.service) before touching dcvserver
+          # Firefox New Tab Top Sites: pin RStudio and JupyterLab (policy file written by cfn-init)
+          mkdir -p /etc/firefox/policies
+
+          # Run init script to create files
           /opt/aws/bin/cfn-init --verbose --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
+
 
           # -----------------------------
           # CREATE TOKEN BEFORE AUTH START
@@ -388,7 +409,7 @@ Resources:
           for i in {1..15}
           do
             TOKEN_VALUE=$(aws ssm get-parameter \
-              --name "/RL/RG/secure-desktop/auth-token/$INSTANCE_ID" \
+              --name "/RL/RG/nice-dcv/auth-token/$INSTANCE_ID" \
               --region "$REGION" \
               --query Parameter.Value \
               --output text 2>/dev/null)
@@ -408,20 +429,22 @@ Resources:
 
           systemctl daemon-reload
           systemctl enable dcv-auth
-          systemctl start dcv-auth
+          systemctl restart dcv-auth
 
           echo "Restarting dcvserver..."
           systemctl restart dcvserver
 
           sleep 10
 
-          echo "Preparing DCV virtual session environment..."
-          loginctl enable-linger ec2-user
-          chown -R ec2-user:ec2-user /home/ec2-user
+          # GDM auto-login conflicts with DCV virtual sessions (especially on CPU instance types)
+          echo "Disabling GDM for DCV virtual sessions..."
           systemctl stop gdm 2>/dev/null || true
           systemctl disable gdm 2>/dev/null || true
 
-          /usr/local/bin/start-dcv-session
+          # Create dcv session on reboot
+          chown root: "/usr/local/bin/start-dcv-session"
+          chmod 775 "/usr/local/bin/start-dcv-session"
+          sh "/usr/local/bin/start-dcv-session"
 
           # Add command to start on reboot
           crontab -l 2>/dev/null > /tmp/crontab
@@ -433,9 +456,7 @@ Resources:
 
           crontab "/tmp/crontab"
 
-          # Remove password for ec2-user; lock screen is disabled via GNOME autostart
           passwd -l ec2-user
-
 
           sudo -u ec2-user /home/ec2-user/rstudio.sh
           sudo -u ec2-user /home/ec2-user/jupyter.sh
@@ -443,62 +464,54 @@ Resources:
 
           echo "Session ready. Sending signal."
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
-
-      InstanceType: !Ref "InstanceType"
-      
+      InstanceType: !Ref 'InstanceType'
+      SecurityGroups: [!Ref 'InstanceSecurityGroup']
       ImageId: "{{resolve:ssm:/RL/RG/StandardCatalog/linux-nice-dcv-ami}}"
       IamInstanceProfile: !Ref InstanceProfile
-            
-      
       BlockDeviceMappings:
-        - DeviceName: /dev/sda1
+        - DeviceName: /dev/xvda
           Ebs:
             VolumeSize: !Ref EBSVolumeSize
             Encrypted: true
-                 
-      NetworkInterfaces:
-        - AssociatePublicIpAddress: 'false'
-          DeviceIndex: '0'
-          GroupSet:
-            - !Ref InstanceSecurityGroup
-            - !Ref WorkSpaceSecurityGroup
-          SubnetId: !Ref Subnet            
+            
+      
+
       PropagateTagsToVolumeOnCreation: true
       Tags:
         - Key: Name
-          Value: !Join ["-", [Ref: Namespace, "ec2-secure-linux"]]
+          Value: !Join ['-', [Ref: Namespace, 'ec2-linux']]
         - Key: Description
           Value: EC2 workspace instance
         - Key: cost_resource
           Value: !Sub ${AWS::StackName}
-        - Key: PatchGroup
-          Value: RG-PatchGroup-Linux          
-
+    
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: EC2 workspace security group
-      SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort: 0
-          ToPort: 65535
-          CidrIp: 0.0.0.0/0
-          
-      SecurityGroupIngress:     
-        - IpProtocol: tcp
-          FromPort: 8443
-          ToPort: 8443      
-          SourceSecurityGroupId: !Ref ALBSecurityGroup         
-      VpcId: !Ref VPC
-         
+      GroupDescription: Enable SSH access
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '8443'
+        ToPort: '8443'
+        CidrIp: 0.0.0.0/0
+
 Outputs:
   InstanceId:
     Description: InstanceId of the newly created EC2 instance
-    Value: !Ref "EC2Instance"
-
+    Value: !Ref 'EC2Instance'
+  InstanceIPAddress:
+    Description: IP address of the newly created EC2 instance
+    Value: !GetAtt [EC2Instance, PublicIp]
+  InstanceDNSName:
+    Description: DNS name of the newly created EC2 instance
+    Value: !GetAtt [EC2Instance, PublicDnsName]
   ApplicationPort:
     Description: The Port in which the application is running
-    Value: "8443"
+    Value: '8443'
   AvailabilityZone: 
     Description: AvailabilityZone of newly created EC2 instance
     Value: !GetAtt [EC2Instance, AvailabilityZone]
