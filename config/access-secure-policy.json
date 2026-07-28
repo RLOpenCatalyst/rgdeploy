@@ -192,7 +192,9 @@
                 "s3files:CreateFileSystem",
                 "s3files:CreateMountTarget",
                 "s3files:DeleteFileSystem",
-                "s3files:DeleteMountTarget"
+                "s3files:DeleteMountTarget",
+                "lambda:InvokeFunctionUrl",
+                "lambda:InvokeFunction"
             ],
             "Resource": [
                 "*"
