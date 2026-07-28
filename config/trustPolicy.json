@@ -23,7 +23,12 @@
         "Sid": "VisualEditor0",
         "Effect": "Allow",
         "Action": "sts:AssumeRole",
-        "Resource": []
+        "Resource": [],
+        "Condition": {
+          "StringLike": {
+            "sts:RoleSessionName": "rg-*"
+          }
+        }
       }
     ]
   },
