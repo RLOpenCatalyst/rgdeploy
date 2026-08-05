@@ -980,5 +980,30 @@
       "pollIntervalMs": 5000,
       "pollMaxAttempts": 60
     }
+  },
+  {
+    "key": "phantomAssetsIngestion",
+    "value": {
+      "enabled": false,
+      "viewArn": null,
+      "queryString": "tag:none",
+      "maxResourcesPerAccount": 5000,
+      "nonBillableServices": [
+        "iam",
+        "cloudwatch",
+        "logs",
+        "events",
+        "ssm",
+        "organizations",
+        "route53",
+        "support",
+        "health",
+        "trustedadvisor",
+        "shield",
+        "config",
+        "backup",
+        "resource-explorer-2"
+      ]
+    }
   }
 ]
