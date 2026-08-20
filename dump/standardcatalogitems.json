@@ -1773,6 +1773,18 @@
             {
               "name": "Namespace",
               "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "ProjectId", 
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "ResearcherName", 
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "CostResource", 
+              "type": "RL::SC::PARAM::HD"
             }
           ]
         }
@@ -1966,6 +1978,18 @@
             },
             {
               "name": "Namespace",
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "ProjectId", 
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "ResearcherName", 
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "CostResource", 
               "type": "RL::SC::PARAM::HD"
             }
           ]

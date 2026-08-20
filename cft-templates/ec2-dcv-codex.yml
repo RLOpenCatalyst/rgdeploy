@@ -3,6 +3,14 @@ Metadata:
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'AWS CloudFormation Template to create an GPU based EC2 instance with NICE DCV pre installed.'
 Parameters:
+  InstanceType:
+    Description: Choose the instance type from the dropdown.
+    Type: String
+    ConstraintDescription: must be a valid EC2 instance type.
+  EBSVolumeSize:
+    Description: The initial size of the volume (in GBs)  EBS will use for storage.
+    Type: Number
+    Default: 70  
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -17,14 +25,7 @@ Parameters:
     Description: >-
       An S3 URI (starting with "s3://") that specifies the location of files to be copied to
       the environment instance, including any bootstrap scripts
-  InstanceType:
-    Description: Choose the instance type e.g t3.medium (2vCPU , 2GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge(4vCPU, 16GiB RAM)
-    Type: String
-    ConstraintDescription: must be a valid EC2 instance type.
-  EBSVolumeSize:
-    Description: The initial size of the volume (in GBs)  EBS will use for storage.
-    Type: Number
-    Default: 70  
+  
   # AvailabilityZone:
   #   Description: Select the availability zone in which to create the instance. If you plan to attach a secondary volume to the instance, create this instance in the same AvailabilityZone as the volume you created.
   #   Type: AWS::EC2::AvailabilityZone::Name    
@@ -126,6 +127,7 @@ Resources:
       ManagedPolicyArns:
         - Ref: SSMPolicy
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonS3FilesClientFullAccess
       PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
 
@@ -297,6 +299,7 @@ Resources:
           #!/usr/bin/env bash
           exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
           # trap '/opt/aws/bin/cfn-signal --exit-code 1 --resource EC2Instance --region ${AWS::Region} --stack ${AWS::StackName}' ERR
+          sudo dnf install -y amazon-efs-utils
           # Download and execute bootstrap script
           aws s3 cp --region "${AWS::Region}" "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
           chmod 500 "/tmp/get_bootstrap.sh"
