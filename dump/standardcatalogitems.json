@@ -5,7 +5,7 @@
     },
     "name": "Amazon S3",
     "description": "Amazon Simple Storage Service (Amazon S3) is an object storage service that offers scalability, data availability, security, and performance",
-    "fileName": "s3.yml",
+    "fileName": "s3.yaml",
     "tags": [
       {
         "Key": "EstimatedTimeToProvision",
@@ -1707,6 +1707,323 @@
     "cost_resource": true
   }
 },
+[
+  {
+    "_id": {
+      "$oid": "6a4d193dce86cca747c59f35"
+    },
+    "name": "Claude Code on Bedrock",
+    "description": "A Linux remote desktop optimized for AI-assisted software development, featuring Claude Code on Amazon Bedrock for intelligent coding, debugging, and refactoring.",
+    "fileName": "ec2-dcv-claudeOnBedrock.yml",
+    "tags": [
+      {
+        "Key": "EstimatedTimeToProvision",
+        "Value": "20 Minutes"
+      },
+      {
+        "Key": "DetailsLink",
+        "Value": "https://code.claude.com/docs/en/amazon-bedrock/"
+      },
+      {
+        "Key": "Service",
+        "Value": "EC2-DCV"
+      },
+      {
+        "Key": "TypeOfProduct",
+        "Value": "Research"
+      },
+      {
+        "Key": "ALB",
+        "Value": "true"
+      },
+      {
+        "Key": "ApplicationPort",
+        "Value": "8443"
+      },
+      {
+        "Key": "ApplicationProtocol",
+        "Value": "HTTPS"
+      },
+      {
+        "Key": "ProductIcon",
+        "Value": "/assets/images/claude-color.png"
+      }
+    ],
+    "owner": "RL",
+    "portfolio": "RGPortfolio",
+    "availableRegions": [],
+    "assignedOU": [ ],
+    "metaData": {
+      "pre_provisioning": [
+        {
+          "code": "CFT_PARAMS",
+          "params": [
+            {
+              "name": "EnvironmentInstanceFiles",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "IamPolicyDocument",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "S3Mounts",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "Namespace",
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "ProjectId", 
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "ResearcherName", 
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "CostResource", 
+              "type": "RL::SC::PARAM::HD"
+            }
+          ]
+        }
+      ],
+      "post_provisioning": [],
+      "checks_before_assigning_product": [
+        {
+          "code": "AMI_ID_REQUIRED",
+          "is_ami_required": true,
+          "ami_id_list": [
+            {
+              "us-east-1": "ami-00a4dff4f1751ef76"
+            },
+            {
+              "us-east-2": "ami-0bda5589861be0d07"
+            }
+          ],
+          "ami_path": "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
+        },
+        {
+          "Key": "projectTypeCompatibility",
+          "Value": [
+            "Standard"
+          ]
+        }
+      ],
+      "checks_after_assigning_product": [],
+      "permission_required": {},
+      "cost_resource": true
+    },
+    "allowedInstanceTypes": []
+  },
+  {
+    "_id": {
+      "$oid": "6a59b6124245a51484c59f35"
+    },
+    "name": "Codex",
+    "description": "A Linux remote desktop optimized for AI-assisted software development, featuring Codex for intelligent coding, debugging, and refactoring.",
+    "fileName": "ec2-dcv-codex.yml",
+    "tags": [
+      {
+        "Key": "EstimatedTimeToProvision",
+        "Value": "30 Minutes"
+      },
+      {
+        "Key": "DetailsLink",
+        "Value": "https://developers.openai.com/codex/cli"
+      },
+      {
+        "Key": "ProductIcon",
+        "Value": "/assets/images/codex-color.svg"
+      },
+      {
+        "Key": "Service",
+        "Value": "EC2-DCV"
+      },
+      {
+        "Key": "TypeOfProduct",
+        "Value": "Research"
+      },
+      {
+        "Key": "ALB",
+        "Value": "true"
+      },
+      {
+        "Key": "ApplicationPort",
+        "Value": "8443"
+      },
+      {
+        "Key": "ApplicationProtocol",
+        "Value": "HTTPS"
+      }
+    ],
+    "owner": "RL",
+    "portfolio": "RGPortfolio",
+    "availableRegions": [],
+    "assignedOU": [ ],
+    "metaData": {
+      "pre_provisioning": [
+        {
+          "code": "CFT_PARAMS",
+          "params": [
+            {
+              "name": "EnvironmentInstanceFiles",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "IamPolicyDocument",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "S3Mounts",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "Namespace",
+              "type": "RL::SC::PARAM::HD"
+            }
+          ]
+        }
+      ],
+      "post_provisioning": [],
+      "checks_before_assigning_product": [
+        {
+          "code": "AMI_ID_REQUIRED",
+          "is_ami_required": true,
+          "ami_id_list": [
+            {
+              "us-east-1": "ami-0b835583897ec93e3"
+            },
+            {
+              "us-east-2": "ami-0bda5589861be0d07"
+            }
+          ],
+          "ami_path": "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
+        },
+        {
+          "Key": "projectTypeCompatibility",
+          "Value": [
+            "Standard"
+          ]
+        }
+      ],
+      "checks_after_assigning_product": [],
+      "permission_required": {},
+      "cost_resource": true
+    },
+    "allowedInstanceTypes": []
+  },
+  {
+    "_id": {
+      "$oid": "6a5da1b963a86914d3c59f35"
+    },
+    "name": "Codex On Bedrock",
+    "description": "A Linux remote desktop optimized for AI-assisted software development, featuring Codex on Amazon Bedrock for intelligent coding, debugging, and refactoring.",
+    "fileName": "ec2-dcv-codexOnBedrock.yml",
+    "tags": [
+      {
+        "Key": "EstimatedTimeToProvision",
+        "Value": "30 Minutes"
+      },
+      {
+        "Key": "DetailsLink",
+        "Value": "https://developers.openai.com/codex/cli"
+      },
+      {
+        "Key": "Service",
+        "Value": "EC2-DCV"
+      },
+      {
+        "Key": "TypeOfProduct",
+        "Value": "Research"
+      },
+      {
+        "Key": "ALB",
+        "Value": "true"
+      },
+      {
+        "Key": "ApplicationPort",
+        "Value": "8443"
+      },
+      {
+        "Key": "ApplicationProtocol",
+        "Value": "HTTPS"
+      },
+      {
+        "Key": "ProductIcon",
+        "Value": "/assets/images/codex-color.svg"
+      }
+    ],
+    "owner": "RL",
+    "portfolio": "RGPortfolio",
+    "availableRegions": [],
+    "assignedOU": [ ],
+    "metaData": {
+      "pre_provisioning": [
+        {
+          "code": "CFT_PARAMS",
+          "params": [
+            {
+              "name": "EnvironmentInstanceFiles",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "IamPolicyDocument",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "S3Mounts",
+              "type": "RL::SC::PARAM::HD"
+            },
+            {
+              "name": "Namespace",
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "ProjectId", 
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "ResearcherName", 
+              "type": "RL::SC::PARAM::HD"
+            },
+            { 
+              "name": "CostResource", 
+              "type": "RL::SC::PARAM::HD"
+            }
+          ]
+        }
+      ],
+      "post_provisioning": [],
+      "checks_before_assigning_product": [
+        {
+          "code": "AMI_ID_REQUIRED",
+          "is_ami_required": true,
+          "ami_id_list": [
+            {
+              "us-east-1": "ami-00a4dff4f1751ef76"
+            },
+            {
+              "us-east-2": "ami-0bda5589861be0d07"
+            }
+          ],
+          "ami_path": "/RL/RG/StandardCatalog/linux-nice-dcv-ami"
+        },
+        {
+          "Key": "projectTypeCompatibility",
+          "Value": [
+            "Standard"
+          ]
+        }
+      ],
+      "checks_after_assigning_product": [],
+      "permission_required": {},
+      "cost_resource": true
+    },
+    "allowedInstanceTypes": []
+  }
+],
 {
   "_id": {
     "$oid": "6a4c9a4921927300bec59f35"
@@ -1742,6 +2059,10 @@
     {
       "Key": "ApplicationProtocol",
       "Value": "HTTPS"
+    },
+    {
+      "Key": "ProductIcon",
+      "Value": "/assets/images/claude-color.png"
     }
   ],
   "owner": "RL",
@@ -1799,4 +2120,5 @@
     "cost_resource": true
   }
 }
+
 ]
