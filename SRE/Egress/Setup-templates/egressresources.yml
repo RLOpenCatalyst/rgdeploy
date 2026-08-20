@@ -17,6 +17,18 @@ Parameters:
     Type: String
     Description: Key of the Lambda zip file in the S3 bucket
     Default: egress-copy.zip
+  EnablePublicAccessBlock:
+    Type: String
+    Description: >
+      When true, CloudFormation will set S3 Block Public Access via
+      s3:PutBucketPublicAccessBlock (may be blocked by SCPs).
+    AllowedValues:
+      - "true"
+      - "false"
+    Default: "false"
+
+Conditions:
+  UsePublicAccessBlock: !Equals [!Ref EnablePublicAccessBlock, "true"]
 
 Resources:
   EgressStoreEncryptionKey:
@@ -65,11 +77,10 @@ Resources:
               - POST
             ExposedHeaders:
               - ETag
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+      PublicAccessBlockConfiguration: !If
+        - UsePublicAccessBlock
+        - { BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true }
+        - !Ref AWS::NoValue
 
   EgressStoreBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -120,11 +131,10 @@ Resources:
               - POST
             ExposedHeaders:
               - ETag
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+      PublicAccessBlockConfiguration: !If
+        - UsePublicAccessBlock
+        - { BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true }
+        - !Ref AWS::NoValue
 
   EgressNotificationBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -240,7 +250,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref LambdaFunctionName
-      Handler: index.handler
+      Handler: lambdaresources/index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: nodejs18.x
       Code:

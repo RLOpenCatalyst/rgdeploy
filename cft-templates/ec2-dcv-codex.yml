@@ -3,6 +3,14 @@ Metadata:
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'AWS CloudFormation Template to create an GPU based EC2 instance with NICE DCV pre installed.'
 Parameters:
+  InstanceType:
+    Description: Choose the instance type from the dropdown.
+    Type: String
+    ConstraintDescription: must be a valid EC2 instance type.
+  EBSVolumeSize:
+    Description: The initial size of the volume (in GBs)  EBS will use for storage.
+    Type: Number
+    Default: 70  
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -17,14 +25,10 @@ Parameters:
     Description: >-
       An S3 URI (starting with "s3://") that specifies the location of files to be copied to
       the environment instance, including any bootstrap scripts
-  InstanceType:
-    Description: Choose the instance type e.g t3.medium (2vCPU , 2GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge(4vCPU, 16GiB RAM)
-    Type: String
-    ConstraintDescription: must be a valid EC2 instance type.
-  EBSVolumeSize:
-    Description: The initial size of the volume (in GBs)  EBS will use for storage.
-    Type: Number
-    Default: 70   
+  
+  # AvailabilityZone:
+  #   Description: Select the availability zone in which to create the instance. If you plan to attach a secondary volume to the instance, create this instance in the same AvailabilityZone as the volume you created.
+  #   Type: AWS::EC2::AvailabilityZone::Name    
   # Password:
   #   Type: String
   #   NoEcho: True
@@ -70,6 +74,9 @@ Resources:
           - Effect: Allow
             Action:
               - 's3:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
               - 's3files:*'
             Resource: '*'
           - Effect: Allow
@@ -298,6 +305,10 @@ Resources:
           chmod 500 "/tmp/get_bootstrap.sh"
           /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}' "" "${AWS::Region}"  
 
+          # Install Codex CLI early (before DCV/Docker start)
+          sudo -u ec2-user bash -lc 'curl -fsSL https://chatgpt.com/codex/install.sh | sh'
+          [ -x /home/ec2-user/.local/bin/codex ] && ln -sf /home/ec2-user/.local/bin/codex /usr/local/bin/codex && (grep -q '.local/bin' /home/ec2-user/.bashrc || echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/ec2-user/.bashrc)
+
           # Create dcv session start script (GDM must stay off; it conflicts with DCV virtual sessions)
           cat << 'EOF' > /usr/local/bin/start-dcv-session
           #!/bin/bash
@@ -447,6 +458,10 @@ Resources:
     Properties:
       GroupDescription: Enable SSH access
       SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
       - IpProtocol: tcp
         FromPort: '8443'
         ToPort: '8443'

@@ -65,6 +65,21 @@ Parameters:
   BaseAccountPolicyName:
     Description: Name for RG Portal Base Account Policy
     Type: String
+  HostedZoneId:
+    Description: Route53 Hosted Zone ID for the RG domain
+    Type: String
+  RunId:
+    Description: Unique run identifier used to name the cross-account project role (RG-Portal-ProjectRole-<Environment>-<RunId>)
+    Type: String
+    MinLength: 1
+    MaxLength: 32
+    AllowedPattern: "[_a-zA-Z0-9-]+"
+    ConstraintDescription: Must contain only alphanumeric characters, hyphens, and underscores (max 32 chars so the derived role name fits IAM limits)
+  UserPoolId:
+    Description: Cognito User Pool ID used by Research Gateway (from config.json / user pool stack)
+    Type: String
+    MinLength: 1
+    ConstraintDescription: Cognito User Pool ID
 Conditions:
   DocumentDBSelected:
     Fn::Equals:
@@ -96,13 +111,8 @@ Resources:
             Action:
               - sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-        - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
-        - arn:aws:iam::aws:policy/IAMReadOnlyAccess
-        - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
-        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
         - Ref: ResearchGatewayRolePolicy
       Path: /
   ResearchGatewayInstanceProfile:
@@ -126,12 +136,35 @@ Resources:
               - ec2:ModifyImageAttribute
               - ec2:CreateNetworkInterface
               - elasticloadbalancing:RegisterTargets
-              - sts:AssumeRole
             Resource: "*"
-          - Sid: "KMSPermissionsForEncryptedAMIs"
+          - Sid: "ECRPullAccess"
+            Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchCheckLayerAvailability
+            Resource: "*"
+          - Sid: "PutObjectAndBucketPolicyOnCFTBucket"
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:PutBucketPolicy
+            Resource:
+              - !Sub "arn:aws:s3:::${CFTBucketName}"
+              - !Sub "arn:aws:s3:::${CFTBucketName}/*"
+          - Sid: "AssumeProjectRole"
+            Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Resource: !Sub "arn:aws:iam::*:role/RG-Portal-ProjectRole-${Environment}-${RunId}"
+          - Sid: "KMSPermissionsForDeploymentAndAMIs"
             Effect: Allow
             Action:
               - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:CreateGrant
               - kms:GetKeyPolicy
               - kms:PutKeyPolicy
             Resource:
@@ -139,24 +172,29 @@ Resources:
             Condition:
               StringEquals:
                 kms:CallerAccount: !Ref AWS::AccountId
-          - Sid: "RoleRelatedPermissions"
+          - Sid: "ReadDocDBSecret"
             Effect: Allow
             Action:
-              - iam:AttachRolePolicy
-              - iam:CreateRole
-              - iam:DetachRolePolicy
-            Resource: 
-              - !GetAtt RGPortalRole.Arn
-          - Sid: "PolicyRelatedPermissions"
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:RG-DocDB-Secret-${Environment}-${RunId}-*"
+          - Sid: "Route53ChangeRecords"
             Effect: Allow
             Action:
-              - iam:CreatePolicy
-              - iam:CreatePolicyVersion
-              - iam:DeletePolicy
-              - iam:DeletePolicyVersion
-              - iam:UpdateAssumeRolePolicy
-            Resource: 
-              - "arn:aws:iam::*:policy/RG-Cross-Account-Policy*"
+              - route53:ChangeResourceRecordSets
+            Resource:
+              - !Sub "arn:aws:route53:::hostedzone/${HostedZoneId}"
+          - Sid: "CognitoUserPoolRuntime"
+            Effect: Allow
+            Action:
+              - cognito-idp:ListUsers
+              - cognito-idp:AdminSetUserPassword
+              - cognito-idp:AdminDisableUser
+              - cognito-idp:AdminEnableUser
+              - cognito-idp:AdminDeleteUser
+              - cognito-idp:AdminInitiateAuth
+              - cognito-idp:AdminRespondToAuthChallenge
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}"
   RGPortalSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -181,15 +219,6 @@ Resources:
         - Key: Name
           Value:
             Fn::Sub: ${AWS::StackName}-SecurityGroup
-  IMDSv2LaunchTemplate:
-    Type: AWS::EC2::LaunchTemplate
-    Properties:
-        LaunchTemplateName: IMDSV2
-        LaunchTemplateData:
-          DisableApiTermination: true
-          MetadataOptions: 
-            HttpTokens: required
-            HttpPutResponseHopLimit: 2
   RGEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
@@ -212,6 +241,10 @@ Resources:
         Ref: Subnet1
       SecurityGroupIds:
         - Ref: RGPortalSG
+      MetadataOptions:
+        HttpTokens: required
+        HttpPutResponseHopLimit: 2
+        HttpEndpoint: enabled
       UserData:
         Fn::Base64:
           Fn::If:

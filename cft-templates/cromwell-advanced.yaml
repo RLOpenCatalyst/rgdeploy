@@ -363,6 +363,53 @@ Resources:
             Action:
               - "sts:AssumeRole"
   
+  InstanceRolePermissionBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EC2 instance role
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-linux-permission-boundary']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:*'
+              - 's3files:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sts:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssm:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssmmessages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ec2messages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sns:Publish'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'batch:*'
+              - 'ecs:*'
+              - 'ecr:*'
+              - 'ec2:*'
+              - 'logs:*'
+              - 'cloudwatch:*'
+            Resource: '*'
+
   BatchInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -420,6 +467,7 @@ Resources:
       - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
       - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
   
   BatchInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -560,6 +608,7 @@ Resources:
           Principal:
             Service: ec2.amazonaws.com
           Action: sts:AssumeRole
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
   
   EC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile

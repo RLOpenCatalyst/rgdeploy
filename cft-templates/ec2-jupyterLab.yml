@@ -33,6 +33,44 @@ Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
 
 Resources:
+  InstanceRolePermissionBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EC2 instance role
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-linux-permission-boundary']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:*'
+              - 's3files:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sts:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssm:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssmmessages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ec2messages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sns:Publish'
+            Resource: '*'
+
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -66,6 +104,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore          
         - arn:aws:iam::aws:policy/AmazonS3FilesClientFullAccess
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
   InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'

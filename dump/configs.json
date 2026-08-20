@@ -514,6 +514,22 @@
     ]
   },
   {
+    "key": "cryptLegacyMapping",
+    "value": {
+      "legacyAlgorithmMap": {
+        "aes192": "aes-192-cbc",
+        "aes256": "aes-256-cbc",
+        "aes128": "aes-128-cbc"
+      },
+      "legacyKeyLength": {
+        "aes192": 24,
+        "aes256": 32,
+        "aes128": 16
+      },
+      "legacyIvLength": 16
+    }
+  },
+  {
     "key": "deleteLocalProvisionedProductIfNotInSC",
     "value": false
   },
@@ -719,8 +735,8 @@
   {
     "key": "retryConfig",
     "value": {
-      "intervalInSeconds": 6,
-      "maxTimes": 10
+      "intervalInSeconds": 10,
+      "maxTimes": 60
     }
   },
   {
@@ -859,8 +875,8 @@
   {
     "key": "retryConfig",
     "value": {
-      "intervalInSeconds": 6,
-      "maxTimes": 10
+      "intervalInSeconds": 10,
+      "maxTimes": 60
     }
   },
   {
@@ -955,6 +971,38 @@
         "last_name",
         "role",
         "userTags"
+      ]
+    }
+  },
+  {
+    "key": "s3FilesMountTarget",
+    "value": {
+      "pollIntervalMs": 5000,
+      "pollMaxAttempts": 60
+    }
+  },
+  {
+    "key": "phantomAssetsIngestion",
+    "value": {
+      "enabled": false,
+      "viewArn": null,
+      "queryString": "tag:none",
+      "maxResourcesPerAccount": 5000,
+      "nonBillableServices": [
+        "iam",
+        "cloudwatch",
+        "logs",
+        "events",
+        "ssm",
+        "organizations",
+        "route53",
+        "support",
+        "health",
+        "trustedadvisor",
+        "shield",
+        "config",
+        "backup",
+        "resource-explorer-2"
       ]
     }
   }

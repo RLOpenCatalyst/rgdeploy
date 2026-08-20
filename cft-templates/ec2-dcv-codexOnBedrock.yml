@@ -3,6 +3,14 @@ Metadata:
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'AWS CloudFormation Template to create an GPU based EC2 instance with NICE DCV pre installed.'
 Parameters:
+  InstanceType:
+    Description: Choose the instance type from the dropdown.
+    Type: String
+    ConstraintDescription: must be a valid EC2 instance type.
+  EBSVolumeSize:
+    Description: The initial size of the volume (in GBs)  EBS will use for storage.
+    Type: Number
+    Default: 70 
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -16,15 +24,30 @@ Parameters:
     Type: String
     Description: >-
       An S3 URI (starting with "s3://") that specifies the location of files to be copied to
-      the environment instance, including any bootstrap scripts
-  InstanceType:
-    Description: Choose the instance type e.g t3.medium (2vCPU , 2GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge(4vCPU, 16GiB RAM)
+      the environment instance, including any bootstrap scripts 
+  # AvailabilityZone:
+  #   Description: Select the availability zone in which to create the instance. If you plan to attach a secondary volume to the instance, create this instance in the same AvailabilityZone as the volume you created.
+  #   Type: AWS::EC2::AvailabilityZone::Name
+  ProjectId:
     Type: String
-    ConstraintDescription: must be a valid EC2 instance type.
-  EBSVolumeSize:
-    Description: The initial size of the volume (in GBs)  EBS will use for storage.
-    Type: Number
-    Default: 70   
+    Default: ''
+    Description: >-
+      RG project id. Research Gateway auto-fills this hidden parameter on every launch
+      (same convention used by other products). Applied as project_name tag on the
+      Bedrock Mantle project created by this stack.
+  ResearcherName:
+    Type: String
+    Default: ''
+    Description: >-
+      Researcher email. Research Gateway auto-fills this hidden parameter on every launch
+      (same convention used by other products). Applied as researcher_name tag on the
+      Bedrock Mantle project created by this stack.
+  CostResource:
+    Type: String
+    Default: ''
+    Description: >-
+      Cost allocation tag for this workspace. When empty, defaults to this stack's name
+      (same pattern as the EC2 instance cost_resource tag below).
   # Password:
   #   Type: String
   #   NoEcho: True
@@ -34,8 +57,27 @@ Parameters:
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
+  HasCostResource: !Not [!Equals [!Ref CostResource, '']]
 
-Resources:  
+Resources:
+  # One Bedrock Mantle project per Codex workspace — created by CloudFormation (not RG API).
+  # Tags match RG's standard cost allocation keys so Bedrock spend flows into the existing
+  # daily project cost sync. Ref returns proj_... for Codex OpenAI-Project header wiring.
+  CodexMantleProject:
+    Type: AWS::BedrockMantle::Project
+    Properties:
+      Name: !Ref Namespace
+      Tags:
+        - Key: project_name
+          Value: !Ref ProjectId
+        - Key: researcher_name
+          Value: !Ref ResearcherName
+        - Key: cost_resource
+          Value: !If
+            - HasCostResource
+            - !Ref CostResource
+            - !Sub '${AWS::StackName}'
+
   SSMPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -59,6 +101,31 @@ Resources:
               - kms:GenerateDataKey
               - kms:DescribeKey
             Resource: "*"
+  BedrockPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Join ["-", [!Ref Namespace, "Bedrock-Policy"]]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          # Codex's amazon-bedrock provider uses the Bedrock Mantle Responses API.
+          - Sid: AllowBedrockMantleInference
+            Effect: Allow
+            Action:
+              - bedrock-mantle:CreateInference
+              - bedrock-mantle:GetProject
+              - bedrock-mantle:ListProjects
+              - bedrock-mantle:ListTagsForResources
+            Resource: "*"
+          # Retain native Bedrock permissions for Invoke/Converse-based tooling.
+          - Sid: AllowBedrockInvoke
+            Effect: Allow
+            Action:
+              - bedrock:ListInferenceProfiles
+              - bedrock:GetInferenceProfile
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: "*"
   InstanceRolePermissionBoundary:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -70,6 +137,9 @@ Resources:
           - Effect: Allow
             Action:
               - 's3:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
               - 's3files:*'
             Resource: '*'
           - Effect: Allow
@@ -83,6 +153,11 @@ Resources:
           - Effect: Allow
             Action:
               - 'ssm:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'bedrock:*'
+              - 'bedrock-mantle:*'
             Resource: '*'
           - Effect: Allow
             Action:
@@ -119,6 +194,7 @@ Resources:
             PolicyDocument: !Ref IamPolicyDocument
       ManagedPolicyArns:
         - Ref: SSMPolicy
+        - Ref: BedrockPolicy
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/AmazonS3FilesClientFullAccess
       PermissionsBoundary: !Ref InstanceRolePermissionBoundary
@@ -135,6 +211,7 @@ Resources:
 
   EC2Instance:
     Type: AWS::EC2::Instance
+    DependsOn: CodexMantleProject
     CreationPolicy:
       ResourceSignal:
         Timeout: PT15M
@@ -298,6 +375,39 @@ Resources:
           chmod 500 "/tmp/get_bootstrap.sh"
           /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}' "" "${AWS::Region}"  
 
+          # Install Codex CLI early (before DCV/Docker start)
+          sudo -u ec2-user bash -lc 'curl -fsSL https://chatgpt.com/codex/install.sh | sh'
+          [ -x /home/ec2-user/.local/bin/codex ] && ln -sf /home/ec2-user/.local/bin/codex /usr/local/bin/codex && (grep -q '.local/bin' /home/ec2-user/.bashrc || echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/ec2-user/.bashrc)
+
+          # Make Amazon Bedrock the default Codex provider. The EC2 instance role
+          # supplies AWS credentials, so no ChatGPT login or OpenAI API key is needed.
+          install -d -m 700 -o ec2-user -g ec2-user /home/ec2-user/.codex
+          cat > /home/ec2-user/.codex/config.toml << 'EOF'
+          model = "openai.gpt-5.5"
+          model_provider = "amazon-bedrock"
+
+          [model_providers.amazon-bedrock.aws]
+          region = "${AWS::Region}"
+          wire_api = "responses"
+          EOF
+
+          # Attribute Codex/Bedrock Mantle usage to the Mantle project created above in this
+          # stack (CodexMantleProject). Ref returns proj_... used as OpenAI-Project header.
+          MANTLE_PROJECT_ID="${CodexMantleProject}"
+          if [ -n "$MANTLE_PROJECT_ID" ]; then
+            cat >> /home/ec2-user/.codex/config.toml << EOF
+
+          [model_providers.amazon-bedrock]
+          http_headers = { "OpenAI-Project" = "$MANTLE_PROJECT_ID" }
+          EOF
+            echo "Codex configured to use Bedrock Mantle project $MANTLE_PROJECT_ID"
+          else
+            echo "No Mantle project id from stack; Codex will use the account default Mantle project"
+          fi
+
+          chown ec2-user:ec2-user /home/ec2-user/.codex/config.toml
+          chmod 600 /home/ec2-user/.codex/config.toml
+
           # Create dcv session start script (GDM must stay off; it conflicts with DCV virtual sessions)
           cat << 'EOF' > /usr/local/bin/start-dcv-session
           #!/bin/bash
@@ -448,11 +558,30 @@ Resources:
       GroupDescription: Enable SSH access
       SecurityGroupIngress:
       - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
         FromPort: '8443'
         ToPort: '8443'
         CidrIp: 0.0.0.0/0
 
 Outputs:
+  MantleProjectId:
+    Description: Bedrock Mantle project id (proj_...) for Codex OpenAI-Project header
+    Value: !Ref CodexMantleProject
+  MantleProjectNameTag:
+    Description: 'project_name cost allocation tag (RG project id)'
+    Value: !Ref ProjectId
+  MantleResearcherNameTag:
+    Description: 'researcher_name cost allocation tag (researcher email)'
+    Value: !Ref ResearcherName
+  MantleCostResourceTag:
+    Description: 'cost_resource cost allocation tag (defaults to stack name when CostResource param is empty)'
+    Value: !If
+      - HasCostResource
+      - !Ref CostResource
+      - !Sub '${AWS::StackName}'
   InstanceId:
     Description: InstanceId of the newly created EC2 instance
     Value: !Ref 'EC2Instance'
