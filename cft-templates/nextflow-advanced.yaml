@@ -138,6 +138,55 @@ Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
 
 Resources:
+  InstanceRolePermissionBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EC2 instance role
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-linux-permission-boundary']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:*'
+              - 's3files:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sts:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssm:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssmmessages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ec2messages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sns:Publish'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'batch:*'
+              - 'ecs:*'
+              - 'ecr:*'
+              - 'ecr-public:*'
+              - 'ec2:*'
+              - 'logs:*'
+              - 'cloudwatch:*'
+              - 'codecommit:*'
+            Resource: '*'
+
   IamInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -170,6 +219,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
         - arn:aws:iam::aws:policy/AmazonElasticContainerRegistryPublicPowerUser
         - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
   
   EC2LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -455,6 +505,7 @@ Resources:
       - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
       - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
   
   BatchInstanceProfile:
     Type: AWS::IAM::InstanceProfile

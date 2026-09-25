@@ -7,7 +7,9 @@ apps=(jq aws)
 for program in "${apps[@]}"; do
 	if ! command -v "$program" >/dev/null 2>&1; then
 		echo "$program not found. This Script needs jq and aws cli. Please install the application/s and restart deployment, Exiting."
+
 		exit 1
+
 	else
 		echo "$program found"
 	fi
@@ -64,6 +66,7 @@ aws s3 cp "$localhome"/docker-compose.yml s3://"$bucketname"
 aws s3 cp "$localhome"/nginx.conf s3://"$bucketname"
 aws s3 cp "$localhome"/updatescripts.sh s3://"$bucketname"
 aws s3 cp "$localhome"/makeconfigs.sh s3://"$bucketname"
+aws s3 cp "$localhome"/makeconfigs-inplace.sh s3://"$bucketname"
 aws s3 cp "$localhome"/mainonly.sh s3://"$bucketname"
 aws s3 cp "$localhome"/makestudies.sh s3://"$bucketname"
 
@@ -107,12 +110,12 @@ rm -f ec2-winsecure-image.zip
 
 # Upload dump data
 cd "$localhome" || exit
-zip dump.zip dump/*
+zip -r dump.zip dump/*
 unzip -l dump.zip
 aws s3 cp dump.zip s3://"$bucketname/"
 rm -f dump.zip
 echo "✅ All files uploaded successfully to s3://$bucketname"
 exit 0
 
-
 # ./upload-assets.sh ami-0f78b782bj5ef10a6 single-cft-test-s3
+

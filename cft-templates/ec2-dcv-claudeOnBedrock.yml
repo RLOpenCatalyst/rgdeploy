@@ -3,6 +3,14 @@ Metadata:
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'AWS CloudFormation Template to create an GPU based EC2 instance with NICE DCV pre installed.'
 Parameters:
+  InstanceType:
+    Description: Choose the instance type from the dropdown.
+    Type: String
+    ConstraintDescription: must be a valid EC2 instance type.
+  EBSVolumeSize:
+    Description: The initial size of the volume (in GBs)  EBS will use for storage.
+    Type: Number
+    Default: 70 
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -17,14 +25,30 @@ Parameters:
     Description: >-
       An S3 URI (starting with "s3://") that specifies the location of files to be copied to
       the environment instance, including any bootstrap scripts
-  InstanceType:
-    Description: Choose the instance type e.g t3.medium (2vCPU , 2GiB RAM), t3.large (2vCPU, 8GiB RAM), t3.xlarge(4vCPU, 16GiB RAM)
+   
+  # AvailabilityZone:
+  #   Description: Select the availability zone in which to create the instance. If you plan to attach a secondary volume to the instance, create this instance in the same AvailabilityZone as the volume you created.
+  #   Type: AWS::EC2::AvailabilityZone::Name
+  ProjectId:
     Type: String
-    ConstraintDescription: must be a valid EC2 instance type.
-  EBSVolumeSize:
-    Description: The initial size of the volume (in GBs)  EBS will use for storage.
-    Type: Number
-    Default: 70   
+    Default: ''
+    Description: >-
+      RG project id. Research Gateway auto-fills this hidden parameter on every launch
+      (same convention used by other products). Applied as project_name tag on the
+      Bedrock Mantle project created by this stack.
+  ResearcherName:
+    Type: String
+    Default: ''
+    Description: >-
+      Researcher email. Research Gateway auto-fills this hidden parameter on every launch
+      (same convention used by other products). Applied as researcher_name tag on the
+      Bedrock Mantle project created by this stack.
+  CostResource:
+    Type: String
+    Default: ''
+    Description: >-
+      Cost allocation tag for this workspace. When empty, defaults to this stack's name
+      (same pattern as the EC2 instance cost_resource tag below).
   # Password:
   #   Type: String
   #   NoEcho: True
@@ -34,8 +58,24 @@ Parameters:
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
+  HasCostResource: !Not [!Equals [!Ref CostResource, '']]
 
-Resources:  
+Resources:
+  ClaudeMantleProject:
+    Type: AWS::BedrockMantle::Project
+    Properties:
+      Name: !Ref Namespace
+      Tags:
+        - Key: project_name
+          Value: !Ref ProjectId
+        - Key: researcher_name
+          Value: !Ref ResearcherName
+        - Key: cost_resource
+          Value: !If
+            - HasCostResource
+            - !Ref CostResource
+            - !Sub '${AWS::StackName}'
+
   SSMPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -70,6 +110,9 @@ Resources:
           - Effect: Allow
             Action:
               - 's3:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
               - 's3files:*'
             Resource: '*'
           - Effect: Allow
@@ -86,6 +129,11 @@ Resources:
             Resource: '*'
           - Effect: Allow
             Action:
+              - 'bedrock:*'
+              - 'bedrock-mantle:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
               - 'ssmmessages:*'
             Resource: '*'
           - Effect: Allow
@@ -95,8 +143,30 @@ Resources:
           - Effect: Allow
             Action:
               - 'sns:Publish'     
-            Resource: '*'                    
-          
+            Resource: '*'
+  BedrockPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Join ["-", [!Ref Namespace, "Bedrock-Policy"]]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowBedrockMantleInference
+            Effect: Allow
+            Action:
+              - bedrock-mantle:CreateInference
+              - bedrock-mantle:GetProject
+              - bedrock-mantle:ListProjects
+              - bedrock-mantle:ListTagsForResources
+            Resource: "*"
+          - Sid: AllowBedrockInvoke
+            Effect: Allow
+            Action:
+              - bedrock:ListInferenceProfiles
+              - bedrock:GetInferenceProfile
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: "*"
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -119,6 +189,7 @@ Resources:
             PolicyDocument: !Ref IamPolicyDocument
       ManagedPolicyArns:
         - Ref: SSMPolicy
+        - Ref: BedrockPolicy
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/AmazonS3FilesClientFullAccess
       PermissionsBoundary: !Ref InstanceRolePermissionBoundary
@@ -135,6 +206,7 @@ Resources:
 
   EC2Instance:
     Type: AWS::EC2::Instance
+    DependsOn: ClaudeMantleProject
     CreationPolicy:
       ResourceSignal:
         Timeout: PT15M
@@ -298,6 +370,42 @@ Resources:
           chmod 500 "/tmp/get_bootstrap.sh"
           /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}' "" "${AWS::Region}"  
 
+          # Install Claude early (before DCV/Docker start)
+          sudo -u ec2-user bash -lc 'curl -fsSL https://claude.ai/install.sh | bash'
+          [ -x /home/ec2-user/.local/bin/claude ] && ln -sf /home/ec2-user/.local/bin/claude /usr/local/bin/claude && (grep -q '.local/bin' /home/ec2-user/.bashrc || echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/ec2-user/.bashrc)
+
+          # Configure Claude Code for Bedrock Mantle only (not Invoke API). The Mantle project
+          # created above (ClaudeMantleProject) is proj_... — pass both workspace headers
+          # (project id, not ARN) so inference is attributed to this stack's Mantle project.
+          MANTLE_PROJECT_ID="${ClaudeMantleProject}"
+          sudo -u ec2-user mkdir -p /home/ec2-user/.claude
+          cat >/home/ec2-user/.claude/settings.json <<EOF
+          {
+            "theme": "dark",
+            "env": {
+              "CLAUDE_CODE_USE_MANTLE": "1",
+              "AWS_REGION": "${AWS::Region}",
+              "ANTHROPIC_CUSTOM_HEADERS": "anthropic-workspace:$MANTLE_PROJECT_ID\\nanthropic-workspace-id:$MANTLE_PROJECT_ID",
+              "ANTHROPIC_DEFAULT_SONNET_MODEL": "anthropic.claude-sonnet-5",
+              "ANTHROPIC_DEFAULT_OPUS_MODEL": "anthropic.claude-opus-5",
+              "ANTHROPIC_DEFAULT_HAIKU_MODEL": "anthropic.claude-haiku-4-5"
+            },
+            "availableModels": [
+              "opus",
+              "sonnet",
+              "haiku",
+              "anthropic.claude-opus-5",
+              "anthropic.claude-sonnet-5",
+              "anthropic.claude-fable-5",
+              "anthropic.claude-opus-4-8",
+              "anthropic.claude-opus-4-7",
+              "anthropic.claude-haiku-4-5"
+            ]
+          }
+          EOF
+          echo "Claude configured for Mantle endpoint with project $MANTLE_PROJECT_ID"
+          chown -R ec2-user:ec2-user /home/ec2-user/.claude
+
           # Create dcv session start script (GDM must stay off; it conflicts with DCV virtual sessions)
           cat << 'EOF' > /usr/local/bin/start-dcv-session
           #!/bin/bash
@@ -448,11 +556,30 @@ Resources:
       GroupDescription: Enable SSH access
       SecurityGroupIngress:
       - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
         FromPort: '8443'
         ToPort: '8443'
         CidrIp: 0.0.0.0/0
 
 Outputs:
+  MantleProjectId:
+    Description: Bedrock Mantle project id (proj_...) for Claude anthropic-workspace header
+    Value: !Ref ClaudeMantleProject
+  MantleProjectNameTag:
+    Description: 'project_name cost allocation tag (RG project id)'
+    Value: !Ref ProjectId
+  MantleResearcherNameTag:
+    Description: 'researcher_name cost allocation tag (researcher email)'
+    Value: !Ref ResearcherName
+  MantleCostResourceTag:
+    Description: 'cost_resource cost allocation tag (defaults to stack name when CostResource param is empty)'
+    Value: !If
+      - HasCostResource
+      - !Ref CostResource
+      - !Sub '${AWS::StackName}'
   InstanceId:
     Description: InstanceId of the newly created EC2 instance
     Value: !Ref 'EC2Instance'

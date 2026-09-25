@@ -520,14 +520,6 @@
       "running": {
         "connect": [
           {
-            "menu": "SSH/RDP",
-            "imageUrl": "../../assets/images/technology@2x.png",
-            "outputsRequired": [
-              "InstanceIPAddress",
-              "InstanceId"
-            ]
-          },
-          {
             "menu": "Open Link",
             "imageUrl": "../../assets/images/link@2x.png",
             "outputsRequired": [
@@ -617,10 +609,6 @@
     "actions": {
       "running": {
         "connect": [
-          {
-            "menu": "SSH/RDP",
-            "imageUrl": "../../assets/images/technology@2x.png"
-          },
           {
             "menu": "Remote Desktop",
             "imageUrl": "../../assets/images/Screen-icon.png"
@@ -871,14 +859,6 @@
     "actions": {
       "running": {
         "connect": [
-          {
-            "menu": "SSH/RDP",
-            "imageUrl": "../../assets/images/technology@2x.png",
-            "outputsRequired": [
-              "InstanceIPAddress",
-              "InstanceId"
-            ]
-          },
           {
             "menu": "Open Link",
             "imageUrl": "../../assets/images/link@2x.png",

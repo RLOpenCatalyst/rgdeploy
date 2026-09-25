@@ -131,3 +131,13 @@ Outputs:
   DeploymentBucketCreated:
     Description: Name of the new S3 bucket to store RG Deployment Files
     Value: !Ref DeploymentBucket
+  DeploymentBucketKMSKeyArn:
+    Description: KMS key ARN used for SSE-KMS encryption of the deployment bucket
+    Value: !GetAtt DeploymentBucketKMSKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-DeploymentBucketKMSKeyArn"
+  DeploymentAccessLogsBucketKMSKeyArn:
+    Description: KMS key ARN used for SSE-KMS encryption of the deployment access logs bucket
+    Value: !GetAtt DeploymentAccessLogsBucketKMSKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-DeploymentAccessLogsBucketKMSKeyArn"

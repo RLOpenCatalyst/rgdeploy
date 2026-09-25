@@ -249,7 +249,7 @@ if ! [ "$SKIP_S3_COPY" = "true" ]; then
 	rm -f config.tar.gz
 
 	echo "Copying script files to new bucket"
-	sed -i "s/secret_name/RL-RG-$runid-$env/g"  "$localhome"/scripts/connect-db.sh  
+	sed -i "s/secret_name/RG-DocDB-Secret-$env-$runid/g"  "$localhome"/scripts/connect-db.sh
 	tar -czf scripts.tar.gz scripts/*
 	tar -tf scripts.tar.gz
 	aws s3 cp "$localhome"/scripts.tar.gz s3://"$bucketname"
@@ -369,7 +369,7 @@ function create_cognito_pool() {
 function create_doc_db() {
 	echo "Creating new stack $1"
 	aws cloudformation deploy --template-file "$localhome"/rg_document_db.yml --stack-name "$1" \
-		--parameter-overrides DocDBSecretName="RL-RG-$runid-$env" VpceSecurityGroupName="RGVE-SG-$runid" \
+		--parameter-overrides DocDBSecretName="RG-DocDB-Secret-$env-$runid" VpceSecurityGroupName="RGVE-SG-$runid" \
 		DBClusterName="RGCluster-$runid" DBInstanceName="RGInstance-$runid" DBInstanceClass="db.t3.medium" \
 		Subnet1="$subnet1id" Subnet2="$subnet2id" Subnet3="$subnet3id" VPC="$vpcid" \
 		SecurityGroupName="RGDB-SG-$runid" DocDBSubnetGroupName="RGDBSubnet-$runid" --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
@@ -380,6 +380,26 @@ function create_doc_db() {
 function create_image_builder() {
 	echo "Creating new stack $1"
 	aws cloudformation deploy --template-file "$localhome"/products/rg_imgbldr.yml --stack-name "$1" \
+		--parameter-overrides PrivateSubnetId="$subnet1id" VPCId="$vpcid" SourceBucketName="$bucketname" \
+    --capabilities CAPABILITY_IAM
+	echo "Waiting for stack $1 to finish deploying..."
+	aws cloudformation wait stack-create-complete --stack-name "$1"
+
+}
+
+function create_securelinximage_builder() {
+	echo "Creating new stack $1"
+	aws cloudformation deploy --template-file "$localhome"/products/SRELinux-AMIpipeline.yml --stack-name "$1" \
+		--parameter-overrides PrivateSubnetId="$subnet1id" VPCId="$vpcid" SourceBucketName="$bucketname" \
+    --capabilities CAPABILITY_IAM
+	echo "Waiting for stack $1 to finish deploying..."
+	aws cloudformation wait stack-create-complete --stack-name "$1"
+
+}
+
+function create_securewindowsimage_builder() {
+	echo "Creating new stack $1"
+	aws cloudformation deploy --template-file "$localhome"/products/SREWindows-AMIpipeline.yaml --stack-name "$1" \
 		--parameter-overrides PrivateSubnetId="$subnet1id" VPCId="$vpcid" SourceBucketName="$bucketname" \
     --capabilities CAPABILITY_IAM
 	echo "Waiting for stack $1 to finish deploying..."
@@ -418,6 +438,7 @@ function create_main_stack() {
 		UserPassword="$secpassword" AdminPassword="$adminpassword" \
 		VPC="$vpcid" Subnet1="$subnet1id" KeyName1="$keypairname" TGARN="$tgarn" \
 		DocumentDBInstanceURL="$docdburl" Environment="$env" BaseAccountPolicyName="RG-Portal-Base-Account-Policy-$env-$runid" \
+		HostedZoneId="$hosted_zone" RunId="$runid" UserPoolId="$userpool_id" \
 		--capabilities CAPABILITY_NAMED_IAM
 	echo "Waiting for stack $1 to finish deploying..."
 	aws cloudformation wait stack-create-complete --stack-name "$mainstackname"
@@ -534,19 +555,90 @@ echo "Image Builder stack outputs"
 aws cloudformation describe-stacks --stack-name "$imgbldrstackname" | jq -r '.Stacks[] | .Outputs[] | .OutputValue'
 
 #===============================================================================================================
+#===============================================================================================================
+#Creating Image Builder Pipelines
+echo "Creating secure linux Image Builder Pipelines stack"
+imgbldrstackname="RG-PortalStack-Securelinux-ImageBuilder-$runid"
+# getstack status if returns 2 exit, if 0 (Create-complete) skip this block 254 to 260
+# if it is 1  delete stack if delete fails, exit stack exists manually delete and retry,
+# next create the new stack.
+echo "$imgbldrstackname"
+eval "get_stack_status $imgbldrstackname"
+stack_status=$?
+echo $stack_status
+imgbldr_start_time=$SECONDS
+if [ $stack_status -eq 3 ]; then
+	exit 1
+fi
+if [ $stack_status -eq 2 ]; then
+	if ! delete_stack "$imgbldrstackname"; then
+		echo "Could not delete stack $imgbldrstackname"
+		exit 1
+	fi
+	stack_status=0
+fi
+if [ $stack_status -eq 0 ]; then
+	if ! create_image_builder "$imgbldrstackname"; then
+		aws cloudformation describe-stack-events --stack-name "$imgbldrstackname"
+		exit 1
+	fi	
+fi
+calculate_duration "Image Builder Stack Creation" "$imgbldr_start_time"
+
+#Capture Image Builder stack outputs
+echo "Image Builder stack outputs"
+aws cloudformation describe-stacks --stack-name "$imgbldrstackname" | jq -r '.Stacks[] | .Outputs[] | .OutputValue'
+
+#===============================================================================================================
+#===============================================================================================================
+#Creating Image Builder Pipelines
+echo "Creating  secure windows Image Builder Pipelines stack"
+imgbldrstackname="RG-PortalStack-Securewindows-ImageBuilder-$runid"
+# getstack status if returns 2 exit, if 0 (Create-complete) skip this block 254 to 260
+# if it is 1  delete stack if delete fails, exit stack exists manually delete and retry,
+# next create the new stack.
+echo "$imgbldrstackname"
+eval "get_stack_status $imgbldrstackname"
+stack_status=$?
+echo $stack_status
+imgbldr_start_time=$SECONDS
+if [ $stack_status -eq 3 ]; then
+	exit 1
+fi
+if [ $stack_status -eq 2 ]; then
+	if ! delete_stack "$imgbldrstackname"; then
+		echo "Could not delete stack $imgbldrstackname"
+		exit 1
+	fi
+	stack_status=0
+fi
+if [ $stack_status -eq 0 ]; then
+	if ! create_image_builder "$imgbldrstackname"; then
+		aws cloudformation describe-stack-events --stack-name "$imgbldrstackname"
+		exit 1
+	fi	
+fi
+calculate_duration "Image Builder Stack Creation" "$imgbldr_start_time"
+
+#Capture Image Builder stack outputs
+echo "Image Builder stack outputs"
+aws cloudformation describe-stacks --stack-name "$imgbldrstackname" | jq -r '.Stacks[] | .Outputs[] | .OutputValue'
+
+#===============================================================================================================
+
 #Creating configs locally
 ac_name=$(aws sts get-caller-identity --query "Account" --output text)
 r53_domain_name="${rgurl//http[s]*:\/\//}"
 jqcmd='.HostedZones[] | select(.Name=='"\"${r53_domain_name}.\""')|.Id'
 hosted_zone=$(aws route53 list-hosted-zones-by-name --dns-name "$r53_domain_name" | jq -r "$jqcmd" | sed -e 's#\/hostedzone\/##')
-secretdb_arn=$(aws secretsmanager get-secret-value --secret-id RL-RG-$runid-$env | jq --raw-output .ARN) 
+secretdb_arn=$(aws secretsmanager get-secret-value --secret-id "RG-DocDB-Secret-$env-$runid" | jq --raw-output .ARN)
 echo "Creating configs locally"
 export RG_ENV="$env"
 ./makeconfigs.sh "$userpool_id" "$userpoolclient_id"  "$bucketname" "$appuser" "$appuserpassword" \
             "$runid" "$rgurl" "$region" "ROLE_NAME" "$ac_name" "$hosted_zone" "$secretdb_arn"
 echo "Uploading configs to $bucketname"
 aws s3 cp "$localhome"/config.tar.gz s3://"$bucketname"
-secpassword=$(aws secretsmanager get-secret-value --secret-id RL-RG-$runid-$env  --version-stage AWSCURRENT | jq --raw-output .SecretString| jq -r ."password")
+secpassword=$(aws secretsmanager get-secret-value --secret-id "RG-DocDB-Secret-$env-$runid" --version-stage AWSCURRENT | jq --raw-output .SecretString| jq -r ."password")
 #===============================================================================================================
 #Creating Main stack
 echo "Deploying main stack (roles, ec2 instance etc.)"

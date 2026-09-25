@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.1.12"
+version="0.1.13"
 echo "Fixing configs...(fixconfig.sh v$version)"
 
 [ -z "$RG_HOME" ] && RG_HOME='/opt/deploy/sp2'
@@ -67,5 +67,17 @@ echo "Modifying docker-compose.yml"
 sed -e "$repcmd" -e "s#APP_ENV=.*#APP_ENV=$RG_ENV#" "$RG_SRC/docker-compose.yml" >"$RG_HOME/docker-compose.yml"
 grep -i "APP_ENV" "$RG_HOME/docker-compose.yml"
 echo "Modified docker-compose.yml"
+
+for dir in logs slogs topologies catalog integrations notification_sink_logs; do
+	mkdir -p "$RG_HOME/$dir"
+done
+
+if [ -f "$RG_SRC/nginx.conf" ]; then
+	cp "$RG_SRC/nginx.conf" "$RG_HOME/nginx.conf"
+elif aws s3 cp "s3://${S3_SOURCE}/nginx.conf" "$RG_HOME/nginx.conf" 2>/dev/null; then
+	echo "Copied nginx.conf from S3"
+else
+	echo "WARNING: nginx.conf not found in $RG_SRC or s3://${S3_SOURCE}/nginx.conf"
+fi
 
 echo 'Configuration changed successfully'

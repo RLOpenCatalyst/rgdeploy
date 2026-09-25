@@ -1,0 +1,6 @@
+Number,Email,Role,FirstName,LastName,OU
+1,sundeep.mallya@relevancelab.com,Principal,Sundeep,Principal,61091b0b56ce850013f6ec29
+2,sundeep.mallya+1@relevancelab.com,Researcher,Research,Mallya,61091b0b56ce850013f6ec29
+3,sundeep.mallya+2@relevancelab.com,Admin,Admin,Mallya,61091b0b56ce850013f6ec29
+4,sundeep.mallya+3@relevancelab.com,NoRole,John,Doe,61091b0b56ce850013f6ec29
+5,sundeep.mallya+4@relevancelab.com,,Default,Researcher,61091b0b56ce850013f6ec29

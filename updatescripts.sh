@@ -18,6 +18,7 @@ tar --keep-newer-files -xvf $RG_SRC/config.tar.gz -C $RG_HOME
 tar -xvf $RG_SRC/config.tar.gz -C $RG_SRC
 
 grep -i 'version=' /usr/local/sbin/fix*.sh /usr/local/sbin/start_server.sh
+chmod +x "$RG_SRC/scripts/*.sh"
 # Check if any of the scripts are later versions than those present
 # in the AMI
 if [ ! -f /usr/local/sbin/fixips.sh ] || [ $RG_SRC/scripts/fixips.sh -nt /usr/local/sbin/fixips.sh ]; then
@@ -74,6 +75,11 @@ if [ ! -f /usr/local/sbin/connect-db.sh ] || [ $RG_SRC/scripts/connect-db.sh -nt
 	cp $RG_SRC/scripts/connect-db.sh /usr/local/sbin/
 fi
 
+if [ ! -f /usr/local/sbin/update-db.sh ] || [ $RG_SRC/scripts/update-db.sh -nt /usr/local/sbin/update-db.sh ]; then
+	echo "Found newer version of update-db.sh. Updating"
+	cp $RG_SRC/scripts/update-db.sh /usr/local/sbin/
+fi
+
 if [ ! -f /usr/local/sbin/import_bulk_users.sh ] || [ $RG_SRC/scripts/import_bulk_users.sh -nt /usr/local/sbin/import_bulk_users.sh ]; then
 	echo "Found newer version of import_bulk_users.sh. Updating"
 	cp $RG_SRC/scripts/import_bulk_users.sh /usr/local/sbin/
@@ -83,6 +89,6 @@ if [ ! -f /usr/local/sbin/swarm_init.sh ] || [ $RG_SRC/scripts/swarm_init.sh -nt
 	echo "Found newer version of swarm_init.sh. Updating"
 	cp $RG_SRC/scripts/swarm_init.sh /usr/local/sbin/
 fi
-grep -i 'version=' /usr/local/sbin/fix*.sh /usr/local/sbin/start_server.sh /usr/local/sbin/import-seed-db.sh /usr/local/sbin/updatessmpaths.sh /usr/local/sbin/connect-db.sh
+grep -i 'version=' /usr/local/sbin/fix*.sh /usr/local/sbin/start_server.sh /usr/local/sbin/import-seed-db.sh /usr/local/sbin/updatessmpaths.sh /usr/local/sbin/connect-db.sh /usr/local/sbin/update-db.sh
 rm -rf $RG_SRC/scripts
 echo "Done updating scripts"

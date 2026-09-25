@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.1.9"
+version="0.1.11"
 echo "Starting server....(start_server.sh v$version)"
 if [ "$1" == "-h" ]; then
 	echo "Usage: $(basename $0) <application_url> <target_group_arn>"
@@ -27,10 +27,8 @@ docker pull $(cat "$RG_HOME/docker-compose.yml" | grep -i image | grep -i nginx 
 echo 'Pulling docker image for notificationsink'
 docker pull $(cat "$RG_HOME/docker-compose.yml" | grep -i image | grep -i notificationsink | awk '{print $2}' | uniq | tr -d '\r')
 
-echo 'Modifying HttpResponseHopLimit'
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 ec2instanceid=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
-aws ec2 modify-instance-metadata-options --instance-id "$ec2instanceid" --http-put-response-hop-limit 2 --http-endpoint enabled
 
 if [ -z $myurl ]; then
 	public_host_name="$(wget --header="X-aws-ec2-metadata-token: $TOKEN" -qO- http://169.254.169.254/latest/meta-data/public-hostname)"
@@ -42,7 +40,6 @@ echo "BaseURL=$baseurl"
 echo "TGARN=$tgarn"
 
 if [ ! -z $tgarn ]; then
-	ec2instanceid=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
 	echo "Registering instance $ec2instanceid with Target group: $tgarn"
 	aws elbv2 register-targets --targets "Id=$ec2instanceid,Port=$port" --target-group-arn "$tgarn"
 fi
@@ -50,6 +47,14 @@ echo "Calling swarm init will respond with error if this node is already part of
 /usr/local/sbin/swarm_init.sh
 
 echo "Creating secrets"
+mkdir -p "$RG_HOME"/{logs,slogs,notification_sink_logs}
+if [ ! -f "$RG_HOME/nginx.conf" ]; then
+	if [ -f "${RG_SRC:-/home/ec2-user/rgdeploy}/nginx.conf" ]; then
+		cp "${RG_SRC:-/home/ec2-user/rgdeploy}/nginx.conf" "$RG_HOME/nginx.conf"
+	elif [ -n "${S3_SOURCE:-}" ]; then
+		aws s3 cp "s3://${S3_SOURCE}/nginx.conf" "$RG_HOME/nginx.conf" || true
+	fi
+fi
 fixsecrets.sh
 
 echo "Starting stack..."

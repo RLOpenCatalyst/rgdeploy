@@ -182,6 +182,10 @@ docdbstackname="RG-PortalStack-DocDB-$runid"
 #Capture DocumentDB Instance Id
 docdburl=$(aws cloudformation describe-stacks --stack-name $docdbstackname | jq -r '.Stacks[] | .Outputs[] | select(.OutputKey=="InstanceEndpoint")|.OutputValue')
 
+r53_domain_name="${rgurl//http[s]*:\/\//}"
+jqcmd='.HostedZones[] | select(.Name=='"\"${r53_domain_name}.\""')|.Id'
+hosted_zone=$(aws route53 list-hosted-zones-by-name --dns-name "$r53_domain_name" | jq -r "$jqcmd" | sed -e 's#\/hostedzone\/##')
+
 #Creating Main stack
 #update the AMI id in the RGMainStack CFT
 echo $amiid | grep -E '^ami-[0-9a-zA-Z]+'
@@ -195,10 +199,12 @@ mainstack_start_time=$SECONDS
 mainstackname="RG-PortalStack-$runid"
 aws cloudformation deploy --template-file $localhome/rg_main_stack.yml \
                           --stack-name "$mainstackname" \
-                          --parameter-overrides ClientId="$userpoolclient_id" UserPoolId="$userpool_id" \
+                          --parameter-overrides UserPoolId="$userpool_id" \
                             CFTBucketName="$bucketname" RGUrl="$rgurl" UserPassword="$appuserpassword" AdminPassword="$adminpassword" \
                             VPC="$vpcid" Subnet1="$subnet1id" KeyName1="$keypairname" TGARN="$tgarn" \
                             DocumentDBInstanceURL="$docdburl" Environment="$env" \
+                            BaseAccountPolicyName="RG-Portal-Base-Account-Policy-$env-$runid" \
+                            HostedZoneId="$hosted_zone" RunId="$runid" \
                           --capabilities CAPABILITY_NAMED_IAM
 aws cloudformation wait stack-create-complete --stack-name "$mainstackname"
 if [ $? -gt 0 ]; then

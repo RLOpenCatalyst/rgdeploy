@@ -24,16 +24,28 @@ Parameters:
   EBSVolumeSize:
     Description: The initial size of the volume (in GBs)  EBS will use for storage.
     Type: Number
-    Default: 70   
-  # Password:
-  #   Type: String
-  #   NoEcho: True
-  #   Description: Password for the default ec2-user account. Must be at least 8 characters long.
-  #   MinLength: 8
-  #   ConstraintDescription: Password must be at least 8 characters long.
+    Default: 70
+  ALBSecurityGroup:
+    Description: Security Group Id of the ALB to which the EC2 instance traffic will be allowed from
+    Type: AWS::EC2::SecurityGroup::Id
+  WorkSpaceSecurityGroup:
+    Description: Security Group Id of the workspace to which the EC2 instance traffic will be allowed from
+    Type: AWS::EC2::SecurityGroup::Id
+    Default: ''
+  VPC:
+    Description: (Optional) The ID of the VPC where the instance will be launched. If not provided, the default VPC will be used.
+    Type: AWS::EC2::VPC::Id
+    Default: ''
+  Subnet:
+    Description: (Optional) The ID of the subnet where the instance will be launched. If not provided, the default subnet in the specified AvailabilityZone will be used.
+    Type: AWS::EC2::Subnet::Id
+    Default: ''
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
+  HasVpcId: !Not [!Equals [!Ref VPC, '']]
+  HasSubnetId: !Not [!Equals [!Ref Subnet, '']]
+  HasWorkSpaceSecurityGroup: !Not [!Equals [!Ref WorkSpaceSecurityGroup, '']]
 
 Resources:  
   SSMPolicy:
@@ -422,7 +434,18 @@ Resources:
           echo "Session ready. Sending signal."
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
       InstanceType: !Ref 'InstanceType'
-      SecurityGroups: [!Ref 'InstanceSecurityGroup']
+      NetworkInterfaces: !If
+        - HasSubnetId
+        - - DeviceIndex: 0
+            SubnetId: !Ref Subnet
+            GroupSet:
+              - !Ref InstanceSecurityGroup
+              - !If
+                - HasWorkSpaceSecurityGroup
+                - !Ref WorkSpaceSecurityGroup
+                - !Ref 'AWS::NoValue'
+        - !Ref 'AWS::NoValue'
+      SecurityGroups: !If [HasSubnetId, !Ref 'AWS::NoValue', [!Ref 'InstanceSecurityGroup']]
       ImageId: "{{resolve:ssm:/RL/RG/StandardCatalog/linux-nice-dcv-ami}}"
       IamInstanceProfile: !Ref InstanceProfile
       BlockDeviceMappings:
@@ -445,23 +468,31 @@ Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable SSH access
+      GroupDescription: Enable SSH access and DCV
+      VpcId: !If [HasVpcId, !Ref VPC, !Ref 'AWS::NoValue']
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '8443'
-        ToPort: '8443'
-        CidrIp: 0.0.0.0/0
+        - !If
+          - HasWorkSpaceSecurityGroup
+          - IpProtocol: tcp
+            FromPort: '22'
+            ToPort: '22'
+            SourceSecurityGroupId: !Ref WorkSpaceSecurityGroup
+          - !Ref 'AWS::NoValue'
+        - IpProtocol: tcp
+          FromPort: '8443'
+          ToPort: '8443'
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
 
 Outputs:
   InstanceId:
     Description: InstanceId of the newly created EC2 instance
     Value: !Ref 'EC2Instance'
-  InstanceIPAddress:
+  InstancePrivateIPAddress:
     Description: IP address of the newly created EC2 instance
-    Value: !GetAtt [EC2Instance, PublicIp]
-  InstanceDNSName:
+    Value: !If [HasSubnetId, !GetAtt [EC2Instance, PrivateIp], !GetAtt [EC2Instance, PublicIp]]
+  InstancePrivateDNSName:
     Description: DNS name of the newly created EC2 instance
-    Value: !GetAtt [EC2Instance, PublicDnsName]
+    Value: !If [HasSubnetId, !GetAtt [EC2Instance, PrivateDnsName], !GetAtt [EC2Instance, PublicDnsName]]
   ApplicationPort:
     Description: The Port in which the application is running
     Value: '8443'
