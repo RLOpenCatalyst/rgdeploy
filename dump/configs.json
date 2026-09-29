@@ -1005,5 +1005,12 @@
         "resource-explorer-2"
       ]
     }
-  }
+  }, {
+   key: "provisioningStatusLimits",
+   value: {
+     maxRetries: 100,
+     delay: 5000
+   }
+ }
+
 ]
