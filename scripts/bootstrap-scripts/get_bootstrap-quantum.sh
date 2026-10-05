@@ -18,17 +18,17 @@ sudo mkdir -p "$INSTALL_DIR"
 # Download instance files
 sudo aws s3 sync "$bootstrap_s3_location" "$INSTALL_DIR" --region "$region"
 
-# Execute bootstrap script if present
-bootstrap_script="$INSTALL_DIR/bootstrap.sh"
+# Execute quantum bootstrap script if present
+bootstrap_script="$INSTALL_DIR/bootstrap-quantum.sh"
 
 if [ -s "$bootstrap_script" ]; then
     sudo chmod 500 "$bootstrap_script"
     if ! sudo "$bootstrap_script" "$s3_mounts" "$rstudio_user"; then
-        printf 'ERROR: bootstrap.sh failed\n' >&2
+        printf 'ERROR: bootstrap-quantum.sh failed\n' >&2
         exit 1
     fi
 else
-    printf 'ERROR: bootstrap.sh not found under %s\n' "$INSTALL_DIR" >&2
+    printf 'ERROR: bootstrap-quantum.sh not found under %s\n' "$INSTALL_DIR" >&2
     exit 1
 fi
 

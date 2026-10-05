@@ -18,7 +18,7 @@ Parameters:
       - AES256
   EnableS3Files:
     Type: String
-    Default: "false"
+    Default: "true"
     AllowedValues:
       - "true"
       - "false"
@@ -73,14 +73,15 @@ Resources:
                 Effect: Allow
                 Action:
                   - s3:ListBucket
-                  - s3:GetBucketLocation
+                  - s3:ListBucketVersions   # required for S3 Files sync
                 Resource: !GetAtt SampleBucket.Arn
               - Sid: S3ObjectAccess
                 Effect: Allow
                 Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:DeleteObject
+                  - s3:GetObject*           # versioned get needed for import
+                  - s3:PutObject*           # versioned put needed for export
+                  - s3:DeleteObject*
+                  - s3:AbortMultipartUpload
                 Resource: !Sub "${SampleBucket.Arn}/*"
               - !If
                 - AES256
@@ -91,7 +92,17 @@ Resources:
                     - kms:Decrypt
                     - kms:GenerateDataKey
                   Resource: !Ref KMSKeyArn
-
+              - Sid: EventBridgeManage     # required: S3 Files creates the DO-NOT-DELETE rule for import
+                Effect: Allow
+                Action:
+                  - events:PutRule
+                  - events:PutTargets
+                  - events:DeleteRule
+                  - events:RemoveTargets
+                Condition:
+                  StringEquals:
+                    events:ManagedBy: elasticfilesystem.amazonaws.com
+                Resource: !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:rule/DO-NOT-DELETE-S3-Files*"
   S3FileSystem:
     Type: AWS::S3Files::FileSystem
     Condition: EnableS3FilesCondition

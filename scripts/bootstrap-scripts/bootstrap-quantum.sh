@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Prepares S3 / S3 Files study mounts on a workspace instance.
+# Prepares S3 / S3 Files study mounts on a workspace instance (quantum test path).
 S3_MOUNTS="$1"
 RSTUDIO_USER="$2"
 
@@ -8,6 +8,8 @@ RSTUDIO_USER="$2"
 
 FILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 GOOFYS_URL="https://github.com/kahing/goofys/releases/download/v0.24.0/goofys"
+MOUNT_S3_SRC="${FILES_DIR}/bin/mount_s3-quantum.sh"
+MOUNT_S3_BIN="/usr/local/bin/mount_s3-quantum.sh"
 
 env_type() {
     if [ -d "/usr/share/aws/emr" ]
@@ -87,32 +89,31 @@ add_mount_hook() {
     local profile_file="$1"
     local owner="$2"
     sudo touch "$profile_file"
-    # Quiet + once-per-shell: mount_s3.sh logs to ~/.mount_s3.log; stdout spam annoyed VS Code terminals.
+    # Quiet + once-per-shell: mount_s3-quantum.sh logs to ~/.mount_s3.log
     if ! grep -qF 'RG_STUDIES_MOUNTED' "$profile_file" 2>/dev/null; then
-        # Drop the old noisy one-liner if present
-        if grep -qF 'mount_s3.sh' "$profile_file" 2>/dev/null; then
-            sudo sed -i '/mount_s3\.sh/d;/Research Gateway S3 study mounts/d;/Mount S3 study data/d' "$profile_file"
+        if grep -qE 'mount_s3(-quantum)?\.sh' "$profile_file" 2>/dev/null; then
+            sudo sed -i '/mount_s3\(\|-quantum\)\.sh/d;/Research Gateway S3 study mounts/d;/Mount S3 study data/d' "$profile_file"
         fi
-        printf '\n# Research Gateway S3 study mounts\nif [ -z "${RG_STUDIES_MOUNTED:-}" ] && [ -x /usr/local/bin/mount_s3.sh ]; then\n  export RG_STUDIES_MOUNTED=1\n  /usr/local/bin/mount_s3.sh >>"${HOME}/.mount_s3.log" 2>&1\nfi\n\n' \
+        printf '\n# Research Gateway S3 study mounts\nif [ -z "${RG_STUDIES_MOUNTED:-}" ] && [ -x /usr/local/bin/mount_s3-quantum.sh ]; then\n  export RG_STUDIES_MOUNTED=1\n  /usr/local/bin/mount_s3-quantum.sh >>"${HOME}/.mount_s3.log" 2>&1\nfi\n\n' \
             | sudo tee -a "$profile_file" >/dev/null
     fi
     sudo chown "${owner}:${owner}" "$profile_file"
 }
 
 install_mount_systemd_unit() {
-    local user="$1"
-    local home="/home/${user}"
+    # Run as root: QuantumHome remounts /home (EFS). Running as ec2-user then
+    # loses HOME mid-script and ProjectStorage (S3Files) never finishes.
     sudo tee /etc/systemd/system/rg-mount-s3.service >/dev/null <<EOF
 [Unit]
-Description=Research Gateway S3 study mounts
+Description=Research Gateway S3 study mounts (quantum)
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=oneshot
-User=${user}
-Environment=HOME=${home}
-ExecStart=/usr/local/bin/mount_s3.sh
+User=root
+Environment=HOME=/root
+ExecStart=/usr/local/bin/mount_s3-quantum.sh
 RemainAfterExit=yes
 
 [Install]
@@ -122,21 +123,32 @@ EOF
     sudo systemctl enable rg-mount-s3.service >/dev/null 2>&1 || true
 }
 
+install_system_mount_profile() {
+    # AD users never get ec2-user bashrc hooks; /etc/profile.d covers everyone.
+    sudo tee /etc/profile.d/rg-mount-s3.sh >/dev/null <<'EOF'
+# Research Gateway S3 study mounts
+if [ -z "${RG_STUDIES_MOUNTED:-}" ] && [ -x /usr/local/bin/mount_s3-quantum.sh ]; then
+  export RG_STUDIES_MOUNTED=1
+  /usr/local/bin/mount_s3-quantum.sh >>"${HOME}/.mount_s3.log" 2>&1 || true
+fi
+EOF
+    sudo chmod 644 /etc/profile.d/rg-mount-s3.sh
+}
+
 run_initial_mount() {
-    local user="$1"
-    local home="/home/${user}"
     local attempt=0
     local max_attempts=24
+    local log="/var/log/rg-mount-s3.log"
 
-    [ -d "$home" ] || return 0
-    sudo touch "${home}/.mount_s3.log"
-    sudo chown "${user}:${user}" "${home}/.mount_s3.log"
+    sudo touch "$log"
 
     while [ "$attempt" -lt "$max_attempts" ]; do
-        if sudo -u "$user" -H aws sts get-caller-identity >/dev/null 2>&1; then
-            sudo -u "$user" -H /usr/local/bin/mount_s3.sh >>"${home}/.mount_s3.log" 2>&1 || true
+        if aws sts get-caller-identity >/dev/null 2>&1; then
+            # Must run as root so QuantumHome (/home EFS) does not yank the
+            # caller's HOME out from under S3Files/ProjectStorage linking.
+            sudo "$MOUNT_S3_BIN" >>"$log" 2>&1 || true
             sleep 15
-            sudo -u "$user" -H /usr/local/bin/mount_s3.sh >>"${home}/.mount_s3.log" 2>&1 || true
+            sudo "$MOUNT_S3_BIN" >>"$log" 2>&1 || true
             return 0
         fi
         sleep 10
@@ -147,14 +159,14 @@ run_initial_mount() {
 
 setup_linux_user_mounts() {
     local user="$1"
-    if ! id "$user" >/dev/null 2>&1; then
-        return 0
+    install_mount_systemd_unit
+    install_system_mount_profile
+    if id "$user" >/dev/null 2>&1 && [ -d "/home/${user}" ]; then
+        add_mount_hook "/home/${user}/.bash_profile" "$user"
+        add_mount_hook "/home/${user}/.bashrc" "$user"
+        add_mount_hook "/home/${user}/.profile" "$user"
     fi
-    add_mount_hook "/home/${user}/.bash_profile" "$user"
-    add_mount_hook "/home/${user}/.bashrc" "$user"
-    add_mount_hook "/home/${user}/.profile" "$user"
-    install_mount_systemd_unit "$user"
-    run_initial_mount "$user"
+    run_initial_mount
 }
 
 case "$(env_type)" in
@@ -166,14 +178,14 @@ case "$(env_type)" in
         ;;
 esac
 
-if [ ! -f "${FILES_DIR}/bin/mount_s3.sh" ]; then
-    printf 'ERROR: %s/bin/mount_s3.sh is missing; sync bootstrap-scripts to S3\n' "$FILES_DIR" >&2
+if [ ! -f "$MOUNT_S3_SRC" ]; then
+    printf 'ERROR: %s is missing; sync bootstrap-scripts to S3 (bin/mount_s3-quantum.sh)\n' "$MOUNT_S3_SRC" >&2
     exit 1
 fi
 
 sudo mkdir -p /usr/local/etc
-sudo chmod +x "${FILES_DIR}/bin/mount_s3.sh"
-sudo ln -sf "${FILES_DIR}/bin/mount_s3.sh" "/usr/local/bin/mount_s3.sh"
+sudo chmod +x "$MOUNT_S3_SRC"
+sudo ln -sf "$MOUNT_S3_SRC" "$MOUNT_S3_BIN"
 printf "%s" "$S3_MOUNTS" | sudo tee /usr/local/etc/s3-mounts.json >/dev/null
 sudo chmod 644 /usr/local/etc/s3-mounts.json
 

@@ -11,20 +11,23 @@
 #   "filesystem-id": "fs-..."   # required when source is S3Files or EFS
 #   "region": "us-east-2"       # recommended for EFS NFS DNS mount
 #   "prefix": "" | "subdir"     # EFS: normalized by backend before S3Mounts is written
+#   "target": "/home"           # optional; only for the single EFS used as user homes
 # }, ...]
 #
-# S3Files: mount each filesystem once under ~/studies/.s3files/<fs-id>,
-# then symlink ~/studies/<id> -> <mount>/<prefix> (e.g. Shared).
+# Default study mounts: /mnt/studies/<id>
+# Optional EFS home:    target=/home mounts that filesystem at /home (at most one)
+#
+# S3Files: mount each filesystem once under /mnt/studies/.s3files/<fs-id>,
+# then symlink /mnt/studies/<id> -> <mount>/<prefix> (e.g. Shared).
 # Do not mount NFS on the study path itself (that exposes lost+found and
 # confuses GNOME Files).
-#
-# EFS (demo): mount NFS at ~/studies/<id>; prefix is normalized by backend ("" = root).
 
 CONFIG="/usr/local/etc/s3-mounts.json"
-MOUNT_DIR="${HOME}/studies"
+MOUNT_DIR="/mnt/studies"
 S3FILES_ROOT="${MOUNT_DIR}/.s3files"
 AWS_CONFIG_DIR="${HOME}/.aws"
 LOG_FILE="${HOME}/.mount_s3.log"
+HOME_MOUNT_TARGET="/home"
 
 [ ! -s "$CONFIG" ] && exit 0
 
@@ -232,6 +235,12 @@ link_study_to_s3files_mount() {
     local link_target
     local prefix_rel
 
+    # Backend often sends prefix=""; S3 Files layout keeps data under Shared/.
+    # Link study path into Shared so ProjectStorage shows files, not the Shared folder.
+    if [ -z "$s3_prefix" ] || [ "$s3_prefix" = "null" ]; then
+        s3_prefix="Shared"
+    fi
+
     # Ensure the NFS filesystem is mounted before creating the study symlink
     if ! mountpoint -q "$fs_mount_point" 2>/dev/null; then
         info "S3Files filesystem \"${filesystem_id}\" not mounted; mounting at \"${fs_mount_point}\""
@@ -251,11 +260,14 @@ link_study_to_s3files_mount() {
                 log "ERROR: cannot create prefix ${prefix_rel} for study ${study_id}"
                 return 1
             fi
-            fix_path_ownership "${fs_mount_point}/${prefix_rel}"
         fi
     fi
 
     link_target="$(s3files_link_target "$fs_mount_point" "$s3_prefix")"
+    # AD multi-user: mount often runs as root; 777 so every desktop user can write.
+    if [ -e "$link_target" ]; then
+        sudo chmod 777 "$link_target" 2>/dev/null || true
+    fi
     if study_link_is_healthy "$study_dir" "$link_target" "$fs_mount_point"; then
         return 0
     fi
@@ -275,15 +287,18 @@ link_study_to_s3files_mount() {
     info "Linked study \"${study_id}\" -> \"${link_target}\""
 }
 
-# Mount classic Amazon EFS at ~/studies/<id>.
+# Mount classic Amazon EFS.
+# Default: /mnt/studies/<id>. If target is /home, mount at /home (shared AD homes).
 # prefix is already normalized by backend (empty = root, else e.g. "folderA").
 mount_efs_at_study_path() {
     local study_id="$1"
     local filesystem_id="$2"
     local efs_region="$3"
     local efs_prefix="$4"
-    local study_dir="${MOUNT_DIR}/${study_id}"
+    local mount_target="${5:-}"
+    local study_dir
     local remote_path="/"
+    local is_home_mount="false"
 
     if [ -z "$filesystem_id" ] || [ "$filesystem_id" = "null" ]; then
         printf 'ERROR: EFS study "%s" is missing filesystem-id\n' "$study_id" >&2
@@ -297,22 +312,30 @@ mount_efs_at_study_path() {
         remote_path="/${efs_prefix}"
     fi
 
-    mkdir -p "$MOUNT_DIR"
-    # Study path may be a leftover symlink from S3Files; remove before NFS mount
-    if [ -L "$study_dir" ]; then
-        rm -f "$study_dir"
+    if [ "$mount_target" = "$HOME_MOUNT_TARGET" ]; then
+        study_dir="$HOME_MOUNT_TARGET"
+        is_home_mount="true"
+    else
+        study_dir="${MOUNT_DIR}/${study_id}"
+        sudo mkdir -p "$MOUNT_DIR"
+        # Study path may be a leftover symlink from S3Files; remove before NFS mount
+        if [ -L "$study_dir" ]; then
+            rm -f "$study_dir"
+        fi
+        sudo mkdir -p "$study_dir"
     fi
-    mkdir -p "$study_dir"
 
     if mountpoint -q "$study_dir" 2>/dev/null; then
         info "EFS already mounted at \"${study_dir}\""
         return 0
     fi
 
-    info "Mounting EFS \"${filesystem_id}:${remote_path}\" at \"${study_dir}\""
+    info "Mounting EFS \"${filesystem_id}:${remote_path}\" at \"${study_dir}\" (study=${study_id})"
     if command -v mount.efs >/dev/null 2>&1 || [ -x /sbin/mount.efs ] || [ -x /usr/sbin/mount.efs ]; then
         if sudo mount -t efs -o tls,_netdev "${filesystem_id}:${remote_path}" "$study_dir"; then
-            fix_path_ownership "$study_dir"
+            if [ "$is_home_mount" != "true" ]; then
+                fix_path_ownership "$study_dir"
+            fi
             return 0
         fi
         log "WARN: mount -t efs failed for ${filesystem_id}:${remote_path}; trying nfs4"
@@ -323,7 +346,9 @@ mount_efs_at_study_path() {
         "${filesystem_id}.efs.${efs_region}.amazonaws.com:${remote_path}" \
         "$study_dir"
     then
-        fix_path_ownership "$study_dir"
+        if [ "$is_home_mount" != "true" ]; then
+            fix_path_ownership "$study_dir"
+        fi
         return 0
     fi
 
@@ -344,11 +369,40 @@ if [ "$(uname -s)" = "Linux" ]; then
     is_linux="true"
 fi
 
-mkdir -p "$S3FILES_ROOT"
-log "mount_s3.sh start user=$(id -un) home=${HOME}"
+mkdir -p "$AWS_CONFIG_DIR" 2>/dev/null || true
+sudo mkdir -p "$MOUNT_DIR" "$S3FILES_ROOT"
+sudo chmod 755 "$MOUNT_DIR" 2>/dev/null || true
+# Convenience for interactive users who still look under ~/studies
+if [ -n "${HOME}" ] && [ ! -e "${HOME}/studies" ]; then
+    ln -sfn "$MOUNT_DIR" "${HOME}/studies" 2>/dev/null || true
+fi
+log "mount_s3.sh start user=$(id -un) home=${HOME} mount_dir=${MOUNT_DIR}"
 
 mounts="$(cat "$CONFIG")"
 num_mounts=$(printf "%s" "$mounts" | jq ". | length" -)
+
+# Pass 0: EFS with target=/home first (only one expected)
+if [ "$is_linux" = "true" ]; then
+    for ((study_idx=0; study_idx<num_mounts; study_idx++)); do
+        mount_source="$(printf "%s" "$mounts" | jq -r ".[$study_idx].source // \"S3\"" -)"
+        mount_type="$(printf "%s" "$mounts" | jq -r ".[$study_idx].type // \"\"" -)"
+        mount_target="$(printf "%s" "$mounts" | jq -r ".[$study_idx].target // \"\"" -)"
+        if [ "$mount_target" != "$HOME_MOUNT_TARGET" ]; then
+            continue
+        fi
+        if [ "$mount_source" != "EFS" ] && [ "$mount_type" != "EFS" ]; then
+            printf 'ERROR: target=/home is only supported for EFS mounts (study_idx=%s)\n' "$study_idx" >&2
+            continue
+        fi
+        study_id="$(printf "%s" "$mounts" | jq -r ".[$study_idx].id" -)"
+        filesystem_id="$(printf "%s" "$mounts" | jq -r ".[$study_idx].\"filesystem-id\" // .[$study_idx].filesystemId // \"\"" -)"
+        bucket_region="$(printf "%s" "$mounts" | jq -r ".[$study_idx].region" -)"
+        s3_prefix="$(printf "%s" "$mounts" | jq -r ".[$study_idx].prefix" -)"
+        if ! mount_efs_at_study_path "$study_id" "$filesystem_id" "$bucket_region" "$s3_prefix" "$HOME_MOUNT_TARGET"; then
+            printf 'ERROR: failed to mount home EFS study "%s"\n' "$study_id" >&2
+        fi
+    done
+fi
 
 # Pass 1: mount each unique S3 Files filesystem once
 if [ "$is_linux" = "true" ]; then
@@ -381,12 +435,18 @@ for ((study_idx=0; study_idx<num_mounts; study_idx++)); do
     bucket_region="$(printf "%s" "$mounts" | jq -r ".[$study_idx].region" -)"
     mount_source="$(printf "%s" "$mounts" | jq -r ".[$study_idx].source // \"S3\"" -)"
     mount_type="$(printf "%s" "$mounts" | jq -r ".[$study_idx].type // \"\"" -)"
+    mount_target="$(printf "%s" "$mounts" | jq -r ".[$study_idx].target // \"\"" -)"
     filesystem_id="$(printf "%s" "$mounts" | jq -r ".[$study_idx].\"filesystem-id\" // .[$study_idx].filesystemId // \"\"" -)"
     study_dir="${MOUNT_DIR}/${study_id}"
 
-    # Demo: classic EFS -> ~/studies/<id> (prefix selects remote subdir; "" = root)
+    # Home EFS already handled in pass 0
+    if [ "$mount_target" = "$HOME_MOUNT_TARGET" ]; then
+        continue
+    fi
+
+    # Classic EFS -> /mnt/studies/<id> (prefix selects remote subdir; "" = root)
     if [ "$is_linux" = "true" ] && { [ "$mount_source" = "EFS" ] || [ "$mount_type" = "EFS" ]; }; then
-        if ! mount_efs_at_study_path "$study_id" "$filesystem_id" "$bucket_region" "$s3_prefix"; then
+        if ! mount_efs_at_study_path "$study_id" "$filesystem_id" "$bucket_region" "$s3_prefix" ""; then
             printf 'ERROR: failed to mount EFS study "%s"\n' "$study_id" >&2
         fi
         continue
@@ -403,7 +463,7 @@ for ((study_idx=0; study_idx<num_mounts; study_idx++)); do
     else
         ps -U "$LOGNAME" -o "command" | egrep -q "goofys .* ${study_dir}$"
         if [ $? -ne 0 ]; then
-            mkdir -p "$study_dir"
+            sudo mkdir -p "$study_dir"
             if [ "$s3_role_arn" == "null" ]; then
                 info "Mounting internal study \"${study_id}\" at \"${study_dir}\""
                 goofys --region "$bucket_region" --acl "bucket-owner-full-control" \
