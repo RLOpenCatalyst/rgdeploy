@@ -18,7 +18,7 @@ Parameters:
       - AES256
   EnableS3Files:
     Type: String
-    Default: "true"
+    Default: "false"
     AllowedValues:
       - "true"
       - "false"
