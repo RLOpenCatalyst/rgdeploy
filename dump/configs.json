@@ -618,15 +618,18 @@
     "value": [
       "ec2",
       "rstudio",
-      "nextflow",
-      "cromwell",
       "ec2-dcv",
       "sagemaker",
-      "ec2-igv",
       "ec2-secure-desktop",
       "ec2-jupyterlab",
       "ec2-vscode",
-      "ec2-remote-desktop"
+      "ec2-remote-desktop",
+      "azure-rstudio",
+      "azure-jupyterlab",
+      "vm",
+      "windowsvm",
+      "securelinux", 
+      "securewindows"
     ],
     "s3Mounts": {
       "ProjectStorage": {
@@ -815,44 +818,27 @@
       "productList": [
         "ec2",
         "rstudio",
-        "nextflow",
-        "cromwell",
         "sagemaker",
-        "ec2-igv",
         "ec2-dcv",
         "ec2-vscode",
         "ec2-jupyterlab",
         "ec2-secure-desktop",
-        "ec2-remote-desktop"
+        "ec2-remote-desktop",
+        "azure-rstudio",
+        "azure-jupyterlab",
+        "vm",
+        "windowsvm",
+        "securelinux", 
+        "securewindows"
       ]
     },
-    "studySelectionCount": 11
+    "studySelectionCount": 5
   },
   {
     "key": "useDBForBudget",
     "value": [
       "67ee4b2e141fab6fe35edae3"
     ]
-  },
-  {
-    "key": "study",
-    "message": "This config help us to configure the external studies in the product launch form",
-    "value": {
-      "productList": [
-        "ec2",
-        "rstudio",
-        "nextflow",
-        "cromwell",
-        "sagemaker",
-        "ec2-igv",
-        "ec2-secure-desktop",
-        "ec2-dcv",
-        "ec2-vscode",
-        "ec2-jupyterlab",
-        "ec2-remote-desktop"
-      ]
-    },
-    "studySelectionCount": 5
   },
   {
     "key": "ebsCompatibleProducts",
@@ -1005,12 +991,26 @@
         "resource-explorer-2"
       ]
     }
-  }, {
-   key: "provisioningStatusLimits",
-   value: {
-     maxRetries: 100,
-     delay: 5000
+  }, 
+  {
+   "key": "provisioningStatusLimits",
+   "value": {
+     "maxRetries": 100,
+     "delay": 5000
    }
- }
+  },
+  {
+    "key":  "reviewWorkspaceAzure",
+    "value": {
+      "preferedReviewWorkspace": "Linux VM",
+      "defaultReviewWorkspace": "Linux VM"
 
-]
+    }
+  },
+  {
+    "key": "networkOptionsForStandardProjects",
+    "value": {
+      "enforceCustomVPC": false
+    }
+  }
+ ]
