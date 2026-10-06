@@ -35,11 +35,15 @@ It provides a pre-built catalog of products which are ready to use out of the bo
 To make the Research Gateway application available securely over SSL, you need a certificate issued by a public Certificate Authority (CA). 
 If you already have a certificate for your domain issued by a third-party CA, you can import it into ACM. [See how](https://docs.aws.amazon.com/acm/latest/userguide/import-certificate.html).
 
-If you already have a certificate for your domain issued by AWS in ACM, you can pass CertificateArn with launch stack ( #7 - #9) and skip the following step.
+Use one certificate for both the portal and the workspaces. The portal is served at the subdomain (for example `sub.mydomain.com`). Workspaces are served at hostnames under that subdomain (for example `workspace1.sub.mydomain.com`). A wildcard alone (`*.sub.mydomain.com`) does not cover the portal hostname, so the certificate must include both names. The same certificate is attached to the ALB listener, which routes `sub.mydomain.com` to the portal and `workspace1.sub.mydomain.com`-style hostnames to the workspaces.
 
-     aws acm request-certificate --domain-name www.example.com --validation-method DNS --idempotency-token 1234 --options CertificateTransparencyLoggingPreference=DISABLED
+If you already have a certificate for these names issued by AWS in ACM, you can pass CertificateArn with launch stack ( #7 - #9) and skip the following step.
 
-You will need to validate your ownership of the domain either via DNS (recommended) or via email.
+     aws acm request-certificate --domain-name sub.mydomain.com --subject-alternative-names "*.sub.mydomain.com" --validation-method DNS --idempotency-token 1234 --options CertificateTransparencyLoggingPreference=DISABLED
+
+`--domain-name` is the portal hostname. `--subject-alternative-names` adds the wildcard that covers the workspace hostnames. Quote the wildcard so the shell does not expand `*`. Replace `sub.mydomain.com` with your subdomain.
+
+You will need to validate your ownership of the domain either via DNS (recommended) or via email. ACM returns DNS validation records for both names; add those CNAME records before the certificate is issued. Pass the issued certificate ARN as CertificateArn when you create the ALB listener (#7 - #9).
 
 Fore more details on requesting a certificate, follow this [link](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)
 
