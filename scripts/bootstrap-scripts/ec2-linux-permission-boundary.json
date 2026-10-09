@@ -1,0 +1,50 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": ["s3:*"],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": ["sts:*"],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": ["kms:*"],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": ["ssm:*"],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": ["ssmmessages:*"],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": ["ec2messages:*"],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": ["sns:Publish"],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Sid": "S3FilesClientFullAccess",
+      "Effect": "Allow",
+      "Action": [
+        "s3files:ClientMount",
+        "s3files:ClientWrite",
+        "s3files:ClientRootAccess"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

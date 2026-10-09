@@ -31,7 +31,7 @@ export const handler = async (event) => {
             continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
         } while (continuationToken);	    
 
-        if (listedObjects.Contents.length === 0) {
+        if (contents.length === 0) {
             console.log('No files found in the source folder');
             return { statusCode: 404, body: 'No files found in the source folder' };
         }

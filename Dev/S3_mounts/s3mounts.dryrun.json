@@ -1,0 +1,78 @@
+[
+    {
+      "id": "DummyInternalRW",
+      "bucket": "dummy-internal",
+      "prefix": "InternalRW/",
+      "region": "us-east-2",
+      "writeable": true,
+      "readable": true,
+      "source": "S3"
+    },
+    {
+      "id": "DummyInternalRO",
+      "bucket": "dummy-internal",
+      "prefix": "InternalRO/",
+      "region": "us-east-2",
+      "writeable": false,
+      "readable": true,
+      "source": "S3"
+    },
+    {
+      "id": "DummyExternalRO",
+      "bucket": "dummy-external",
+      "prefix": "ExternalRO/",
+      "region": "us-east-2",
+      "roleArn": "arn:aws:iam::000000000000:role/dry-run",
+      "kmsArn": "arn:aws:kms:us-east-2:000000000000:key/dry-run",
+      "writeable": false,
+      "readable": true,
+      "source": "S3"
+    },
+    {
+      "id": "DummyDefaults",
+      "bucket": "dummy-defaults",
+      "prefix": "Defaults/",
+      "region": "us-east-2",
+      "source": "S3"
+    },
+    {
+      "id": "DummyUnreadable",
+      "bucket": "dummy-hidden",
+      "prefix": "Hidden/",
+      "region": "us-east-2",
+      "writeable": true,
+      "readable": false,
+      "source": "S3"
+    },
+    {
+      "id": "DummySharedRO",
+      "bucket": "dummy-shared",
+      "prefix": "SharedRO/",
+      "region": "us-east-2",
+      "writeable": false,
+      "readable": true,
+      "source": "S3Files",
+      "filesystem-id": "fs-dummy-shared"
+    },
+    {
+      "id": "DummySharedRW",
+      "bucket": "dummy-shared",
+      "prefix": "SharedRW/",
+      "region": "us-east-2",
+      "writable": true,
+      "readable": true,
+      "source": "S3Files",
+      "filesystem-id": "fs-dummy-shared"
+    },
+    {
+      "id": "DummyIngressRO",
+      "bucket": "dummy-ingress",
+      "prefix": "IngressRO/",
+      "region": "us-east-2",
+      "writeable": false,
+      "readable": true,
+      "source": "S3Files",
+      "filesystem-id": "fs-dummy-ingress"
+    }
+  ]
+  
